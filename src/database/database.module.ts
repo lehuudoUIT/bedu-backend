@@ -9,13 +9,26 @@ import { User } from 'src/entities/user.entity';
     TypeOrmModule.forRootAsync({
       useFactory: (configservice: ConfigService) => ({
         type: 'mysql',
-        host: configservice.getOrThrow('MYSQL_HOST'),
-        port: configservice.getOrThrow('MYSQL_PORT'),
-        username: configservice.getOrThrow('MYSQL_USER'),
-        password: configservice.getOrThrow('MYSQL_PASSWORD'),
-        database: configservice.getOrThrow('MYSQL_DATABASE'),
+        replication: {
+          master: {
+            host: configservice.getOrThrow('MYSQL_MASTER_HOST'),
+            port: configservice.getOrThrow('MYSQL_MASTER_PORT'),
+            username: configservice.getOrThrow('MYSQL_MASTER_USER'),
+            password: configservice.getOrThrow('MYSQL_MASTER_PASSWORD'),
+            database: configservice.getOrThrow('MYSQL_MASTER_DATABASE'),
+          },
+          slaves: [
+            {
+              host: configservice.getOrThrow('MYSQL_SLAVE_HOST'),
+              port: configservice.getOrThrow('MYSQL_SLAVE_PORT'),
+              username: configservice.getOrThrow('MYSQL_SLAVE_USER'),
+              password: configservice.getOrThrow('MYSQL_SLAVE_PASSWORD'),
+              database: configservice.getOrThrow('MYSQL_SLAVE_DATABASE'),
+            },
+          ],
+        },
         entities: [User, Comment],
-        synchronize: configservice.getOrThrow('MYSQL_SYNCHRONIZE'),
+        synchronize: configservice.getOrThrow('TYPEORM_MYSQL_SYNCHRONIZE'),
       }),
       inject: [ConfigService],
     }),

@@ -7,7 +7,7 @@ import { AuthInput, AuthResult, SignInData } from '../../utils/types';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersServices: UsersService,
+    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -20,7 +20,7 @@ export class AuthService {
   }
 
   async validateUser(input: AuthInput): Promise<SignInData | null> {
-    const user = await this.usersServices.findUserByUsername(input.username);
+    const user = await this.usersService.findUserByUsername(input.username);
 
     if (user && user.password === input.password)
       return {

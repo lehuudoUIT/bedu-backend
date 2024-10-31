@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  mysql-master:
+    image: mysql:8.0
+    container_name: mysql-master
+    command: --server-id=1 --log-bin=mysql-bin --binlog-format=row
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: bedu
+      MYSQL_USER: replication_user
+      MYSQL_PASSWORD: replication_password
+    ports:
+      - '3306:3306'
+    networks:
+      - mysql_network
+    volumes:
+      - mysql_master_data:/var/lib/mysql
+
+  mysql-slave:
+    image: mysql:8.0
+    container_name: mysql-slave
+    depends_on:
+      - mysql-master
+    command: --server-id=2 --log-bin=mysql-bin --binlog-format=row
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: bedu
+      MYSQL_USER: replication_user
+      MYSQL_PASSWORD: replication_password
+    ports:
+      - '3307:3306'
+    networks:
+      - mysql_network
+    volumes:
+      - mysql_slave_data:/var/lib/mysql
+
+networks:
+  mysql_network:
+    driver: bridge
+
+volumes:
+  mysql_master_data:
+  mysql_slave_data:

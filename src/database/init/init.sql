@@ -1,0 +1,3 @@
+CREATE USER 'bedu_user'@'%' IDENTIFIED BY '123456';
+GRANT ALL PRIVILEGES ON bedu.* TO 'bedu_user'@'%';
+FLUSH PRIVILEGES;
