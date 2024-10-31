@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/typeorm/entities/user.entity';
+import { Comment } from 'src/entities/comment.entity';
+import { User } from 'src/entities/user.entity';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { User } from 'src/typeorm/entities/user.entity';
         username: configservice.getOrThrow('MYSQL_USER'),
         password: configservice.getOrThrow('MYSQL_PASSWORD'),
         database: configservice.getOrThrow('MYSQL_DATABASE'),
-        entities: [User],
+        entities: [User, Comment],
         synchronize: configservice.getOrThrow('MYSQL_SYNCHRONIZE'),
       }),
       inject: [ConfigService],

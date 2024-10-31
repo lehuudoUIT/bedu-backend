@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { User } from './typeorm/entities/user.entity';
+import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { User } from './entities/user.entity';
+import { CommentsModule } from './modules/comments/comments.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { User } from './typeorm/entities/user.entity';
     UsersModule,
     AuthModule,
     User,
+    CommentsModule,
   ],
   controllers: [],
   providers: [],
