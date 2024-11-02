@@ -1,7 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Answer } from 'src/entities/answer.entity';
+import { Attendance } from 'src/entities/attendence.entity';
+import { Class } from 'src/entities/class.entity';
 import { Comment } from 'src/entities/comment.entity';
+import { Course } from 'src/entities/course.entity';
+import { Document } from 'src/entities/document.entity';
+import { Exam } from 'src/entities/exam.entity';
+import { Lesson } from 'src/entities/lesson.entity';
+import { Notification } from 'src/entities/notification.entity';
+import { Payment } from 'src/entities/payment.entity';
+import { Program } from 'src/entities/program.entity';
+import { Question } from 'src/entities/question.entity';
+import { Report } from 'src/entities/report.entity';
+import { Score } from 'src/entities/score.entity';
 import { User } from 'src/entities/user.entity';
 
 @Module({
@@ -27,7 +40,23 @@ import { User } from 'src/entities/user.entity';
             },
           ],
         },
-        entities: [User, Comment],
+        entities: [
+          User,
+          Comment,
+          Answer,
+          Attendance,
+          Class,
+          Course,
+          Document,
+          Exam,
+          Lesson,
+          Notification,
+          Payment,
+          Program,
+          Question,
+          Report,
+          Score,
+        ],
         synchronize: configservice.getOrThrow('TYPEORM_MYSQL_SYNCHRONIZE'),
       }),
       inject: [ConfigService],
