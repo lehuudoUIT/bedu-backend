@@ -12,10 +12,10 @@ export class Comment extends AbstractEntity<Comment> {
   @Column()
   right: number;
 
-  @Column()
+  @Column({ nullable: true })
   parentId: number;
 
-  @Column()
+  @Column({ default: false })
   isDeleted: boolean;
 
   // Many To One
