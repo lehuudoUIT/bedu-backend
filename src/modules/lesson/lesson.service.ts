@@ -20,15 +20,15 @@ export class LessonService {
     return await this.lessonRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} lesson`;
+  async findOne(id: number) {
+    return await this.lessonRepository.findOneBy({ id });
   }
 
-  update(id: number, updateLessonDto: UpdateLessonDto) {
-    return `This action updates a #${id} lesson`;
+  async update(id: number, updateLessonDto: UpdateLessonDto) {
+    return await this.lessonRepository.update({ id }, updateLessonDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} lesson`;
+  async remove(id: number) {
+    return await this.lessonRepository.delete({ id });
   }
 }

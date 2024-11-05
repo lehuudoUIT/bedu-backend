@@ -1,1 +1,5 @@
-export class CreateReportDto {}
+export class CreateReportDto {
+  userId: number;
+  totalPayment: number;
+  reportType: string;
+}
