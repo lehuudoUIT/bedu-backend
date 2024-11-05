@@ -11,5 +11,5 @@ export class Report extends AbstractEntity<Report> {
   totalPayment: number;
 
   @Column()
-  reportType: number;
+  reportType: string;
 }

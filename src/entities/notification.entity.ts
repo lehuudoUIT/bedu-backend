@@ -15,7 +15,7 @@ export class Notification extends AbstractEntity<Notification> {
   receiverId: number;
 
   @Column()
-  content: number;
+  content: string;
 
   @Column()
   options: string;

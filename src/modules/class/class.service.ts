@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { CreateClassDto } from './dtos/create-class.dto';
 import { UpdateClassDto } from './dtos/update-class.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Class } from 'src/entities/class.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ClassService {
-  create(createClassDto: CreateClassDto) {
-    return 'This action adds a new class';
+  constructor(
+    @InjectRepository(Class)
+    private readonly classRepository: Repository<Class>,
+  ) {}
+
+  async create(createClassDto: CreateClassDto) {
+    return await this.classRepository.insert(createClassDto);
   }
 
-  findAll() {
-    return `This action returns all class`;
+  async findAll() {
+    return await this.classRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} class`;
+  async findOne(id: number) {
+    return await this.classRepository.findOneBy({ id });
   }
 
-  update(id: number, updateClassDto: UpdateClassDto) {
-    return `This action updates a #${id} class`;
+  async update(id: number, updateAnswerDto: UpdateClassDto) {
+    return await this.classRepository.update({ id }, updateAnswerDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} class`;
+  async remove(id: number) {
+    return await this.classRepository.delete({ id });
   }
 }
