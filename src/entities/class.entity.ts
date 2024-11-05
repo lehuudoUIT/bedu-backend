@@ -7,10 +7,10 @@ export class Class extends AbstractEntity<Class> {
   code: string;
 
   @Column()
-  name: number;
+  name: string;
 
   @Column()
-  studyForm: number;
+  studyForm: string;
 
   @Column({ type: 'timestamp' })
   startDate: Date;

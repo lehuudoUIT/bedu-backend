@@ -35,7 +35,7 @@ export class CommentsService {
         .set({
           right: () => 'right + 2', // Tăng right lên 2 đơn vị
         })
-        .where('lessonId = :lessonId', { lessonId }) // Điều kiện comment_productId
+        .where('lessonId = :lessonId', { lessonId }) // Điều kiện comment_lessonId
         .andWhere('right >= :rightValue', { rightValue }) // Điều kiện comment_right lớn hơn hoặc bằng rightValue
         .execute();
 
@@ -45,7 +45,7 @@ export class CommentsService {
         .set({
           left: () => 'left + 2', // Tăng left lên 2 đơn vị
         })
-        .where('lessonId = :lessonId', { lessonId }) // Điều kiện comment_productId
+        .where('lessonId = :lessonId', { lessonId }) // Điều kiện comment_lessonId
         .andWhere('left > :rightValue', { rightValue }) // Điều kiện comment_right lớn hơn hoặc bằng rightValue
         .execute();
     } else {
@@ -96,9 +96,9 @@ export class CommentsService {
           'comment.left',
           'comment.right',
           'comment.content',
-          'comment.parentId',
+          'comment.lessonId',
         ])
-        .where('comment.productId = :lessonId', { lessonId })
+        .where('comment.lessonId = :lessonId', { lessonId })
         .andWhere('comment.parentId = :parentCommentId', { parentCommentId })
         .orderBy('comment.left', 'ASC')
         .getMany();

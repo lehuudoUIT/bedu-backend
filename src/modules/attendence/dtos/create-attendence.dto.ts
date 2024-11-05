@@ -1,1 +1,4 @@
-export class CreateAttendenceDto {}
+export class CreateAttendenceDto {
+  lessonId: number;
+  userId: number;
+}

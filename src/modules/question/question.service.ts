@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { CreateQuestionDto } from './dtos/create-question.dto';
 import { UpdateQuestionDto } from './dtos/update-question.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Question } from 'src/entities/question.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class QuestionService {
-  create(createQuestionDto: CreateQuestionDto) {
-    return 'This action adds a new question';
+  constructor(
+    @InjectRepository(Question)
+    private readonly questionRepository: Repository<Question>,
+  ) {}
+
+  async create(createQuestionDto: CreateQuestionDto) {
+    return await this.questionRepository.insert(createQuestionDto);
   }
 
-  findAll() {
-    return `This action returns all question`;
+  async findAll() {
+    return await this.questionRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} question`;
+  async findOne(id: number) {
+    return await this.questionRepository.findOneBy({ id });
   }
 
-  update(id: number, updateQuestionDto: UpdateQuestionDto) {
-    return `This action updates a #${id} question`;
+  async update(id: number, updateQuestionDto: UpdateQuestionDto) {
+    return await this.questionRepository.update({ id }, updateQuestionDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} question`;
+  async remove(id: number) {
+    return await this.questionRepository.delete({ id });
   }
 }
