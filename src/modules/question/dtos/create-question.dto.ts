@@ -4,5 +4,4 @@ export class CreateQuestionDto {
   score: number;
   content: string;
   attach: string;
-  answer: string;
 }

@@ -21,9 +21,6 @@ export class Question extends AbstractEntity<Question> {
   @Column()
   attach: string;
 
-  @Column()
-  answer: string;
-
   @ManyToMany(
     () => Exam, 
     (exam) => exam.questions,
@@ -37,5 +34,8 @@ export class Question extends AbstractEntity<Question> {
 
   @OneToMany(() => Answer, (answer) => answer.question)
   studentAnswer: Answer[];
+
+  @OneToMany(() => Answer, (answer) => answer.question)
+  correctAnswer: Answer[];
   
 }

@@ -33,4 +33,7 @@ export class Answer extends AbstractEntity<Answer> {
     { eager: true }
   )
   question: Question;
-}
+
+  @ManyToOne(() => Question, (question) => question.question)
+  correctAnswer: Question;
+} 
