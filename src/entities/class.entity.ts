@@ -28,6 +28,9 @@ export class Class extends AbstractEntity<Class> {
   timePerLesson: number;
 
   @Column()
+  type: string;
+
+  @Column()
   price: number;
 
   @Column()

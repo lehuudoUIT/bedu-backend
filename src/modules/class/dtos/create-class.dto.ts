@@ -6,6 +6,7 @@ export class CreateClassDto {
   description: string;
   lessonQuality: number;
   timePerLesson: number;
+  type: string;
   price: number;
   isPublic: boolean;
 }

@@ -13,12 +13,12 @@ export class UserClass extends AbstractEntity<UserClass> {
         (user) => user.userClass,
         { eager: true }
     )
-    user: UserClass;
+    user: User;
 
     @ManyToOne(
         () => Class, 
         (class_) => class_.class,
         { eager: true }
     )
-    class: UserClass;
+    class: Class;
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe } from '@nestjs/common';
 import { UserProgramService } from './user_program.service';
 import { CreateUserProgramDto } from './dto/create-user_program.dto';
 import { UpdateUserProgramDto } from './dto/update-user_program.dto';
@@ -7,27 +7,39 @@ import { UpdateUserProgramDto } from './dto/update-user_program.dto';
 export class UserProgramController {
   constructor(private readonly userProgramService: UserProgramService) {}
 
-  @Post()
+  @Post('new')
   create(@Body() createUserProgramDto: CreateUserProgramDto) {
     return this.userProgramService.create(createUserProgramDto);
   }
 
-  @Get()
-  findAll() {
-    return this.userProgramService.findAll();
+  @Get("all")
+  findAll(
+    @Query ('page', ParseIntPipe) page: number = 1,
+    @Query ('limit', ParseIntPipe) limit: number = 10
+  ) {
+    return this.userProgramService.findAll(page, limit);
   }
 
-  @Get(':id')
+  @Get("all/program/:id")
+  findAllByProgram(
+    @Param('id', ParseIntPipe) id: number,
+    @Query ('page', ParseIntPipe) page: number = 1,
+    @Query ('limit', ParseIntPipe) limit: number = 10
+  ) {
+    return this.userProgramService.findAllByProgramId(id, page, limit);
+  }                                          
+
+  @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.userProgramService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('item/:id')
   update(@Param('id') id: string, @Body() updateUserProgramDto: UpdateUserProgramDto) {
     return this.userProgramService.update(+id, updateUserProgramDto);
   }
 
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.userProgramService.remove(+id);
   }
