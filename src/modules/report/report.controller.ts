@@ -21,7 +21,7 @@ export class ReportController {
     return this.reportService.create(createReportDto);
   }
 
-  @Get('all')
+  @Get('all/:type')
   findAll(
     @Param('page', ParseIntPipe) page: number = 1,
     @Param('limit', ParseIntPipe) limit: number = 10,
