@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dtos/create-payment.dto';
@@ -15,27 +16,30 @@ import { UpdatePaymentDto } from './dtos/update-payment.dto';
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-  @Post()
+  @Post('new')
   create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentService.create(createPaymentDto);
   }
 
-  @Get()
-  findAll() {
+  @Get('all')
+  findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
     return this.paymentService.findAll();
   }
 
-  @Get(':id')
+  @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.paymentService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('item/:id')
   update(@Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
     return this.paymentService.update(+id, updatePaymentDto);
   }
 
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.paymentService.remove(+id);
   }

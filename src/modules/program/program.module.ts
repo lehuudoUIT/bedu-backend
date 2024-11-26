@@ -8,5 +8,6 @@ import { Program } from 'src/entities/program.entity';
   imports: [TypeOrmModule.forFeature([Program])],
   controllers: [ProgramController],
   providers: [ProgramService],
+  exports: [ProgramService],
 })
 export class ProgramModule {}
