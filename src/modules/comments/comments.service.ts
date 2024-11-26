@@ -67,12 +67,12 @@ export class CommentsService {
     rightValue += 1;
 
     const new_comment = await this.commentRepository.insert({
-      lessonId,
-      userId,
+     // lessonId,
+      //userId,
       content,
       left: leftValue,
       right: rightValue,
-      parentId: parentCommentId,
+      //parentId: parentCommentId,
     });
 
     return new_comment;

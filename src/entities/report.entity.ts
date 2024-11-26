@@ -1,15 +1,20 @@
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity({ name: 'reports' })
 export class Report extends AbstractEntity<Report> {
-  //Many to one
-  @Column()
-  userId: number;
-
+  
   @Column()
   totalPayment: number;
 
   @Column()
   reportType: string;
+
+  @ManyToOne(
+    () => User, 
+    (user) => user.report,
+    { eager: true }
+  )
+  user: User;
 }

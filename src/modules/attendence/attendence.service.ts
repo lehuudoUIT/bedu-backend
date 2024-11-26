@@ -12,9 +12,9 @@ export class AttendenceService {
     private readonly attendanceRepository: Repository<Attendance>,
   ) {}
 
-  async create(createAnswerDto: CreateAttendenceDto) {
-    return await this.attendanceRepository.insert(createAnswerDto);
-  }
+  // async create(createAnswerDto: CreateAttendenceDto) {
+  //   return await this.attendanceRepository.insert(createAnswerDto);
+  // }
 
   async findAll() {
     return await this.attendanceRepository.find();
@@ -24,9 +24,9 @@ export class AttendenceService {
     return await this.attendanceRepository.findOneBy({ id });
   }
 
-  async update(id: number, updateAnswerDto: UpdateAttendenceDto) {
-    return await this.attendanceRepository.update({ id }, updateAnswerDto);
-  }
+  // async update(id: number, updateAnswerDto: UpdateAttendenceDto) {
+  //   return await this.attendanceRepository.update({ id }, updateAnswerDto);
+  // }
 
   async remove(id: number) {
     return await this.attendanceRepository.delete({ id });

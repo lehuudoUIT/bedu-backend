@@ -1,5 +1,7 @@
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToMany, OneToMany } from 'typeorm';
+import { Program } from './program.entity';
+import { Lesson } from './lesson.entity';
 
 @Entity({ name: 'courses' })
 export class Course extends AbstractEntity<Course> {
@@ -29,4 +31,13 @@ export class Course extends AbstractEntity<Course> {
 
   @Column()
   isPublic: boolean;
+
+  @ManyToMany(
+    () => Program, 
+    (program) => program.course,
+  )
+  program: Program[];
+
+  @OneToMany(() => Lesson, (lesson) => lesson.course)
+  lesson: Lesson[];
 }

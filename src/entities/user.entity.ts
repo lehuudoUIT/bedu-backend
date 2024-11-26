@@ -1,5 +1,15 @@
+import { Payment } from './payment.entity';
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { UserProgram } from './user_program.entity';
+import { UserClass } from './user_class.entity';
+import { Score } from './score.entity';
+import { Attendance } from './attendence.entity';
+import {Comment} from './comment.entity';
+import { Lesson } from './lesson.entity';
+import { Answer } from './answer.entity';
+import { Notification } from './notification.entity';
+import {Report} from './report.entity';
 
 @Entity({ name: 'users' })
 export class User extends AbstractEntity<User> {
@@ -7,7 +17,7 @@ export class User extends AbstractEntity<User> {
   name: string;
 
   @Column()
-  sex: string;
+  gender: string;
 
   @Column()
   birthday: string;
@@ -32,4 +42,37 @@ export class User extends AbstractEntity<User> {
 
   @Column()
   password: string;
+
+  @OneToMany(() => UserProgram, (userProgram) => userProgram.user)
+  UserProgram: UserProgram[];
+
+  @OneToMany(() => UserClass, (userClass) => userClass.user)  
+  userClass: UserClass[];
+
+  @OneToMany(() => Score, (score) => score.user)
+  score: Score[];
+
+  @OneToMany(() => Attendance, (attendance) => attendance.user)
+  attendance: Attendance[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comment: Comment[];
+
+  @OneToMany(() => Lesson, (lesson) => lesson.teacher)
+  lesson: Lesson[];
+
+  @OneToMany(() => Answer, (answer) => answer.user)
+  answer: Answer[];
+
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payment: Payment[];
+
+  @OneToMany(() => Notification, (notification) => notification.receiver)
+  notificationReceiver : Notification[];
+
+  @OneToMany(() => Notification, (notification) => notification.sender)
+  notificationSender: Notification[];
+
+  @OneToMany(() => Report, (report) => report.user)
+  report: Report[];
 }

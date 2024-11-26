@@ -1,5 +1,8 @@
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { UserClass } from './user_class.entity';
+import { Payment } from './payment.entity';
+import { Lesson } from './lesson.entity';
 
 @Entity({ name: 'classes' })
 export class Class extends AbstractEntity<Class> {
@@ -29,4 +32,13 @@ export class Class extends AbstractEntity<Class> {
 
   @Column()
   isPublic: boolean;
+
+  @OneToMany(() => UserClass, (userClass) => userClass.class)
+  class: Class[];
+
+  @OneToMany(() => Payment, (payment) => payment.class)
+  payment: Payment[];
+
+  @OneToMany(() => Lesson, (lesson) => lesson.class)
+  lesson: Lesson[];
 }

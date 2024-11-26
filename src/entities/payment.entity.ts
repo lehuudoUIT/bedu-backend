@@ -1,19 +1,11 @@
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
+import { User } from './user.entity';
+import { Program } from './program.entity';
+import { Class } from './class.entity';
 
 @Entity({ name: 'payments' })
 export class Payment extends AbstractEntity<Payment> {
-  // Many - to - One
-  @Column()
-  userId: number;
-
-  // Many - to - One
-  @Column()
-  programId: number;
-
-  // Many - to - One
-  @Column()
-  classId: number;
 
   @Column()
   amount: number;
@@ -23,4 +15,26 @@ export class Payment extends AbstractEntity<Payment> {
 
   @Column()
   transactionId: string;
+
+  @ManyToOne(
+    () => User, 
+    (user) => user.payment,
+    { eager: true }
+  )
+  user: User;
+
+  @ManyToOne(
+    () => Program, 
+    (program) => program.payment,
+    { eager: true }
+  )
+  program: Program;
+
+  @ManyToOne(
+    () => Class, 
+    (class_) => class_.payment,
+    { eager: true }
+  )
+  class: Class;
+  
 }

@@ -15,10 +15,10 @@ import { UpdateAttendenceDto } from './dtos/update-attendence.dto';
 export class AttendenceController {
   constructor(private readonly attendenceService: AttendenceService) {}
 
-  @Post()
-  create(@Body() createAttendenceDto: CreateAttendenceDto) {
-    return this.attendenceService.create(createAttendenceDto);
-  }
+  // @Post()
+  // create(@Body() createAttendenceDto: CreateAttendenceDto) {
+  //   return this.attendenceService.create(createAttendenceDto);
+  // }
 
   @Get()
   findAll() {
@@ -30,13 +30,13 @@ export class AttendenceController {
     return this.attendenceService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateAttendenceDto: UpdateAttendenceDto,
-  ) {
-    return this.attendenceService.update(+id, updateAttendenceDto);
-  }
+  // @Patch(':id')
+  // update(
+  //   @Param('id') id: string,
+  //   @Body() updateAttendenceDto: UpdateAttendenceDto,
+  // ) {
+  //   return this.attendenceService.update(+id, updateAttendenceDto);
+  // }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

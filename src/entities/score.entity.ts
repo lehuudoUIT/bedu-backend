@@ -1,19 +1,24 @@
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToMany, ManyToOne } from 'typeorm';
+import { User } from './user.entity';
+import { Exam } from './exam.entity';
 
 @Entity({ name: 'scores' })
 export class Score extends AbstractEntity<Score> {
   @Column()
   totalScore: number;
 
-  //Many to one
-  @Column()
-  userId: number;
-
-  //Many to one
-  @Column()
-  examId: number;
-
   @Column()
   description: string;
+
+  @ManyToOne(() => User, (user) => user.score)
+  user: User;
+
+  @ManyToOne(
+    () => Exam, 
+    (exam) => exam.score,
+    { eager: true }
+  )
+  exam: Exam;
+
 }

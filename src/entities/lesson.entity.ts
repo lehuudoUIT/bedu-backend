@@ -1,5 +1,12 @@
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { LessonDocument } from './lesson_document.entity';
+import { User } from './user.entity';
+import { Class } from './class.entity';
+import { Course } from './course.entity';
+import {Comment} from './comment.entity';
+import { Attendance } from './attendence.entity';
+import { Exam } from './exam.entity';
 
 @Entity({ name: 'lessons' })
 export class Lesson extends AbstractEntity<Lesson> {
@@ -15,19 +22,44 @@ export class Lesson extends AbstractEntity<Lesson> {
   @Column()
   videoUrl: string;
 
-  // Many - to - One
-  @Column()
-  classId: number;
+  @OneToMany(() => LessonDocument, (lessonDocument) => lessonDocument.lesson)
+  lessonDocument: LessonDocument[];
 
-  // Many - to - One
-  @Column()
-  courseId: number;
+  @ManyToOne(
+    () => User, 
+    (teacher) => teacher.lesson,
+    { eager: true }
+  )
+  teacher: User;
 
-  // Many - to - One
-  @Column()
-  examId: number;
+  @ManyToOne(
+    () => Class, 
+    (class_) => class_.lesson,
+    { eager: true }
+  )
+  class: Class;
 
-  // Many - to - One
-  @Column()
-  teacherId: number;
-}
+  @OneToMany(
+    () => Course, 
+    (course) => course.lesson,
+    { eager: true }
+  )
+  course: Course;
+
+  @OneToMany(
+    () => Comment,
+    (comment) => comment.lesson
+  ) 
+  comment: Comment;
+
+  @OneToMany(() => Attendance, (attendance) => attendance.lesson)
+  attendance: Attendance[];
+
+  @ManyToOne(
+    () => Exam, 
+    (exam) => exam.lesson,
+    { eager: true }
+  )
+  exam: Exam;
+
+} 
