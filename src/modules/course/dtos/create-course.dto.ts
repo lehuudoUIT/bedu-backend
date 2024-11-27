@@ -7,5 +7,5 @@ export class CreateCourseDto {
   lessonQuantity: number;
   timePerLesson: number;
   price: number;
-  isPublic: boolean;
+  programId: number[];
 }

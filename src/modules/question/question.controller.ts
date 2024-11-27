@@ -29,6 +29,15 @@ export class QuestionController {
     return this.questionService.findAll(page, limit);
   }
 
+  @Get('all/type/:type')
+  findAllByType(
+    @Param('type') type: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return this.questionService.findAllByType(page, limit, type);
+  } 
+
   @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.questionService.findOne(+id);

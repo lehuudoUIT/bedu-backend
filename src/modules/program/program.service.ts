@@ -5,26 +5,36 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Program } from 'src/entities/program.entity';
 import { ResponseDto } from './common/response.interface';
+import { CourseService } from '../course/course.service';
+import { Course } from 'src/entities/course.entity';
 
 @Injectable()
 export class ProgramService {
   constructor(
     @InjectRepository(Program)
     private readonly programRepository: Repository<Program>,
+    private readonly courseService: CourseService
   ) {}
 
   async create(
     createProgramDto: CreateProgramDto
   ): Promise<ResponseDto> {
+    
     try {
-      const program = this.programRepository.create(createProgramDto);
-      if (!program) {
-        return {
-          statusCode: 500,
-          message: 'Failed to create new program entity'
-        }
+      let course: Course[] = [];
+      for(let i = 0; i < createProgramDto.courseId.length; i++) {
+        const courseResponse = await this.courseService.findOne(createProgramDto.courseId[i]);
+        const  courseItem = Array.isArray(courseResponse.data)
+                        ? courseResponse.data[0]
+                        : courseResponse.data;
+        course[i] = courseItem;
       }
-      const result = await this.programRepository.save(program);
+
+      const newProgram = this.programRepository.create({
+        ...createProgramDto,
+        course: course
+      });
+      const result = await this.programRepository.save(newProgram);
       return {
         statusCode: 201,
         message: 'Create program successfully',
@@ -33,7 +43,8 @@ export class ProgramService {
     } catch (error) {
       return {
         statusCode: 500,
-        message: 'Failed to create program'
+        message: error.message,
+        data: null
       }
     }
   }
@@ -46,6 +57,7 @@ export class ProgramService {
     try {
       const programs = await this.programRepository
                               .createQueryBuilder('program')
+                              .leftJoinAndSelect('program.course', 'course')
                               .where('program.type = :type', { type })
                               .andWhere('program.isActive = true')
                               .andWhere('program.deletedAt IS NULL')
@@ -110,7 +122,21 @@ export class ProgramService {
       const program = Array.isArray(programResponse.data) 
                       ? programResponse.data[0] 
                       : programResponse.data;
-      const newProgram = { ...program, ...updateProgramDto };
+      
+      let course: Course[] = [];
+      for(let i = 0; i < updateProgramDto.courseId.length; i++) {
+        const courseResponse = await this.courseService.findOne(updateProgramDto.courseId[i]);
+        const  courseItem = Array.isArray(courseResponse.data)
+                        ? courseResponse.data[0]
+                        : courseResponse.data;
+        course[i] = courseItem;
+      }
+
+      const newProgram = this.programRepository.create({
+        ...program,
+        ...updateProgramDto,
+        course
+      })
       const updatedProgram = await this.programRepository
                                     .save(newProgram);
       
@@ -152,7 +178,6 @@ export class ProgramService {
         message: 'Delete program successfully',
         data: result
       }
-
     } catch (error) {
       return {
         statusCode: 500,
@@ -161,4 +186,6 @@ export class ProgramService {
       }
     }
   }
+
+
 }

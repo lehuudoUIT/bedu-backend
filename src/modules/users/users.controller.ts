@@ -30,7 +30,7 @@ export class UsersController {
     return await this.usersService.createUser(createUserDto);
   }
 
-  @Get('user/:id')
+  @Get('item/:id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.usersService.findUserById(id);
   }

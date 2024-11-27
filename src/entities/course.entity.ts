@@ -29,12 +29,13 @@ export class Course extends AbstractEntity<Course> {
   @Column()
   price: number;
 
-  @Column()
-  isPublic: boolean;
-
   @ManyToMany(
     () => Program, 
     (program) => program.course,
+    {
+      cascade: ['remove'] , // Thực hiện các thao tác cascade
+      onDelete: 'CASCADE', // Xóa liên kết khi xóa Program
+    }
   )
   program: Program[];
 

@@ -31,7 +31,7 @@ export class Program extends AbstractEntity<Program> {
   @ManyToMany(
     () => Course, 
     (course) => course.program, 
-    { eager: true }
+    {eager: true} 
   )
   @JoinTable({
     name: "programs_courses",

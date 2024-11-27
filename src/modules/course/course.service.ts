@@ -1,23 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateCourseDto } from './dtos/create-course.dto';
 import { UpdateCourseDto } from './dtos/update-course.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Course } from 'src/entities/course.entity';
 import { Repository } from 'typeorm';
 import { ResponseDto } from './common/response.interface';
+import { Program } from 'src/entities/program.entity';
+import { ProgramService } from '../program/program.service';
 
 @Injectable()
 export class CourseService {
   constructor(
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @Inject(forwardRef(() => ProgramService))
+    private readonly programService: ProgramService
   ) {}
 
   async create(
     createClassDto: CreateCourseDto
   ): Promise<ResponseDto> {
     try {
-      const course = await this.courseRepository.create(createClassDto);
+      let program: Program[] = [];
+      for (let i = 0; i < createClassDto.programId.length; i++) {
+        const programResponse = await this.programService.findOne(createClassDto.programId[i]);
+        const programItem = Array.isArray(programResponse.data)
+          ? programResponse.data[0]
+          : programResponse.data;
+        program[i] = programItem;
+      }
+      const course = await this.courseRepository.create({
+        ...createClassDto,
+        program
+      });
       const result = await this.courseRepository.save(course);
       return {
         statusCode: 201,
@@ -37,53 +52,69 @@ export class CourseService {
     page: number = 1,
     limit: number = 10,
   ) {
-    const course = await this.courseRepository
+    try {
+      const course = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
                               .where('course.isActive = :isActive', { isActive: true })
                               .orderBy('course.id', 'DESC')
                               .skip((page - 1) * limit)
                               .take(limit)
-                              .getMany();
-    if (course.length === 0) {
+                                .getMany();
+      if (course.length === 0) {
+        return {
+          statusCode: 404,
+          message: "Courses not found",
+          data: null
+        }
+      }
       return {
-        statusCode: 404,
-        message: "Courses not found",
+        statusCode: 200,
+        message: "Retrieve courses information successfully",
+        data: course
+      }
+    } catch(error) {
+      return {
+        statusCode: 500,
+        message: error.message,
         data: null
       }
-    }
-    return {
-      statusCode: 200,
-      message: "Retrieve courses information successfully",
-      data: course
     }
   }
 
   async findAllByType(
-    type: string = "",
+    type: string,
     page: number = 1,
     limit: number = 10,
   ) {
-    const course = await this.courseRepository
+    try {
+      const course = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
                               .andWhere('course.isActive = :isActive', { isActive: true })
-                              .andWhere('course.type = :type', { type })
+                              .andWhere('course.courseType = :type', { type })
                               .orderBy('course.id', 'DESC')
                               .skip((page - 1) * limit)
                               .take(limit)
                               .getMany();
-    if (course.length === 0) {
+      if (course.length === 0) {
+        return {
+          statusCode: 404,
+          message: "Courses not found",
+          data: null
+        }
+      }
       return {
-        statusCode: 404,
-        message: "Courses not found",
+        statusCode: 200,
+        message: "Retrieve courses information successfully",
+        data: course
+      }
+    } catch(error) {
+      return {
+        statusCode: 500,
+        message: error.message,
         data: null
       }
-    }
-    return {
-      statusCode: 200,
-      message: "Retrieve courses information successfully",
-      data: course
     }
   }
 
@@ -91,11 +122,13 @@ export class CourseService {
     id: number
   ): Promise<ResponseDto> {
     try {
-      const course = await this.courseRepository.findOneBy({
-        id,
-        deletedAt: null, 
-        isActive: true
-      })
+      const course = await this.courseRepository 
+                                .createQueryBuilder('course')
+                                .leftJoinAndSelect('course.program', 'program')
+                                .where('course.id = :id', { id })
+                                .andWhere('course.deletedAt IS NULL')
+                                .andWhere('course.isActive = :isActive', { isActive: true })
+                                .getMany();
       if (!course) {
         return {
           statusCode: 404,
@@ -111,7 +144,7 @@ export class CourseService {
     } catch (error) {
       return {
         statusCode: 500,
-        message: "Failed to retrieve course information",
+        message: error.message,
         data: null
       }
     }
@@ -119,7 +152,7 @@ export class CourseService {
 
   async update(
     id: number, 
-    updateAnswerDto: UpdateCourseDto
+    updateCourseDto: UpdateCourseDto
   ): Promise<ResponseDto> {
     try {
       const courseResponse = await this.findOne(id);
@@ -133,10 +166,22 @@ export class CourseService {
       const course = Array.isArray(courseResponse.data) 
                       ? courseResponse.data[0] 
                       : courseResponse.data;
+      
+      let program: Program[] = [];
+      for (let i = 0; i < updateCourseDto.programId.length; i++) {
+        const programResponse = await this.programService.findOne(updateCourseDto.programId[i]);
+        const programItem = Array.isArray(programResponse.data)
+          ? programResponse.data[0]
+          : programResponse.data;
+        program[i] = programItem;
+      }
 
-      const newCourse =  this.courseRepository.create({
+      let newCourse;
+
+      newCourse =  this.courseRepository.create({
         ...course,
-        ...updateAnswerDto
+        ...updateCourseDto,
+        program
       })
 
       const result = await this.courseRepository.save(newCourse);
@@ -149,7 +194,7 @@ export class CourseService {
     } catch(error) { 
       return {
         statusCode: 500,
-        message: "Failed to update course",
+        message: error.message,
         data: null
       }
     }
@@ -185,7 +230,7 @@ export class CourseService {
     } catch (error) {
       return {
         statusCode: 500,
-        message: "Failed to delete course",
+        message: error.message,
         data: null
       }
     }

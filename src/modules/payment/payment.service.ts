@@ -24,13 +24,6 @@ export class PaymentService {
   ): Promise<ResponseDto> {
     try {
       const userResponse = await this.userService.findUserById(createPaymentDto.userId);
-      if (userResponse.statusCode !== 200) {
-        return {
-          statusCode: 200,
-          message: "Failed to create payment information because user is not found",
-          data: null
-        }
-      }
       const user = Array.isArray(userResponse.data)
                     ? userResponse.data[0]
                     : userResponse.data;
@@ -48,17 +41,17 @@ export class PaymentService {
                       : programResponse.data;
 
       const classResponse = await this.classService.findOne(createPaymentDto.classId);
-      if (classResponse.statusCode !== 200) {
-        return {
-          statusCode: 200,
-          message: "Failed to create payment information because class is not found",
-          data: null
-        }
-      }
       const classData = Array.isArray(classResponse.data)
                         ? classResponse.data[0]
                         : classResponse.data;
 
+      if (classResponse.statusCode !== 200 && programResponse.statusCode !== 200) {
+        return {
+          statusCode: 404,
+          message: "Program or class information is not found",
+          data: null
+        }
+      }
       const payment = this.paymentRepository.create({
         ...createPaymentDto,
         user: user,
@@ -180,22 +173,15 @@ export class PaymentService {
                     : userResponse.data;
       
       const programResponse = await this.programService.findOne(programId);
-      if (programResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Program not found",
-          data: null
-        }
-      }
       const program = Array.isArray(programResponse.data)
                       ? programResponse.data[0]
                       : programResponse.data;
       
       const classResponse = await this.classService.findOne(classId);
-      if (classResponse.statusCode !== 200) {
+      if (classResponse.statusCode !== 200 && programResponse.statusCode !== 200) {
         return {
           statusCode: 404,
-          message: "Class not found",
+          message: "Program or class information is not found",
           data: null
         }
       }

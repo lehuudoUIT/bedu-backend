@@ -21,4 +21,4 @@ export class Score extends AbstractEntity<Score> {
   )
   exam: Exam;
 
-}
+} 
