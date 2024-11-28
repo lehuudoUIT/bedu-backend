@@ -31,10 +31,7 @@ export class Class extends AbstractEntity<Class> {
   type: string;
 
   @Column()
-  price: number;
-
-  @Column()
-  isPublic: boolean;
+  price: number; 
 
   @OneToMany(() => UserClass, (userClass) => userClass.class)
   class: Class[];

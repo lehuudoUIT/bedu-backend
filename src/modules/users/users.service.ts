@@ -70,9 +70,24 @@ export class UsersService {
     }
   }
 
-  async createUser(createUserDto: CreateUserDto) {
-    const newUser = this.userRepository.create(createUserDto);
-    return await this.userRepository.save(newUser);
+  async createUser(
+    createUserDto: CreateUserDto
+  ): Promise<ResponseDto> {
+    try {
+      const user = this.userRepository.create(createUserDto);
+      await this.userRepository.save(user);
+      return {
+        statusCode: 201,
+        message: "Create user successfully",
+        data: user
+      }
+    } catch (error) {
+      return {
+        statusCode: 500,
+        message: error.message,
+        data: null
+      }
+    }
   }
 
   async findUserByUsername(

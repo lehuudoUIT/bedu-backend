@@ -13,7 +13,7 @@ import { ExamService } from './exam.service';
 import { CreateExamDto } from './dtos/create-exam.dto';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 
-@Controller('exam')
+@Controller('exams')
 export class ExamController {
   constructor(private readonly examService: ExamService) {}
 

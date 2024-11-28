@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { AttendenceService } from './attendence.service';
 import { CreateAttendenceDto } from './dtos/create-attendence.dto';
@@ -15,30 +16,33 @@ import { UpdateAttendenceDto } from './dtos/update-attendence.dto';
 export class AttendenceController {
   constructor(private readonly attendenceService: AttendenceService) {}
 
-  // @Post()
-  // create(@Body() createAttendenceDto: CreateAttendenceDto) {
-  //   return this.attendenceService.create(createAttendenceDto);
-  // }
+  @Post('new')
+  create(@Body() createAttendenceDto: CreateAttendenceDto) {
+    return this.attendenceService.create(createAttendenceDto);
+  }
 
-  @Get()
-  findAll() {
+  @Get('all')
+  findAll(
+    @Query ('page') page: number = 1,
+    @Query ('limit') limit: number = 10,
+  ) {
     return this.attendenceService.findAll();
   }
 
-  @Get(':id')
+  @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.attendenceService.findOne(+id);
   }
 
-  // @Patch(':id')
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() updateAttendenceDto: UpdateAttendenceDto,
-  // ) {
-  //   return this.attendenceService.update(+id, updateAttendenceDto);
-  // }
+  @Patch('item/:id')
+  update(
+    @Param('id') id: string,
+    @Body() updateAttendenceDto: UpdateAttendenceDto,
+  ) {
+    return this.attendenceService.update(+id, updateAttendenceDto);
+  }
 
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.attendenceService.remove(+id);
   }

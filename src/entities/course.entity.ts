@@ -33,8 +33,8 @@ export class Course extends AbstractEntity<Course> {
     () => Program, 
     (program) => program.course,
     {
-      cascade: ['remove'] , // Thực hiện các thao tác cascade
-      onDelete: 'CASCADE', // Xóa liên kết khi xóa Program
+      cascade: ['remove'] , 
+      onDelete: 'CASCADE', 
     }
   )
   program: Program[];

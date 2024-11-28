@@ -3,7 +3,7 @@ import { UserProgramService } from './user_program.service';
 import { CreateUserProgramDto } from './dto/create-user_program.dto';
 import { UpdateUserProgramDto } from './dto/update-user_program.dto';
 
-@Controller('user-program')
+@Controller('users_programs')
 export class UserProgramController {
   constructor(private readonly userProgramService: UserProgramService) {}
 
@@ -27,8 +27,17 @@ export class UserProgramController {
     @Query ('limit', ParseIntPipe) limit: number = 10
   ) {
     return this.userProgramService.findAllByProgramId(id, page, limit);
-  }                                          
-
+  }   
+  
+  @Get("all/user/:id")
+  findAllByUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Query ('page', ParseIntPipe) page: number = 1,
+    @Query ('limit', ParseIntPipe) limit: number = 10
+  ) {
+    return this.userProgramService.findAllByUserId(id, page, limit);
+  }
+  
   @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.userProgramService.findOne(+id);

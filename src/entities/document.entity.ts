@@ -20,9 +20,6 @@ export class Document extends AbstractEntity<Document> {
   @Column()
   attachFile: string;
 
-  @Column()
-  isPublic: boolean;
-
   @OneToMany(
     () => LessonDocument, 
     (lessonDocument) => lessonDocument.document)

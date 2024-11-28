@@ -140,6 +140,45 @@ export class UserProgramService {
     }
   }
 
+  async findAllByUserId(
+    userId: number,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ResponseDto> {
+    try {
+      const enrollment = await this.userProgramRepository
+                                  .createQueryBuilder('user_program')
+                                  .leftJoinAndSelect('user_program.user', 'user')
+                                  .leftJoinAndSelect('user_program.program', 'program')
+                                  .where('user_program.userId = :userId', { userId })
+                                  .andWhere('user_program.isActive = 1')
+                                  .andWhere('user_program.deletedAt is null')
+                                  .orderBy('user_program.createdAt', 'DESC')
+                                  .skip((page - 1) * limit)
+                                  .take(limit)
+                                  .getMany();
+      if (enrollment.length === 0) {
+        return {
+          statusCode: 404,
+          message: 'Program registration information not found',
+          data: null
+        }
+      }
+      return {
+        statusCode: 200,
+        message: 'Get program registration information by userId successfully',
+        data: enrollment
+      }
+      
+    } catch(error) {
+      return {
+        statusCode: 500,
+        message: 'Failed to get program registration information by userId',
+        data: null
+      }
+    }
+  }
+
   async findOne(
     id: number
   ): Promise<ResponseDto> {

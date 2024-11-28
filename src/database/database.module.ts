@@ -19,7 +19,6 @@ import { Score } from 'src/entities/score.entity';
 import { User } from 'src/entities/user.entity';
 import { UserClass } from 'src/entities/user_class.entity';
 import { UserProgram } from 'src/entities/user_program.entity';
-
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({

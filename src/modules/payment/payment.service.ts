@@ -85,7 +85,7 @@ export class PaymentService {
                         .leftJoinAndSelect('payment.program', 'program')
                         .leftJoinAndSelect('payment.class', 'class')
                         .where('payment.deletedAt IS NULL')
-                        .where('user.isActivated = true')
+                        .where('payment.isActive = true')
                         .orderBy('payment.createdAt', 'DESC')
                         .skip((page - 1) * limit)
                         .take(limit)
@@ -105,7 +105,7 @@ export class PaymentService {
     }catch (error) {
       return {
         statusCode: 500,
-        message: "Failed to retrieve payments information",
+        message: error.message,
         data: null
       }
     }

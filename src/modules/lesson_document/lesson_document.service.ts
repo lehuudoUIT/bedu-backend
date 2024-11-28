@@ -3,7 +3,7 @@ import { CreateLessonDocumentDto } from './dto/create-lesson_document.dto';
 import { UpdateLessonDocumentDto } from './dto/update-lesson_document.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessonDocument } from 'src/entities/lesson_document.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { LessonService } from '../lesson/lesson.service';
 import { DocumentService } from '../document/document.service';
 import { ResponseDto } from './common/response.interface';
@@ -103,11 +103,11 @@ export class LessonDocumentService {
   async findOne(id: number): Promise<ResponseDto> {
     try {
       const lessonDocumentResponse = await this.lessonDocumentRepository
-                                                .findOneBy({
-                                                  id,
-                                                  deletedAt: null,
-                                                  isActive: true,
-                                                })
+                                              .createQueryBuilder('lessonDocument')
+                                              .where('lessonDocument.id = :id', { id })
+                                              .andWhere('lessonDocument.deletedAt IS NULL')
+                                              .andWhere('lessonDocument.isActive = :isActive', { isActive: true })
+                                              .getOne();
       if (!lessonDocumentResponse) {
         return {
           message: "Lesson document not found",

@@ -7,11 +7,14 @@ import { Question } from './question.entity';
 @Entity({ name: 'answer' })
 export class Answer extends AbstractEntity<Answer> {
 
-  @Column()
-  isCorrect: boolean;
+  // @Column()
+  // isCorrect: boolean;
 
   @Column()
   points: number;
+
+  @Column()
+  content: string;
 
   @ManyToOne(
     () => User, 
@@ -34,6 +37,8 @@ export class Answer extends AbstractEntity<Answer> {
   )
   question: Question;
 
-  @ManyToOne(() => Question, (question) => question.question)
-  correctAnswer: Question;
+  // @ManyToOne(
+  //   () => Question, 
+  //   (question) => question.question)
+  // correctAnswer: Question;
 } 

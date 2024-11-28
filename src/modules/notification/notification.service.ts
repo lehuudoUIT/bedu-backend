@@ -63,7 +63,7 @@ export class NotificationService {
                                       .createQueryBuilder('notification')
                                       .leftJoinAndSelect('notification.sender', 'sender')
                                       .leftJoinAndSelect('notification.receiver', 'receiver')
-                                      .where('notification.deletedAt = :isDeleted', { isDeleted: false })
+                                      .where('notification.deletedAt IS NULL')
                                       .orderBy('notification.createdAt', 'DESC')
                                       .skip((page - 1) * limit)
                                       .take(limit)

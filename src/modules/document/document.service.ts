@@ -1,23 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateDocumentDto } from './dtos/create-document.dto';
 import { UpdateDocumentDto } from './dtos/update-document.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Document } from 'src/entities/document.entity';
 import { IsNull, Repository } from 'typeorm';
 import { ResponseDto } from './common/response.interface';
+import { QuestionService } from '../question/question.service';
+import { Question } from 'src/entities/question.entity';
 
 @Injectable()
 export class DocumentService {
   constructor(
     @InjectRepository(Document)
     private readonly documentRepository: Repository<Document>,
+    @Inject(forwardRef(() => QuestionService))
+    private readonly questionService: QuestionService
   ) {}
 
   async create(
     createDocumentDto: CreateDocumentDto
   ): Promise<ResponseDto> {
     try {
-      const document = await this.documentRepository.create(createDocumentDto);
+
+      let questions: Question[] = [];
+      if (createDocumentDto.questionId) {
+        for(let i = 0; i < createDocumentDto.questionId.length; i++) { 
+          const questionResponse = await this.questionService.findOne(createDocumentDto.questionId[i]);
+          if (questionResponse.statusCode !== 200) {
+            return {
+              message: 'Question ' + createDocumentDto.questionId[i] + ' is not found!',
+              statusCode: 404,
+              data: null,
+            }
+          }
+          const questionItem = Array.isArray(questionResponse.data)
+                                ? questionResponse.data[0]
+                                : questionResponse.data;
+          questions.push(questionItem);
+        }
+      }
+
+      const document = await this.documentRepository.create({
+        ...createDocumentDto,
+        question: questions,
+      });
       const result = await this.documentRepository.save(document);
       return {
         message: 'Document created successfully!',
@@ -41,6 +67,7 @@ export class DocumentService {
     try {
       const documents = await this.documentRepository
                           .createQueryBuilder('document')
+                          .leftJoinAndSelect('document.question', 'question')
                           .where('document.isDeleted = :isDeleted', { isDeleted: false })
                           .andWhere('document.isActivated = :isActivated', { isActivated: true }) 
                           .andWhere('document.type = :type', { type })
@@ -76,8 +103,9 @@ export class DocumentService {
     try {
       const documents = await this.documentRepository
                           .createQueryBuilder('document')
-                          .where('document.isDeleted = :isDeleted', { isDeleted: false })
-                          .andWhere('document.isActivated = :isActivated', { isActivated: true }) 
+                          .leftJoinAndSelect('document.question', 'question')
+                          .where('document.deletedAt  is null')
+                          .andWhere('document.isActive = :isActivated', { isActivated: true }) 
                           .orderBy('document.id', 'DESC')
                           .skip((page - 1) * limit)
                           .take(limit)
@@ -106,11 +134,12 @@ export class DocumentService {
   async findOne(id: number): Promise<ResponseDto> {
     try {
       const document = await this.documentRepository
-                        .findOneBy({
-                          id,
-                          deletedAt: IsNull(),
-                          isActive: true,
-                        });
+                          .createQueryBuilder('document')
+                          .leftJoinAndSelect('document.question', 'question')
+                          .where('document.id = :id', { id })
+                          .andWhere('document.deletedAt IS NULL')
+                          .andWhere('document.isActive = :isActive', { isActive: true })
+                          .getOne();
       if (!document) {
         return {
           statusCode: 404,
@@ -148,9 +177,29 @@ export class DocumentService {
       const document = Array.isArray(documentResponse.data) 
                         ? documentResponse.data[0] 
                         : documentResponse.data;
+
+      let questions: Question[] = [];
+      if (updateDocumentDto.questionId) {
+        for(let i = 0; i < updateDocumentDto.questionId.length; i++) { 
+          const questionResponse = await this.questionService.findOne(updateDocumentDto.questionId[i]);
+          if (questionResponse.statusCode !== 200) {
+            return {
+              message: 'Question ' + updateDocumentDto.questionId[i] + ' is not found!',
+              statusCode: 404,
+              data: null,
+            }
+          }
+          const questionItem = Array.isArray(questionResponse.data)
+                                ? questionResponse.data[0]
+                                : questionResponse.data;
+          questions.push(questionItem);
+        }
+      }                 
+
       const updateDocument = this.documentRepository.create({
         ...document,
         ...updateDocumentDto,
+        question: questions,
       });
       const result = await this.documentRepository.save(updateDocument);
       return {

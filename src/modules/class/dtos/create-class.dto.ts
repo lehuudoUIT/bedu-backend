@@ -8,5 +8,4 @@ export class CreateClassDto {
   timePerLesson: number;
   type: string;
   price: number;
-  isPublic: boolean;
 }

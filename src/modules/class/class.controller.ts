@@ -12,7 +12,7 @@ import { ClassService } from './class.service';
 import { CreateClassDto } from './dtos/create-class.dto';
 import { UpdateClassDto } from './dtos/update-class.dto';
 
-@Controller('class')
+@Controller('classes')
 export class ClassController {
   constructor(private readonly classService: ClassService) {}
 
@@ -21,7 +21,8 @@ export class ClassController {
     return this.classService.create(createClassDto);
   }
 
-  @Get('all/:type')
+  //  type is in toeic, ielts, toefl
+  @Get('all/type/:type')
   findAll(
     @Query('page') page: number,
     @Query('limit') limit: number,

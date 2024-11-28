@@ -22,12 +22,21 @@ export class CourseService {
   ): Promise<ResponseDto> {
     try {
       let program: Program[] = [];
-      for (let i = 0; i < createClassDto.programId.length; i++) {
-        const programResponse = await this.programService.findOne(createClassDto.programId[i]);
-        const programItem = Array.isArray(programResponse.data)
-          ? programResponse.data[0]
-          : programResponse.data;
-        program[i] = programItem;
+      if (createClassDto.programId) {
+        for (let i = 0; i < createClassDto.programId.length; i++) {
+          const programResponse = await this.programService.findOne(createClassDto.programId[i]);
+          if (programResponse.statusCode !== 200) {
+            return {
+              statusCode: 404,
+              message: "Program information not found",
+              data: null
+            }
+          }
+          const programItem = Array.isArray(programResponse.data)
+            ? programResponse.data[0]
+            : programResponse.data;
+          program[i] = programItem;
+        }
       }
       const course = await this.courseRepository.create({
         ...createClassDto,
@@ -168,12 +177,21 @@ export class CourseService {
                       : courseResponse.data;
       
       let program: Program[] = [];
-      for (let i = 0; i < updateCourseDto.programId.length; i++) {
-        const programResponse = await this.programService.findOne(updateCourseDto.programId[i]);
-        const programItem = Array.isArray(programResponse.data)
-          ? programResponse.data[0]
-          : programResponse.data;
-        program[i] = programItem;
+      if (updateCourseDto.programId) {
+        for (let i = 0; i < updateCourseDto.programId.length; i++) {
+          const programResponse = await this.programService.findOne(updateCourseDto.programId[i]);
+          if (programResponse.statusCode !== 200) {
+            return {
+              statusCode: 404,
+              message: "Program information not found",
+              data: null
+            }
+          }
+          const programItem = Array.isArray(programResponse.data)
+            ? programResponse.data[0]
+            : programResponse.data;
+          program[i] = programItem;
+        }
       }
 
       let newCourse;

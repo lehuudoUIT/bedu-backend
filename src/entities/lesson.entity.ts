@@ -39,7 +39,7 @@ export class Lesson extends AbstractEntity<Lesson> {
   )
   class: Class;
 
-  @OneToMany(
+  @ManyToOne(
     () => Course, 
     (course) => course.lesson,
     { eager: true }

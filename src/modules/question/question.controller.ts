@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { QuestionService } from './question.service';
 import { CreateQuestionDto } from './dtos/create-question.dto';
@@ -29,6 +30,7 @@ export class QuestionController {
     return this.questionService.findAll(page, limit);
   }
 
+  // type is in ['multiple', 'single', 'fillin']
   @Get('all/type/:type')
   findAllByType(
     @Param('type') type: string,
@@ -45,13 +47,13 @@ export class QuestionController {
 
   @Patch('item/:id')
   update(
-    @Param('item/:id') id: string,
+    @Param('id') id: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
   ) {
     return this.questionService.update(+id, updateQuestionDto);
   }
 
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.questionService.remove(+id);
   }

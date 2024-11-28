@@ -4,8 +4,7 @@ import { ProgramController } from './program.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Program } from 'src/entities/program.entity';
 import { CourseModule } from '../course/course.module';
-import { CourseService } from '../course/course.service';
-import { Course } from 'src/entities/course.entity';
+import { QuestionModule } from '../question/question.module';
 
 @Module({
   imports: [

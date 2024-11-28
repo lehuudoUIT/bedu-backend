@@ -17,10 +17,7 @@ export class Exam extends AbstractEntity<Exam> {
   duration: number;
 
   @Column()
-  maxTries: number;
-
-  @Column()
-  scoringType: string;
+  maxTries: number; 
 
   @Column()
   resultTime: number;
@@ -31,6 +28,9 @@ export class Exam extends AbstractEntity<Exam> {
   @ManyToMany(
     () => Question, 
     (question) => question.exam,
+  )
+  @JoinTable(
+    {name: 'exams_questions'}
   )
   questions: Question[];
 

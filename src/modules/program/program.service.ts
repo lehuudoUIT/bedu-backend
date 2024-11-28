@@ -13,7 +13,7 @@ export class ProgramService {
   constructor(
     @InjectRepository(Program)
     private readonly programRepository: Repository<Program>,
-    private readonly courseService: CourseService
+    private readonly courseService: CourseService,
   ) {}
 
   async create(
@@ -22,12 +22,21 @@ export class ProgramService {
     
     try {
       let course: Course[] = [];
-      for(let i = 0; i < createProgramDto.courseId.length; i++) {
-        const courseResponse = await this.courseService.findOne(createProgramDto.courseId[i]);
-        const  courseItem = Array.isArray(courseResponse.data)
-                        ? courseResponse.data[0]
-                        : courseResponse.data;
-        course[i] = courseItem;
+      if (createProgramDto.courseId) {
+        for(let i = 0; i < createProgramDto.courseId.length; i++) {
+          const courseResponse = await this.courseService.findOne(createProgramDto.courseId[i]);
+          if (courseResponse.statusCode !== 200) {
+            return {
+              statusCode: 404,
+              message: 'Course information is not found',
+              data: null
+            }
+          }
+          const  courseItem = Array.isArray(courseResponse.data)
+                          ? courseResponse.data[0]
+                          : courseResponse.data;
+          course[i] = courseItem;
+        }
       }
 
       const newProgram = this.programRepository.create({
@@ -124,12 +133,21 @@ export class ProgramService {
                       : programResponse.data;
       
       let course: Course[] = [];
-      for(let i = 0; i < updateProgramDto.courseId.length; i++) {
-        const courseResponse = await this.courseService.findOne(updateProgramDto.courseId[i]);
-        const  courseItem = Array.isArray(courseResponse.data)
-                        ? courseResponse.data[0]
-                        : courseResponse.data;
-        course[i] = courseItem;
+      if (updateProgramDto.courseId) {
+        for(let i = 0; i < updateProgramDto.courseId.length; i++) {
+          const courseResponse = await this.courseService.findOne(updateProgramDto.courseId[i]);
+          if (courseResponse.statusCode !== 200) {
+            return {
+              statusCode: 404,
+              message: 'Course information is not found',
+              data: null
+            }
+          }
+          const  courseItem = Array.isArray(courseResponse.data)
+                          ? courseResponse.data[0]
+                          : courseResponse.data;
+          course[i] = courseItem;
+        }
       }
 
       const newProgram = this.programRepository.create({

@@ -90,7 +90,8 @@ export class LessonService {
                                   .leftJoinAndSelect('lesson.class', 'class')
                                   .leftJoinAndSelect('lesson.course', 'course')
                                   .leftJoinAndSelect('lesson.exam', 'exam')
-                                  .where('lesson.deletedAt = :isDeleted', { isDeleted: false })
+                                  .where('lesson.deletedAt is NULL')
+                                  .andWhere('lesson.isActive = :isActive', { isActive: true })
                                   .orderBy('lesson.id', 'DESC')
                                   .skip((page - 1) * limit)
                                   .take(limit)
@@ -119,7 +120,8 @@ export class LessonService {
   async findOne(
     id: number
   ) {
-    const lesson = await this.lessonRepository
+    try {
+      const lesson = await this.lessonRepository
                               .createQueryBuilder('lesson')
                               .leftJoinAndSelect('lesson.teacher', 'teacher')
                               .leftJoinAndSelect('lesson.class', 'class')
@@ -129,17 +131,24 @@ export class LessonService {
                               .andWhere('lesson.isActive = :isActive', { isActive: true})
                               .andWhere('lesson.deletedAt is NULL')
                               .getOne();
-    if (!lesson) {
+      if (!lesson) {
+        return {
+          statusCode: 404,
+          message: "Lesson information not found",
+          data: null,
+        }
+      }
       return {
-        statusCode: 404,
-        message: "Lesson information not found",
+        statusCode: 200,
+        message: "Retrieve lesson information successfully",
+        data: lesson,
+      }
+    } catch(error) {
+      return {
+        statusCode: 500,
+        message: error.message,
         data: null,
       }
-    }
-    return {
-      statusCode: 200,
-      message: "Retrieve lesson information successfully",
-      data: lesson,
     }
   }
 
@@ -197,6 +206,12 @@ export class LessonService {
         course,
         exam
       });
+      const result = await this.lessonRepository.save(newLesson);
+      return {
+        statusCode: 200,
+        message: "Lesson information has been successfully updated",
+        data: result,
+      }
     } catch(error) {
       return {
         statusCode: 500,
