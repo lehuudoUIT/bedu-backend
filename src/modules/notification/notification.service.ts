@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { NotificationDto } from './dtos/send-notification.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from 'src/entities/notification.entity';
@@ -70,19 +75,18 @@ export class NotificationService {
         const insertNotificationDto: InsertNotificationDto = {
           ...notificationDto,
           type: notificationDto.notiType,
-          options: '',
+          options: JSON.stringify(notificationDto.options),
         };
 
-        this.notificationRepository.insert(insertNotificationDto);
+        await this.notificationRepository.insert(insertNotificationDto);
       }
     } catch (error) {
-      console.error('Failed to send test event:', error.message);
+      throw new InternalServerErrorException('Fail to send notification!');
     }
-    return 'Send message to queue successfully!';
   }
 
   async findAll({ userId, take = 10, skip = 0 }) {
-    const result = await this.notificationRepository.find({
+    const notifications = await this.notificationRepository.find({
       where: {
         receiverId: userId,
       },
@@ -90,6 +94,8 @@ export class NotificationService {
       skip,
     });
 
-    return result;
+    if (notifications.length == 0)
+      throw new NotFoundException('User not found');
+    else return notifications;
   }
 }
