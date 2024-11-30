@@ -17,10 +17,13 @@ export class NotificationController {
     @Query('take') take?: number,
     @Query('skip') skip?: number,
   ) {
-    return await this.notificationService.findAll({
-      userId,
-      take,
-      skip,
-    });
+    return {
+      message: 'Get list notification successfully!',
+      metadata: await this.notificationService.findAll({
+        userId,
+        take,
+        skip,
+      }),
+    };
   }
 }
