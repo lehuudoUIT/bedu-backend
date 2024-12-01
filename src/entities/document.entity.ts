@@ -1,5 +1,7 @@
 import { AbstractEntity } from 'src/database/abstract.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
+import { LessonDocument } from './lesson_document.entity';
+import { Question } from './question.entity';
 
 @Entity({ name: 'documents' })
 export class Document extends AbstractEntity<Document> {
@@ -18,6 +20,15 @@ export class Document extends AbstractEntity<Document> {
   @Column()
   attachFile: string;
 
-  @Column()
-  isPublic: boolean;
+  @OneToMany(
+    () => LessonDocument, 
+    (lessonDocument) => lessonDocument.document)
+  lessonDocument: LessonDocument[];
+
+  @ManyToMany(
+    () => Question,  
+    (question) => question.document,
+    { eager: true })
+  @JoinTable({name: "documents_questions"})
+  question: Question[];
 }

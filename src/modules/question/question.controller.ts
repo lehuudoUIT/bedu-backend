@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { QuestionService } from './question.service';
 import { CreateQuestionDto } from './dtos/create-question.dto';
@@ -15,22 +17,35 @@ import { UpdateQuestionDto } from './dtos/update-question.dto';
 export class QuestionController {
   constructor(private readonly questionService: QuestionService) {}
 
-  @Post()
+  @Post('new')
   create(@Body() createQuestionDto: CreateQuestionDto) {
     return this.questionService.create(createQuestionDto);
   }
 
-  @Get()
-  findAll() {
-    return this.questionService.findAll();
+  @Get('all')
+  findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return this.questionService.findAll(page, limit);
   }
 
-  @Get(':id')
+  // type is in ['multiple', 'single', 'fillin']
+  @Get('all/type/:type')
+  findAllByType(
+    @Param('type') type: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return this.questionService.findAllByType(page, limit, type);
+  } 
+
+  @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.questionService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('item/:id')
   update(
     @Param('id') id: string,
     @Body() updateQuestionDto: UpdateQuestionDto,
@@ -38,7 +53,7 @@ export class QuestionController {
     return this.questionService.update(+id, updateQuestionDto);
   }
 
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.questionService.remove(+id);
   }

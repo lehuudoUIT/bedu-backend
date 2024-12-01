@@ -4,5 +4,5 @@ export class CreateDocumentDto {
   title: string;
   content: string;
   attachFile: string;
-  isPublic: boolean;
+  questionId: number[];
 }

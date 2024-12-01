@@ -6,36 +6,43 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dtos/create-report.dto';
 import { UpdateReportDto } from './dtos/update-report.dto';
 
-@Controller('report')
+@Controller('reports')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  @Post()
+  @Post('new')
   create(@Body() createReportDto: CreateReportDto) {
     return this.reportService.create(createReportDto);
   }
 
-  @Get()
-  findAll() {
+  @Get('all/:type')
+  findAll(
+    @Param('page', ParseIntPipe) page: number = 1,
+    @Param('limit', ParseIntPipe) limit: number = 10,
+    @Param('type') type: string = 'financial'
+  ) {
     return this.reportService.findAll();
   }
 
-  @Get(':id')
+  @Get('item//:id')
   findOne(@Param('id') id: string) {
     return this.reportService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReportDto: UpdateReportDto) {
-    return this.reportService.update(+id, updateReportDto);
+  @Patch('item/:id')
+  update(
+    @Param('id') id: string, 
+    @Body() updateReportDto: UpdateReportDto) {
+      return this.reportService.update(+id, updateReportDto);
   }
 
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.reportService.remove(+id);
   }

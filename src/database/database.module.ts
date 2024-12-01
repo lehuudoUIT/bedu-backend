@@ -9,6 +9,7 @@ import { Course } from 'src/entities/course.entity';
 import { Document } from 'src/entities/document.entity';
 import { Exam } from 'src/entities/exam.entity';
 import { Lesson } from 'src/entities/lesson.entity';
+import { LessonDocument } from 'src/entities/lesson_document.entity';
 import { Notification } from 'src/entities/notification.entity';
 import { Payment } from 'src/entities/payment.entity';
 import { Program } from 'src/entities/program.entity';
@@ -16,7 +17,8 @@ import { Question } from 'src/entities/question.entity';
 import { Report } from 'src/entities/report.entity';
 import { Score } from 'src/entities/score.entity';
 import { User } from 'src/entities/user.entity';
-
+import { UserClass } from 'src/entities/user_class.entity';
+import { UserProgram } from 'src/entities/user_program.entity';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -56,6 +58,9 @@ import { User } from 'src/entities/user.entity';
           Question,
           Report,
           Score,
+          UserProgram,
+          UserClass,
+          LessonDocument,
         ],
         synchronize: configservice.getOrThrow('TYPEORM_MYSQL_SYNCHRONIZE'),
       }),

@@ -1,8 +1,11 @@
 export class CreateQuestionDto {
-  questionType: string;
   question: string;
-  score: number;
+  totalPoint: number;
+  pointDivision: string;
   content: string;
   attach: string;
+  questionType: string;
   answer: string;
+  examId?: number[];
+  documentId?: number[];
 }

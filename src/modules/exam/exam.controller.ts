@@ -6,36 +6,50 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { CreateExamDto } from './dtos/create-exam.dto';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 
-@Controller('exam')
+@Controller('exams')
 export class ExamController {
   constructor(private readonly examService: ExamService) {}
 
-  @Post()
+  @Post('new')
   create(@Body() createExamDto: CreateExamDto) {
     return this.examService.create(createExamDto);
   }
 
-  @Get()
-  findAll() {
-    return this.examService.findAll();
+  @Get('all')
+  findAll(
+    @Query('page', ParseIntPipe) page: number = 1,  
+    @Query('limit', ParseIntPipe) limit: number = 10
+  ) {
+    return this.examService.findAll(page, limit);
   }
 
-  @Get(':id')
+  @Get('all/type/:type')
+  findAllByType(
+    @Query('page', ParseIntPipe) page: number = 1,  
+    @Query('limit', ParseIntPipe) limit: number = 10,
+    @Param('type') type: string
+  ) {
+    return this.examService.findAllByType(page, limit, type);
+  }
+
+  @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.examService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('item/:id')
   update(@Param('id') id: string, @Body() updateExamDto: UpdateExamDto) {
     return this.examService.update(+id, updateExamDto);
   }
 
-  @Delete(':id')
+  @Delete('item/:id')
   remove(@Param('id') id: string) {
     return this.examService.remove(+id);
   }

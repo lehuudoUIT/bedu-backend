@@ -5,6 +5,12 @@ import { ResponseFormatInterceptor } from './common/intercepters/response.interc
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: ['http://localhost:3000'], 
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  await app.listen(process.env.PORT ?? 3004);
+  //await app.listen(3008);
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseFormatInterceptor());
   await app.listen(process.env.PORT ?? 3000);

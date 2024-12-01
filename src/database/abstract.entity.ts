@@ -1,5 +1,8 @@
+import { Delete } from '@nestjs/common';
 import {
+  Column,
   CreateDateColumn,
+  DeleteDateColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -17,4 +20,11 @@ export class AbstractEntity<T> {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ type: 'timestamp' })
+  deletedAt: Date;
+
+  @Column({ type: 'boolean', default: true }) 
+  isActive: boolean;
+  
 }

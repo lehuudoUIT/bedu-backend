@@ -18,6 +18,9 @@ import { DocumentModule } from './modules/document/document.module';
 import { ScoreModule } from './modules/score/score.module';
 import { AttendenceModule } from './modules/attendence/attendence.module';
 import { ReportModule } from './modules/report/report.module';
+import { UserProgramModule } from './modules/user_program/user_program.module';
+import { UserClassModule } from './modules/user_class/user_class.module';
+import { LessonDocumentModule } from './modules/lesson_document/lesson_document.module';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { ReportModule } from './modules/report/report.module';
     ScoreModule,
     AttendenceModule,
     ReportModule,
+    UserProgramModule,
+    UserClassModule,
+    LessonDocumentModule
   ],
   controllers: [],
   providers: [],

@@ -1,29 +1,48 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { NotificationDto } from './dtos/send-notification.dto';
 
-@Controller('notification')
+@Controller('notifications')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
-
-  @Post()
-  create(@Body() notificationDto: NotificationDto) {
-    return this.notificationService.sendNotification(notificationDto);
+  
+  @Post('new')
+  create(@Body() createNotificationDto: CreateNotificationDto) {
+    return this.notificationService.create(createNotificationDto);
   }
 
-  @Get(':id')
-  async findAll(
-    @Param('id') userId: number,
-    @Query('take') take?: number,
-    @Query('skip') skip?: number,
+  @Get('all')
+  findAll(
+    @Query  ('page') page: number = 1,
+    @Query('limit') limit: number = 10
   ) {
-    return {
-      message: 'Get list notification successfully!',
-      metadata: await this.notificationService.findAll({
-        userId,
-        take,
-        skip,
-      }),
-    };
+    return this.notificationService.findAll();
+  }
+
+  @Get('item/:id')
+  findOne(@Param('id') id: string) {
+    return this.notificationService.findOne(+id);
+  }
+
+  @Patch('item/:id')
+  update(
+    @Param('id') id: string,
+    @Body() updateNotificationDto: UpdateNotificationDto,
+  ) {
+    return this.notificationService.update(+id, updateNotificationDto);
+  }
+
+  @Delete('item/:id')
+  remove(@Param('id') id: string) {
+    return this.notificationService.remove(+id);
   }
 }
