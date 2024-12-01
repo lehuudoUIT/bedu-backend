@@ -10,7 +10,7 @@ export class Notification extends AbstractEntity<Notification> {
   @Column()
   content: string;
 
-  @Column()
+  @Column({ default: '' })
   options: string;
 
   @ManyToOne(

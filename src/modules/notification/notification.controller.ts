@@ -9,13 +9,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { CreateNotificationDto } from './dtos/create-notification.dto';
-import { UpdateNotificationDto } from './dtos/update-notification.dto';
+import { NotificationDto } from './dtos/send-notification.dto';
 
 @Controller('notifications')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
-
+  
   @Post('new')
   create(@Body() createNotificationDto: CreateNotificationDto) {
     return this.notificationService.create(createNotificationDto);
