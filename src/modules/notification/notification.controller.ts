@@ -10,13 +10,15 @@ import {
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { NotificationDto } from './dtos/send-notification.dto';
+import { InsertNotificationDto } from './dtos/insert-notification.dto';
+import { UpdateNotificationDto } from './dtos/update-notification.dto';
 
 @Controller('notifications')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
   
   @Post('new')
-  create(@Body() createNotificationDto: CreateNotificationDto) {
+  create(@Body() createNotificationDto: InsertNotificationDto) {
     return this.notificationService.create(createNotificationDto);
   }
 
@@ -25,7 +27,7 @@ export class NotificationController {
     @Query  ('page') page: number = 1,
     @Query('limit') limit: number = 10
   ) {
-    return this.notificationService.findAll();
+    return this.notificationService.findAll_Base(page, limit);
   }
 
   @Get('item/:id')

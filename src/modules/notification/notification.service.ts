@@ -10,21 +10,25 @@ import { Notification } from 'src/entities/notification.entity';
 
 import { IsNull, Repository } from 'typeorm';
 import {UsersService} from '../users/users.service';
-import { ResponseDto } from './common/response.interface';
-import { Repository } from 'typeorm';
+import { ResponseDto } from './common/response.interface';;
 import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
 import { InsertNotificationDto } from './dtos/insert-notification.dto';
+import { UpdateNotificationDto } from './dtos/update-notification.dto';
 
 @Injectable()
 export class NotificationService {
   constructor(
+    @Inject('NOTIFICATION_SERVICE') 
+    private rabbitClient: ClientProxy,
+
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
+    
     private readonly userService: UsersService,
   ) {} 
 
   async create(
-    createNotificationDto: CreateNotificationDto
+    createNotificationDto: InsertNotificationDto
   ): Promise<ResponseDto> {
     try {
       const senderResponse = await this.userService.findUserById(createNotificationDto.senderId);
@@ -62,7 +66,7 @@ export class NotificationService {
     }
   }
 
-  async findAll(
+  async findAll_Base(
     page: number = 1,
     limit: number = 10,
   ) {
@@ -166,7 +170,7 @@ export class NotificationService {
                         : receiverResponse.data;
     
     try {
-      const updatedNotification = await this.notificationRepository.create({
+      const updatedNotification = this.notificationRepository.create({
         ...notification,
         ...updateNotificationDto,
         sender,
@@ -215,9 +219,7 @@ export class NotificationService {
         data: null
       }
     }
-
-    @Inject('NOTIFICATION_SERVICE') private rabbitClient: ClientProxy,
-  ) {}
+  }
 
   async sendNotification(notificationDto: NotificationDto) {
     //* Send a message to rabbitmq
@@ -288,7 +290,7 @@ export class NotificationService {
   async findAll({ userId, take = 10, skip = 0 }) {
     const notifications = await this.notificationRepository.find({
       where: {
-        receiverId: userId,
+        receiver: userId,
       },
       take,
       skip,

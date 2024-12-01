@@ -9,10 +9,9 @@ async function bootstrap() {
     origin: ['http://localhost:3000'], 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-  await app.listen(process.env.PORT ?? 3004);
-  //await app.listen(3008);
+  });
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseFormatInterceptor());
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3004);
 }
 bootstrap();
