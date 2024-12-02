@@ -8,42 +8,63 @@ import {
   Delete,
   Query,
   ParseIntPipe,
+  UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProgramService } from './program.service';
 import { CreateProgramDto } from './dtos/create-program.dto';
 import { UpdateProgramDto } from './dtos/update-program.dto';
+import { HttpExceptionFilter } from '../../common/exception-filter/http-exception.filter';
+import { ResponseFormatInterceptor } from '../../common/intercepters/response.interceptor';
 
 @Controller('programs')
+@UseFilters(HttpExceptionFilter) 
+@UseInterceptors(ResponseFormatInterceptor)
 export class ProgramController {
   constructor(private readonly programService: ProgramService) {}
 
   @Post('new')
-  create(@Body() createProgramDto: CreateProgramDto) {
-    return this.programService.create(createProgramDto);
+  async create(@Body() createProgramDto: CreateProgramDto) {
+    return {
+      message: "Create new program successfully",
+      metadata: await this.programService.create(createProgramDto)
+    }
   }
 
   @Get('all/:type')
-  findAll(
+  async findAll(
     @Query ('page', ParseIntPipe) page: number,
     @Query ('limit', ParseIntPipe) limit: number,
     @Param('type') type: string) {
-    return this.programService.findAll(page, limit, type);
+    return {
+      message: "Get all programs successfully",
+      metadata: await this.programService.findAll(page, limit, type)
+    };
   }
 
   @Get('item/:id')
-  findOne(@Param('id') id: string) {
-    return this.programService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return {
+      message: "Get program detail successfully",
+      metadata: await this.programService.findOne(+id)
+    }
   }
 
   @Patch('item/:id')
-  update(
+  async update(
     @Param('id') id: string, 
     @Body() updateProgramDto: UpdateProgramDto) {
-      return this.programService.update(+id, updateProgramDto);
+      return {
+        message: "Update program successfully",
+        metadata: await this.programService.update(+id, updateProgramDto)
+      }
   }
 
   @Delete('item/:id')
-  remove(@Param('id') id: string) {
-    return this.programService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return {
+      message: "Delete program successfully",
+      metadata: await this.programService.remove(+id)
+    }
   }
 }

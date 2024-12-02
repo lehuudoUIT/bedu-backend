@@ -7,42 +7,67 @@ import {
   Param,
   Delete,
   Query,
+  UseFilters,
+  UseInterceptors,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { NotificationDto } from './dtos/send-notification.dto';
+import { InsertNotificationDto } from './dtos/insert-notification.dto';
+import { UpdateNotificationDto } from './dtos/update-notification.dto';
+import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.filter';
+import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 
 @Controller('notifications')
+@UseFilters(HttpExceptionFilter) 
+@UseInterceptors(ResponseFormatInterceptor)
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
   
   @Post('new')
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationService.create(createNotificationDto);
+  async create(@Body() createNotificationDto: InsertNotificationDto) {
+    return {
+      message: 'Create new notification successfully',
+      metadata: await this.notificationService.create(createNotificationDto),
+    }
   }
 
-  @Get('all')
-  findAll(
+  @Get('all/user/:userId')
+  async findAll(
+    @Param('userId', ParseIntPipe) userId: number,
     @Query  ('page') page: number = 1,
     @Query('limit') limit: number = 10
   ) {
-    return this.notificationService.findAll();
+    return {
+      message: 'Find the list of notifications successfully',
+      metadata: await this.notificationService.findAll(userId, page, limit),
+    }
   }
 
   @Get('item/:id')
-  findOne(@Param('id') id: string) {
-    return this.notificationService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return {
+      message: 'Find a notification successfully',
+      metadata: await this.notificationService.findOne(+id),
+    }
   }
 
   @Patch('item/:id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
   ) {
-    return this.notificationService.update(+id, updateNotificationDto);
+    return {
+      message: 'Update a notification successfully',
+      metadata: await this.notificationService.update(+id, updateNotificationDto),
+    }
   }
 
   @Delete('item/:id')
-  remove(@Param('id') id: string) {
-    return this.notificationService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return {
+      message: 'Delete a notification successfully',
+      metadata: await this.notificationService.remove(+id),
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { UsersService } from './../users/users.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLessonDto } from './dtos/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/update-lesson.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 import { ClassService } from '../class/class.service';
 import { CourseService } from '../course/course.service';
 import { ExamService } from '../exam/exam.service';
-import { ResponseDto } from './common/response.interface';
 
 @Injectable()
 export class LessonService {
@@ -23,37 +22,17 @@ export class LessonService {
 
   async create(
     createLessonDto: CreateLessonDto
-  ): Promise<ResponseDto> {
-    try {
-      const teacherResponse = await this.usersService.findUserById(createLessonDto.teacherId);
-      if (teacherResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Failed to create lesson information because teacher is not found",
-          data: null
-        }
+  ): Promise<Lesson> {
+    const teacher = await this.usersService.findUserById(createLessonDto.teacherId);
+      if (!teacher) {
+        throw new NotFoundException('Teacher information is not found');
       }
-      const teacher = Array.isArray(teacherResponse.data)
-                    ? teacherResponse.data[0]
-                    : teacherResponse.data;
-      const  classResponse = await this.classService.findOne(createLessonDto.classId);
-      const classData = Array.isArray(classResponse.data)
-                    ? classResponse.data[0]
-                    : classResponse.data;
-      const courseResponse = await this.courseService.findOne(createLessonDto.courseId);
-      const course = Array.isArray(courseResponse.data)
-                    ? courseResponse.data[0]
-                    : courseResponse.data;
-      const examResponse = await this.examService.findOne(createLessonDto.examId);
-      const exam = Array.isArray(examResponse.data)
-                    ? examResponse.data[0]
-                    : examResponse.data;
-      if (examResponse.statusCode !== 200 && courseResponse.statusCode !== 200 && classResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Failed to create lesson information because class, course or exam is not found",
-          data: null
-        }
+      const  classData = await this.classService.findOne(createLessonDto.classId);
+      const course = await this.courseService.findOne(createLessonDto.courseId);
+
+      const exam = await this.examService.findOne(createLessonDto.examId);
+      if (!exam && !course && !classData) {
+        throw new NotFoundException('Class, course or exam information is not found');  
       }
       
       const newLesson = this.lessonRepository.create({
@@ -64,27 +43,17 @@ export class LessonService {
         exam
       })
       const result = await this.lessonRepository.save(newLesson);
-      return {
-        statusCode: 200,
-        message: "Lesson information has been successfully created",
-        data: result,
+      if (!result) {
+        throw new NotFoundException('Failed to create lesson information');
       }
-      
-    } catch (error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null,
-      }
-    }
+      return result;
   }
 
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<ResponseDto> {
-    try {
-      const  lessons = await this.lessonRepository
+  ): Promise<Lesson[]> {
+    const  lessons = await this.lessonRepository
                                   .createQueryBuilder('lesson')
                                   .leftJoinAndSelect('lesson.teacher', 'teacher')
                                   .leftJoinAndSelect('lesson.class', 'class')
@@ -96,32 +65,16 @@ export class LessonService {
                                   .skip((page - 1) * limit)
                                   .take(limit)
                                   .getMany();
-      if(lessons.length === 0) {
-        return {
-          statusCode: 404,
-          message: "No lesson information found",
-          data: null,
-        }
-      }
-      return {
-        statusCode: 200,
-        message: "Retrieve lesson information successfully",
-        data: lessons,
-      }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null,
-      }
+    if(lessons.length === 0) {
+      throw new NotFoundException('No lesson found!');
     }
+    return lessons;
   }
 
   async findOne(
     id: number
-  ) {
-    try {
-      const lesson = await this.lessonRepository
+  ): Promise<Lesson> {
+    const lesson = await this.lessonRepository
                               .createQueryBuilder('lesson')
                               .leftJoinAndSelect('lesson.teacher', 'teacher')
                               .leftJoinAndSelect('lesson.class', 'class')
@@ -131,127 +84,65 @@ export class LessonService {
                               .andWhere('lesson.isActive = :isActive', { isActive: true})
                               .andWhere('lesson.deletedAt is NULL')
                               .getOne();
-      if (!lesson) {
-        return {
-          statusCode: 404,
-          message: "Lesson information not found",
-          data: null,
-        }
-      }
-      return {
-        statusCode: 200,
-        message: "Retrieve lesson information successfully",
-        data: lesson,
-      }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null,
-      }
+    if (!lesson) {
+      throw new NotFoundException('Lesson information not found');
     }
+    return lesson
   }
 
   async update(
     id: number, 
     updateLessonDto: UpdateLessonDto
-  ): Promise<ResponseDto> {
-    try {
-      const lessonResponse = await this.findOne(id);
-      if (lessonResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Failed to update lesson information because lesson is not found",
-          data: null
-        }
-      }
-      const lesson = Array.isArray(lessonResponse.data)
-                    ? lessonResponse.data[0]
-                    : lessonResponse.data;
-      const teacherResponse = await this.usersService.findUserById(updateLessonDto.teacherId);
-      if (teacherResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Failed to update lesson information because teacher is not found",
-          data: null
-        }
-      }
-      const teacher = Array.isArray(teacherResponse.data)
-                    ? teacherResponse.data[0]
-                    : teacherResponse.data;
-      const  classResponse = await this.classService.findOne(updateLessonDto.classId);
-      const classData = Array.isArray(classResponse.data)
-                    ? classResponse.data[0]
-                    : classResponse.data;
-      const courseResponse = await this.courseService.findOne(updateLessonDto.courseId);
-      const course = Array.isArray(courseResponse.data)
-                    ? courseResponse.data[0]
-                    : courseResponse.data;
-      const examResponse = await this.examService.findOne(updateLessonDto.examId);
-      const exam = Array.isArray(examResponse.data)
-                    ? examResponse.data[0]
-                    : examResponse.data;
-      if (examResponse.statusCode !== 200 && courseResponse.statusCode !== 200 && classResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Failed to update lesson information because class, course or exam is not found",
-          data: null
-        }
-      }
-      const newLesson = this.lessonRepository.create({
-        ...lesson,
-        ...updateLessonDto,
-        teacher,
-        class: classData,
-        course,
-        exam
-      });
-      const result = await this.lessonRepository.save(newLesson);
-      return {
-        statusCode: 200,
-        message: "Lesson information has been successfully updated",
-        data: result,
-      }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null,
-      }
+  ): Promise<Lesson> {
+    const lesson = await this.findOne(id);
+    if (!lesson) {
+      throw new NotFoundException('Lesson information is not found');
     }
+
+    const teacher= await this.usersService.findUserById(updateLessonDto.teacherId);
+    if (!teacher) {
+      throw new NotFoundException('Teacher information is not found');
+    }
+
+    const  classData = await this.classService.findOne(updateLessonDto.classId);
+
+    const course= await this.courseService.findOne(updateLessonDto.courseId);
+    const exam = await this.examService.findOne(updateLessonDto.examId);
+
+    if (!exam && !course && !classData) {
+      throw new  NotFoundException('Class, course or exam information is not found');
+    }
+    const newLesson = this.lessonRepository.create({
+      ...lesson,
+      ...updateLessonDto,
+      teacher,
+      class: classData,
+      course,
+      exam
+    });
+    const result = await this.lessonRepository.save(newLesson);
+    if(!result) {
+      throw new NotFoundException('Failed to update lesson information');
+    }
+    return result;
   } 
 
-  async remove(id: number): Promise<ResponseDto> {
-    try {
-      const lessonResponse = await this.findOne(id);
-      if (lessonResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Failed to remove lesson information because lesson is not found",
-          data: null
-        }
-      }
-      const lesson = Array.isArray(lessonResponse.data)
-                    ? lessonResponse.data[0]
-                    : lessonResponse.data;
-      const newLesson = this.lessonRepository.create({
-        ...lesson,
-        deletedAt: new Date(),
-        isActive: false,
-      });
-
-      const result = await this.lessonRepository.save(newLesson);
-      return {
-        statusCode: 200,
-        message: "Lesson information has been successfully removed",
-        data: result,
-      }
-    }catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null,
-      }
+  async remove(id: number): Promise<Lesson> {
+    const lesson = await this.findOne(id);
+    if (!lesson) {
+      throw new NotFoundException('Lesson information is not found');
     }
+
+    const newLesson = this.lessonRepository.create({
+      ...lesson,
+      deletedAt: new Date(),
+      isActive: false,
+    });
+
+    const result = await this.lessonRepository.save(newLesson);
+    if(!result) {
+      throw new NotFoundException('Failed to delete lesson information');
+    }
+    return result;
   }
 }

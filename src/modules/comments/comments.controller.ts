@@ -18,7 +18,10 @@ export class CommentsController {
 
   @Post()
   async create(@Body() createCommentDto: CreateCommentDto) {
-    return await this.commentsService.create(createCommentDto);
+    return {
+      message: 'Create new comment successfully',
+      metadata: await this.commentsService.create(createCommentDto),
+    }
   }
 
   @Get('parent/:id')
@@ -41,6 +44,9 @@ export class CommentsController {
     @Param('commentId') commentId: number,
     @Param('lessonId') lessonId: number,
   ) {
-    return await this.commentsService.deleteComments({ commentId, lessonId });
+    return {
+      message: 'Delete comment successfully',
+      metadata: await this.commentsService.deleteComments({commentId, lessonId}),
+    }
   }
 }

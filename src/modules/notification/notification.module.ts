@@ -3,7 +3,7 @@ import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 import { Notification } from 'src/entities/notification.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import {UsersModule} from '../users/users.module'
 import { RabbitMQModule } from 'src/microservices/rabbitmq/rabbitmq.module';
 
 @Module({

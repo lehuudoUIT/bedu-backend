@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateAnswerDto } from './dtos/create-answer.dto';
 import { UpdateAnswerDto } from './dtos/update-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Answer } from 'src/entities/answer.entity';
 import { QuestionService } from '../question/question.service';
-import { ResponseDto } from './common/response.interface';
 import { ExamService } from '../exam/exam.service';
 import {UsersService} from '../users/users.service';
+import { Exam } from 'src/entities/exam.entity';
+import { Question } from 'src/entities/question.entity';
 
 @Injectable()
 export class AnswerService {
@@ -21,115 +22,61 @@ export class AnswerService {
 
   async create(
     createAnswerDto: CreateAnswerDto
-  ): Promise<ResponseDto> {
-    try {
-
-      const userResponse = await this.userService.findUserById(createAnswerDto.userId);
-      if (!userResponse) {
-        return {
-          message: 'Student information is not found',
-          statusCode: 404,
-          data: null,
-        }
-      }
-      const user = Array.isArray(userResponse.data)
-                    ? userResponse.data[0]
-                    : userResponse.data;
-
-      const examService = await this.examService.findOne(createAnswerDto.examId);
-      if (!examService) {
-        return {
-          message: 'Exam information is not found',
-          statusCode: 404,
-          data: null,
-        }
-      }
-      const exam = Array.isArray(examService.data)
-                    ? examService.data[0]
-                    : examService.data;
-
-      const questionResponse = await this.questionService.findOne(createAnswerDto.questionId);
-      if (!questionResponse) {
-        return {
-          message: 'Question not found',
-          statusCode: 404,
-          data: null,
-        }
-      }
-      const question = Array.isArray(questionResponse.data) 
-                            ? questionResponse.data[0] 
-                            : questionResponse.data;
-    
-      const scoringResponse = await this.questionService
-                                  .calculateScore(question.id, createAnswerDto.content);
-      console.log(scoringResponse);
-      if ( scoringResponse.statusCode !== 200) {
-        return {
-          message: 'An error occurred when scoring the answer',
-          statusCode: 500,
-          data: null,
-        }
-      }
-      createAnswerDto.points = scoringResponse.data;
-
-      const answer = this.answerRepository.create({
-        ...createAnswerDto,
-        user,
-        exam,
-        question,
-      });
-
-      const result = await this.answerRepository.save(answer);
-      return {
-        message: 'Answer created successfully',
-        statusCode: 201,
-        data: result,
-      }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null,
-      }
+  ): Promise<Answer> {
+    const user = await this.userService.findUserById(createAnswerDto.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    const exam = await this.examService.findOne(createAnswerDto.examId);
+    if (!exam) {
+      throw new NotFoundException('Exam not found');
+    }
+
+    const question = await this.questionService.findOne(createAnswerDto.questionId);
+    if (!question) {
+      throw new NotFoundException('Question not found');
+    }
+  
+    const scoring = await this.questionService
+                                .calculateScore(question.id, createAnswerDto.content);
+    // if (!scoring) {
+    //   throw new NotFoundException('An error occurred when scoring the answer');
+    // }
+    createAnswerDto.points = scoring;
+
+    const answer = this.answerRepository.create({
+      ...createAnswerDto,
+      user,
+      exam,
+      question,
+    });
+
+    const result = await this.answerRepository.save(answer);
+    if(!result) {
+      throw new InternalServerErrorException('Failed to create answer information');
+    }
+    return result;
   }
 
   async findAll(
     page: number = 1,
     limit: number = 10
-  ): Promise<ResponseDto> {
-     try {
-      const allResults = await this.answerRepository
-                              .createQueryBuilder('answer')
-                              .leftJoinAndSelect('answer.user', 'user')
-                              .leftJoinAndSelect('answer.exam', 'exam')
-                              .leftJoinAndSelect('answer.question', 'question')
-                              .where('answer.deletedAt is NULL')
-                              .andWhere('answer.isActive = :isActive', { isActive: true })
-                              .skip((page - 1) * limit)
-                              .take(limit)
-                              .getMany();
+  ): Promise<Answer[]> {
+    const allResults = await this.answerRepository
+                                .createQueryBuilder('answer')
+                                .leftJoinAndSelect('answer.user', 'user')
+                                .leftJoinAndSelect('answer.exam', 'exam')
+                                .leftJoinAndSelect('answer.question', 'question')
+                                .where('answer.deletedAt is NULL')
+                                .andWhere('answer.isActive = :isActive', { isActive: true })
+                                .skip((page - 1) * limit)
+                                .take(limit)
+                                .getMany();
 
-      if (allResults.length === 0) {
-        return {
-          message: 'No answer found',
-          statusCode: 404,
-          data: [],
-        }
-      }
-      return {
-        message: 'Answers retrieved successfully',
-        statusCode: 200,
-        data: allResults,
-      }
-                              
-     } catch(error) {
-        return {
-          message: error.message,
-          statusCode: 500,
-          data: null,
-        }
-     }
+    if (allResults.length === 0) {
+    throw new NotFoundException('No answer found');
+    }
+    return allResults;
   }
 
   async findAllByStudentAndExam(
@@ -137,9 +84,8 @@ export class AnswerService {
     examId: number,
     page: number = 1,
     limit: number = 10
-  ): Promise<ResponseDto> {
-    try {
-      const allResults = await this.answerRepository
+  ): Promise<Answer[]> {
+    const allResults = await this.answerRepository
                                   .createQueryBuilder('answer')
                                   .leftJoinAndSelect('answer.user', 'user')
                                   .leftJoinAndSelect('answer.exam', 'exam')
@@ -152,36 +98,20 @@ export class AnswerService {
                                   .skip((page - 1) * limit)
                                   .take(limit)
                                   .getMany();
-      if (allResults.length === 0) {
-        return {
-          message: 'No answer found',
-          statusCode: 404,
-          data: null,
-        }
-      }
-      return {
-        message: 'Test results of student is retrieved successfully',
-        statusCode: 200,
-        data: allResults,
-      }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null,
-      }
+    if (allResults.length === 0) {
+      throw new NotFoundException('No answer found');
     }
+    return allResults
   }
 
   async findAllByExam(
     examId: number,
     page: number = 1,
     limit: number = 10
-  ) {
-    try {
-      const allResults = await this.answerRepository
+  ): Promise<Answer[]> {
+    const allResults = await this.answerRepository
                                 .createQueryBuilder('answer')
-                                .leftJoinAndSelect('answer.user', 'user')
+                                .leftJoinAndSelect('answer.user', 'user') 
                                 .leftJoinAndSelect('answer.exam', 'exam')
                                 .leftJoinAndSelect('answer.question', 'question')
                                 .where('answer.deletedAt = :isDeleted is NULL')
@@ -191,32 +121,16 @@ export class AnswerService {
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
-      if (allResults.length === 0) {
-        return {
-          message: 'No answer found',
-          statusCode: 404,
-          data: null,
-        }
-      }
-      return {
-        message: 'Test results of student is retrieved successfully',
-        statusCode: 200,
-        data: allResults,
-      }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null,
-      }
+    if (allResults.length === 0) {
+      throw new NotFoundException('No answer found');
     }
+    return allResults
   }
 
   async findOne(
     id: number
-  ): Promise<ResponseDto> {
-    try {
-      const result = await this.answerRepository
+  ): Promise<Answer> {
+    const result = await this.answerRepository
                           .createQueryBuilder('answer')
                           .leftJoinAndSelect('answer.user', 'user')
                           .leftJoinAndSelect('answer.exam', 'exam')
@@ -226,89 +140,52 @@ export class AnswerService {
                           .andWhere('answer.id = :id', { id })
                           .getOne();
       if (!result) {
-        return {
-          message: 'No answer found',
-          statusCode: 404,
-          data: null,
-        }
+        throw new NotFoundException('Answer not found');
       }
-      return {
-        message: 'Answer retrieved successfully',
-        statusCode: 200,
-        data: result,
-      }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null
-      }
-    }
+      return result;
   }
 
   async update(
     id: number, 
     updateAnswerDto: UpdateAnswerDto
-  ): Promise<ResponseDto> {
-    try {
-      const answerResponse = await this.findOne(id);
-      if (answerResponse.statusCode !== 200) {
-        return {
-          message: 'Answer not found',
-          statusCode: 404,
-          data: null,
-        }
+  ): Promise<Answer> {
+    const answer = await this.findOne(id);
+      if (!answer) {
+        throw new NotFoundException('Answer information is not found');
       } 
-      const answer = Array.isArray(answerResponse.data)
-                    ? answerResponse.data[0]
-                    : answerResponse.data;
-      const userResponse = await this.userService.findUserById(updateAnswerDto.userId);
-      if (!userResponse) {
-        return {
-          message: 'Student information is not found',
-          statusCode: 404,
-          data: null,
-        }
+      
+      const user = await this.userService.findUserById(updateAnswerDto.userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
       }
-      const user = Array.isArray(userResponse.data)
-                    ? userResponse.data[0]
-                    : userResponse.data;
 
-      const examService = await this.examService.findOne(updateAnswerDto.examId);
-      if (!examService) {
-        return {
-          message: 'Exam information is not found',
-          statusCode: 404,
-          data: null,
+      let exam: Exam;
+      if(updateAnswerDto.examId) {
+        exam = await this.examService.findOne(updateAnswerDto.examId);
+        if (!exam) {
+          throw new NotFoundException('Exam not found');
         }
+      } else {
+        exam = answer.exam;
       }
-      const exam = Array.isArray(examService.data)
-                    ? examService.data[0]
-                    : examService.data;
 
-      const questionResponse = await this.questionService.findOne(updateAnswerDto.questionId);
-      if (!questionResponse) {
-        return {
-          message: 'Question not found',
-          statusCode: 404,
-          data: null,
+      let question: Question;
+      if(updateAnswerDto.questionId) {
+        question = await this.questionService.findOne(updateAnswerDto.questionId);
+        if (!question) {
+          throw new NotFoundException('Question not found');
         }
+      } else {
+        question = answer.question;
       }
-      const question = Array.isArray(questionResponse.data) 
-                            ? questionResponse.data[0] 
-                            : questionResponse.data;
     
-      const scoringResponse = await this.questionService
+      const scoring= await this.questionService
                                   .calculateScore(question.id, updateAnswerDto.content);
       
-      if ( scoringResponse.statusCode !== 200) {
-        return {
-          message: 'An error occurred when scoring the answer',
-          statusCode: 500,
-          data: null,
-        }
-      }
-      updateAnswerDto.points = scoringResponse.data;
+      // if ( !scoring) {
+      //   throw new NotFoundException('An error occurred when scoring the answer');
+      // }
+      updateAnswerDto.points = scoring;
       const newAnswer = this.answerRepository.create({
         ...answer,
         ...updateAnswerDto,
@@ -317,51 +194,25 @@ export class AnswerService {
         question,
       });
       const result = await this.answerRepository.save(newAnswer);
-      return {
-        message: 'Answer updated successfully',
-        statusCode: 200,
-        data: null,
+      if(!result) {
+        throw new InternalServerErrorException('Failed to update answer information');
       }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null,
-      }
-    }
+      return result;
   }
 
   async remove(
     id: number
-  ): Promise<ResponseDto> {
-    try {
-      const answerResponse = await this.findOne(id);
-      if (answerResponse.statusCode !== 200) {
-        return {
-          message: 'Answer not found',
-          statusCode: 404,
-          data: null,
-        }
+  ): Promise<Answer> {
+    const answer = await this.findOne(id);
+      if (!answer) {
+        throw new NotFoundException('Answer not found');
       }
-      const answer = Array.isArray(answerResponse.data)
-                    ? answerResponse.data[0]
-                    : answerResponse.data;
-      
       answer.isActive = false;
       answer.deletedAt = new Date();
       const result = await this.answerRepository.save(answer);
-
-      return {
-        message: 'Answer deleted successfully',
-        statusCode: 200,
-        data: result,
+      if(!result) {
+        throw new InternalServerErrorException('Failed to delete answer information');
       }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null,
-      }
-    }
+      return result;
   }
 }

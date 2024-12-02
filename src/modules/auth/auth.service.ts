@@ -20,10 +20,10 @@ export class AuthService {
   }
 
   async validateUser(input: AuthInput): Promise<SignInData | null> {
-    const userResponse = await this.usersService.findUserByUsername(input.username);
-    const user = Array.isArray(userResponse.data) 
-                  ? userResponse.data[0] 
-                  : userResponse.data;
+    const user= await this.usersService.findUserByUsername(input.username);
+    if(!user) {
+      throw new UnauthorizedException();
+    }
 
     if (user && user.password === input.password)
       return {

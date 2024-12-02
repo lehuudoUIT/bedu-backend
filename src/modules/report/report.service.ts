@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateReportDto } from './dtos/create-report.dto';
 import { UpdateReportDto } from './dtos/update-report.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Report } from 'src/entities/report.entity';
-import { ResponseDto } from './common/response.interface';
 import {UsersService} from "../users/users.service"
 
 @Injectable()
@@ -17,188 +16,102 @@ export class ReportService {
 
   async create(
     createReportDto: CreateReportDto
-  ): Promise<ResponseDto> {
-    try {
-      const posterResponse = await this.userService
+  ) {
+    const poster = await this.userService
                               .findUserById(createReportDto.userId);
-      const poster = Array.isArray(posterResponse.data)
-                      ? posterResponse.data[0]
-                      : posterResponse.data;  
-      if (!poster) {
-        return {
-          statusCode: 404,
-          message: 'Poster information is not found',
-          data: null
-        }
-      }
 
-      const report = this.reportRepository.create({
-        ...createReportDto,
-        user: poster,
-      });
-      const result = await this.reportRepository.save(report);
-
-      return {
-        statusCode: 201,
-        message: 'Create report successfully',
-        data: result
-      }
-
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+    if (!poster) {
+      throw new NotFoundException('Poster information is not found');
     }
+
+    const report = this.reportRepository.create({
+      ...createReportDto,
+      user: poster,
+    });
+    const result = await this.reportRepository.save(report);
+    if (!result) {
+      throw new InternalServerErrorException('Failed to update report');
+    }
+
+    return result;
   }
 
   async findAll(
     page: number = 1,
     limit: number = 10,
     type: string = 'financial'
-  ): Promise<ResponseDto> {
-    try {
-        const report = await this.reportRepository
+  ) {
+    const report = await this.reportRepository
                             .createQueryBuilder('report')
-                            .where('report.type = :type', { type })
+                            .where('report.reportType = :type', { type })
                             .andWhere('report.deletedAt is null')
                             .andWhere("report.isActive = :isActive", { isActive: 1 })
                             .skip((page - 1) * limit)
                             .take(limit)
                             .getMany();
-        if (!report) {
-          return {
-            statusCode: 404,
-            message: 'Report not found',
-            data: null
-          }
-        }
-        return {
-          statusCode: 200,
-          message: 'Get report successfully',
-          data: report,
-        }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+    if (!report) {
+      throw new NotFoundException('No report found!');
     }
+    return report;
   }
 
   async findOne(
     id: number
-  ): Promise<ResponseDto> {
-    try {
-      const report = await this.reportRepository.findOneBy({
-        id,
-        isActive: true,
-        deletedAt: IsNull(),
-      });
-      if (!report) {
-        return {
-          statusCode: 404,
-          message: 'Report not found',
-          data: null
-        }
-      }
-      return {
-        statusCode: 200,
-        message: 'Get report successfully',
-        data: report,
-      }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+  ) {
+    const report = await this.reportRepository.findOneBy({
+      id,
+      isActive: true,
+      deletedAt: IsNull(),
+    });
+    if (!report) {
+      throw new NotFoundException('Report not found');
     }
+    return report;
   }
 
   async update(
     id: number, 
     updateReportDto: UpdateReportDto
-  ): Promise<ResponseDto> {
-    const reportResponse = await this.findOne(id);
-    const report = Array.isArray(reportResponse.data)
-                  ? reportResponse.data[0]
-                  : reportResponse.data;
-    const posterResponse = await this.userService
+  ): Promise<Report> {
+    const report = await this.findOne(id);
+    const poster = await this.userService
                             .findUserById(updateReportDto.userId);
-    const poster = Array.isArray(posterResponse.data)
-                  ? posterResponse.data[0]
-                  : posterResponse.data;
+
     if (!poster) {
-      return {
-        statusCode: 404,
-        message: 'Poster information is not found',
-        data: null
-      }
+      throw new NotFoundException('Poster information is not found');
     }
 
     if (!report) {
-      return {
-        statusCode: 404,
-        message: 'Report not found',
-        data: null
-      }
+      throw new NotFoundException('Report not found');
     }
-    try {
-      const newReport = this.reportRepository.create({
-        ...report,
-        ...updateReportDto,
-        user: poster,
-      });
-      const result = await this.reportRepository.save(newReport);
-      return {
-        statusCode: 200,
-        message: 'Update report successfully',
-        data: result
-      }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+    const newReport = this.reportRepository.create({
+      ...report,
+      ...updateReportDto,
+      user: poster,
+    });
+    const result = await this.reportRepository.save(newReport);
+    if (!result) {
+      throw new InternalServerErrorException('Failed to update report');
     }
+    return result
   }
 
   async remove(
     id: number
-  ): Promise<ResponseDto> {
-    try {
-      const reportResponse = await this.findOne(id);
-      const report = Array.isArray(reportResponse.data)
-                    ? reportResponse.data[0]
-                    : reportResponse.data;
-      if (!report) {
-        return {
-          statusCode: 404,
-          message: 'Report not found',
-          data: null
-        }
-      }
-      const newReport = this.reportRepository.create({
-        ...report,
-        deletedAt: new Date(),
-        isActive: false,
-      });
-      const result = await this.reportRepository.save(newReport);
-      return {
-        statusCode: 200,
-        message: 'Delete report successfully',
-        data: result
-      }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+  ) {
+    const report = await this.findOne(id);
+    if (!report) {
+      throw new NotFoundException('Report not found');
     }
+    const newReport = this.reportRepository.create({
+      ...report,
+      deletedAt: new Date(),
+      isActive: false,
+    });
+    const result = await this.reportRepository.save(newReport);
+    if (!result) {
+      throw new InternalServerErrorException('Failed to update report');
+    }
+    return result;
   }
 }
