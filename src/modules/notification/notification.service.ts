@@ -29,49 +29,34 @@ export class NotificationService {
 
   async create(
     createNotificationDto: InsertNotificationDto
-  ): Promise<ResponseDto> {
-    try {
-      const senderResponse = await this.userService.findUserById(createNotificationDto.senderId);
-      if (senderResponse.statusCode !== 200) {
-        return {
-          statusCode: senderResponse.statusCode,
-          message: senderResponse.message,
-          data: null
-        }
-      }
-      const sender = Array.isArray(senderResponse.data) 
-                          ? senderResponse.data[0] 
-                          : senderResponse.data;
-      const receiverResponse = await this.userService.findUserById(createNotificationDto.receiverId);
-      const receiver = Array.isArray(receiverResponse.data)
-                          ? receiverResponse.data[0]
-                          : receiverResponse.data;
-      const newNotification = this.notificationRepository.create({
-        ...createNotificationDto,
-        sender,
-        receiver
-      });
-      const result = await this.notificationRepository.save(newNotification);
-      return {
-        statusCode: 201,
-        message: "Notification created successfully",
-        data: result
-      }
-    } catch (error) {
-      return {
-        statusCode: 500,
-        message: "Internal server error",
-        data: null
-      }
+  ) {
+    const sender = await this.userService.findUserById(createNotificationDto.senderId);
+    if (!sender) {
+      throw new NotFoundException('Sender information is not found');
     }
+
+    const receiver = await this.userService.findUserById(createNotificationDto.receiverId);
+    if (!receiver) {
+      throw new NotFoundException('Receiver information is not found');
+    }
+
+    const newNotification = this.notificationRepository.create({
+      ...createNotificationDto,
+      sender,
+      receiver
+    });
+    const result = await this.notificationRepository.save(newNotification);
+    if (!result) {
+      throw new InternalServerErrorException('Failed to create notification');
+    }
+    return result;
   }
 
   async findAll_Base(
     page: number = 1,
     limit: number = 10,
   ) {
-    try {
-      const notifications = await this.notificationRepository
+    const notifications = await this.notificationRepository
                                       .createQueryBuilder('notification')
                                       .leftJoinAndSelect('notification.sender', 'sender')
                                       .leftJoinAndSelect('notification.receiver', 'receiver')
@@ -80,94 +65,48 @@ export class NotificationService {
                                       .skip((page - 1) * limit)
                                       .take(limit)
                                       .getMany();
-      if (notifications.length === 0) {
-        return {
-          statusCode: 404,
-          message: "No notification found",
-          data: null
-        }
-      }
-      return {
-        statusCode: 200,
-        message: "Notifications retrieved successfully",
-        data: notifications
-      }
-    } catch (error) {
-      return {
-        statusCode: 500,
-        message: "Internal server error",
-        data: null
-      }
+    if (notifications.length === 0) {
+      throw new NotFoundException('Notification not found');
     }
+    return notifications
   }
 
-  async findOne(id: number): Promise<ResponseDto> {
-    try {
-      const notification = await this.notificationRepository
+  async findOne(id: number) {
+    const notification = await this.notificationRepository
                                     .findOneBy({
                                       id, 
                                       deletedAt: IsNull(),
                                       isActive: true
                                     })
       
-      if (!notification) {
-        return {
-          statusCode: 404,
-          message: "Notification not found",
-          data: null
-        }
-      }
-      return {
-        statusCode: 200,
-        message: "Notification retrieved successfully",
-        data: notification
-      }
-    } catch (error) {
-      return {
-        statusCode: 500,
-        message: "Internal server error",
-        data: null
-      }
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
     }
+    return notification;
   }
 
   async update(
     id: number, 
     updateNotificationDto: UpdateNotificationDto
   ): Promise<ResponseDto> {
-    const notificationResponse = await this.findOne(id);
-    if (notificationResponse.statusCode !== 200) {
-      return {
-        statusCode: 404,
-        message: "Notification not found",
-        data: null
-      }
+    const notification = await this.findOne(id);
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
     }
-    const notification = Array.isArray(notificationResponse.data)
-                              ? notificationResponse.data[0]
-                              : notificationResponse.data;
-    const senderResponse = await this.userService.findUserById(updateNotificationDto.senderId);
-    if (senderResponse.statusCode !== 200) {
-      return {
-        statusCode: 404,
-        message: "Failed to update notification because sender information is not found",
-        data: null
-      }
+
+    const sender = await this.userService.findUserById(updateNotificationDto.senderId);
+    if (!sender) {
+      throw new NotFoundException('Sender information is not found');
     }
-    const sender = Array.isArray(senderResponse.data) 
-                        ? senderResponse.data[0] 
-                        : senderResponse.data;
-    const receiverResponse = await this.userService.findUserById(updateNotificationDto.receiverId);
-    if (receiverResponse.statusCode !== 200) {
+
+    const receiver = await this.userService.findUserById(updateNotificationDto.receiverId);
+    if (!receiver) {
       return {
         statusCode: 404,
         message: "Failed to update notification because receiver information is not found",
         data: null
       }
     }
-    const receiver = Array.isArray(receiverResponse.data)
-                        ? receiverResponse.data[0]
-                        : receiverResponse.data;
     
     try {
       const updatedNotification = this.notificationRepository.create({
@@ -193,17 +132,11 @@ export class NotificationService {
 
   async remove(id: number): Promise<ResponseDto> {
     try {
-      const notificationResponse = await this.findOne(id);
-      if (notificationResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: "Notification not found",
-          data: null
-        }
+      const notification = await this.findOne(id);
+      if (!notification) {
+        throw new NotFoundException('Notification not found');
       }
-      const notification = Array.isArray(notificationResponse.data)
-                              ? notificationResponse.data[0]
-                              : notificationResponse.data;
+
       notification.deletedAt = new Date();
       notification.isActive = false;
       const result = await this.notificationRepository.save(notification);
@@ -287,14 +220,20 @@ export class NotificationService {
     }
   }
 
-  async findAll({ userId, take = 10, skip = 0 }) {
-    const notifications = await this.notificationRepository.find({
-      where: {
-        receiver: userId,
-      },
-      take,
-      skip,
-    });
+  async findAll(
+    userId: number,
+    page: number = 1,
+    limit: number = 10
+  ) {
+    const notifications = await this.notificationRepository
+                                    .createQueryBuilder('notification')
+                                    .leftJoinAndSelect('notification.sender', 'sender')
+                                    .leftJoinAndSelect('notification.receiver', 'receiver')
+                                    .where('notification.deletedAt IS NULL')
+                                    .andWhere('notification.isActive = :isActive', { isActive: true })
+                                    .andWhere('notification.receiverId = :userId', { userId })
+                                    .orderBy('notification.createdAt', 'DESC')
+                                    .getMany();
 
     if (notifications.length == 0)
       throw new NotFoundException('User not found');

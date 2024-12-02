@@ -7,40 +7,62 @@ import {
   Param,
   Delete,
   Query,
+  UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { CreateLessonDto } from './dtos/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/update-lesson.dto';
+import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.filter';
+import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 
 @Controller('lessons')
+@UseFilters(HttpExceptionFilter) 
+@UseInterceptors(ResponseFormatInterceptor)
+
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
   @Post('new')
   async create(@Body() createLessonDto: CreateLessonDto) {
-    return await this.lessonService.create(createLessonDto);
+    return {
+      message: 'Create new lesson successfully',
+      metadata: await this.lessonService.create(createLessonDto),
+    }
   }
 
   @Get('all')
-  findAll(
+  async findAll(
     @Query ('page') page: number = 1,
     @Query ('limit') limit: number = 10,
   ) {
-    return this.lessonService.findAll();
+    return {
+      message: 'Find the list of lessons successfully',
+      metadata: await this.lessonService.findAll(page, limit),
+    }
   }
 
   @Get('item/:id')
-  findOne(@Param('id') id: string) {
-    return this.lessonService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return {
+      message: 'Find a lesson successfully',
+      metadata: await this.lessonService.findOne(+id),
+    }
   }
 
   @Patch('item/:id')
-  update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
-    return this.lessonService.update(+id, updateLessonDto);
+  async update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
+    return {
+      message: 'Update lesson information successfully',
+      metadata: await this.lessonService.update(+id, updateLessonDto),
+    }
   }
 
   @Delete('item/:id')
-  remove(@Param('id') id: string) {
-    return this.lessonService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return {
+      message: 'Remove lesson successfully',
+      metadata: await this.lessonService.remove(+id),
+    }
   }
 }

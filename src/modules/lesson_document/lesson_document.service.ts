@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLessonDocumentDto } from './dto/create-lesson_document.dto';
 import { UpdateLessonDocumentDto } from './dto/update-lesson_document.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,57 +20,31 @@ export class LessonDocumentService {
 
   async create(
     createLessonDocumentDto: CreateLessonDocumentDto
-  ): Promise<ResponseDto> {
-    try {
-      const lessonResponse = await this.lessonService.findOne(createLessonDocumentDto.lessonId)
-      if (lessonResponse.statusCode !== 200) {
-        return {
-          message: "Failed to create lesson document because lesson is not found",
-          statusCode: 404,
-          data: null,
-        }
-      }
-      const lesson = Array.isArray(lessonResponse.data)
-                    ? lessonResponse.data[0]
-                    : lessonResponse.data;
-      const documentResponse = await this.documentService.findOne(createLessonDocumentDto.documentId);
-      if (documentResponse.statusCode !== 200) {
-        return {
-          message: "Failed to create lesson document because document is not found",
-          statusCode: 404,
-          data: null,
-        }
-      }
-      const document = Array.isArray(documentResponse.data)
-                    ? documentResponse.data[0]
-                    : documentResponse.data;
-      const newLessonDocument = this.lessonDocumentRepository.create({
-        ...createLessonDocumentDto,
-        lesson,
-        document,
-      });
-      const result = await this.lessonDocumentRepository.save(newLessonDocument);
-      return {
-        message: "Lesson document created successfully",
-        statusCode: 201,
-        data: result,
-      }
-
-    } catch (error) {
-      return {
-        message: error.message,
-        statusCode: 400,
-        data: null,
-      }
+  ): Promise<LessonDocument> {
+    const lesson = await this.lessonService.findOne(createLessonDocumentDto.lessonId)
+    if (lesson) {
+      throw new NotFoundException('Lesson not found');
     }
+
+    const document = await this.documentService.findOne(createLessonDocumentDto.documentId);
+    if (!document) {
+      throw new NotFoundException('Document not found');
+    }
+
+    const newLessonDocument = this.lessonDocumentRepository.create({
+      ...createLessonDocumentDto,
+      lesson,
+      document,
+    });
+    const result = await this.lessonDocumentRepository.save(newLessonDocument);
+    return result;
   }
 
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<ResponseDto> {
-    try {
-      const lessonDocumentResponse = await this.lessonDocumentRepository
+  ): Promise<LessonDocument[]> {
+    const lessonDocumentResponse = await this.lessonDocumentRepository
                                               .createQueryBuilder('lesson_document')
                                               .leftJoinAndSelect('lesson_document.lesson', 'lesson')
                                               .leftJoinAndSelect('lesson_document.document', 'document')
@@ -80,93 +54,44 @@ export class LessonDocumentService {
                                               .take(limit)
                                               .getMany();
       if (lessonDocumentResponse.length === 0) {
-        return {
-          message: "Lesson document not found",
-          statusCode: 404,
-          data: null,
-        }
+        throw new NotFoundException('No lesson document found');
       }
-      return {
-        message: "Lesson document found",
-        statusCode: 200,
-        data: lessonDocumentResponse,
-      }
-    } catch (error) {
-      return {
-        message: error.message,
-        statusCode: 400,
-        data: null,
-      }
-    }
+      return lessonDocumentResponse;
   }
 
-  async findOne(id: number): Promise<ResponseDto> {
-    try {
-      const lessonDocumentResponse = await this.lessonDocumentRepository
+  async findOne(id: number): Promise<LessonDocument> {
+    const lessonDocumentResponse = await this.lessonDocumentRepository
                                               .createQueryBuilder('lessonDocument')
+                                              .leftJoinAndSelect('lessonDocument.lesson', 'lesson')
+                                              .leftJoinAndSelect('lessonDocument.document', 'document')
                                               .where('lessonDocument.id = :id', { id })
                                               .andWhere('lessonDocument.deletedAt IS NULL')
                                               .andWhere('lessonDocument.isActive = :isActive', { isActive: true })
                                               .getOne();
-      if (!lessonDocumentResponse) {
-        return {
-          message: "Lesson document not found",
-          statusCode: 404,
-          data: null,
-        }
-      }
-      return {
-        message: "Lesson document found",
-        statusCode: 200,
-        data: lessonDocumentResponse,
-      }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 400,
-        data: null,
-      }
+    if (!lessonDocumentResponse) {
+      throw new NotFoundException('Lesson document not found');
     }
+    return lessonDocumentResponse;
   }
 
   async update(
     id: number, 
     updateLessonDocumentDto: UpdateLessonDocumentDto
-  ) {
-    try {
-      const lessonResponse = await this.lessonService.findOne(updateLessonDocumentDto.lessonId)
-      if (lessonResponse.statusCode !== 200) {
-        return {
-          message: "Failed to create lesson document because lesson is not found",
-          statusCode: 404,
-          data: null,
-        }
+  ): Promise<LessonDocument> {
+    const lesson = await this.lessonService.findOne(updateLessonDocumentDto.lessonId)
+      if (!lesson) {
+        throw new NotFoundException('Lesson not found');
       }
-      const lesson = Array.isArray(lessonResponse.data)
-                    ? lessonResponse.data[0]
-                    : lessonResponse.data;
-      const documentResponse = await this.documentService.findOne(updateLessonDocumentDto.documentId);
-      if (documentResponse.statusCode !== 200) {
-        return {
-          message: "Failed to create lesson document because document is not found",
-          statusCode: 404,
-          data: null,
-        }
+ 
+      const document = await this.documentService.findOne(updateLessonDocumentDto.documentId);
+      if (!document) {
+        throw new NotFoundException('Document not found');
       }
-      const document = Array.isArray(documentResponse.data)
-                    ? documentResponse.data[0]
-                    : documentResponse.data;
-      const lessonDocumentResponse = await this.findOne(id);
-      if (lessonDocumentResponse.statusCode !== 200) {
-        return {
-          message: "Lesson document not found",
-          statusCode: 404,
-          data: null,
-        }
+      const lessonDocument = await this.findOne(id);
+      if (!lessonDocument) {
+        throw new NotFoundException('Lesson document not found');
       }
-      const lessonDocument = Array.isArray(lessonDocumentResponse.data)
-                            ? lessonDocumentResponse.data[0]
-                            : lessonDocumentResponse.data;
+
       const updatedLessonDocument = this.lessonDocumentRepository.merge(lessonDocument, {
         ...updateLessonDocumentDto,
         lesson,
@@ -174,53 +99,19 @@ export class LessonDocumentService {
       });
       const result = await this.lessonDocumentRepository.save(updatedLessonDocument);
       if(!result) {
-        return {
-          message: "Failed to update lesson document",
-          statusCode: 400,
-          data: null,
-        }
+        throw new NotFoundException('Lesson document not found');
       }
-      return {
-        message: "Lesson document updated successfully",
-        statusCode: 200,
-        data: result,
-      }
-    } catch(error ) {
-      return {
-        message: error.message,
-        statusCode: 400,
-        data: null,
-      }
-    }
+      return result;
   }
 
-  async remove(id: number): Promise<ResponseDto> {
-    try {
-      const lessonDocumentResponse = await this.findOne(id);
-      if (lessonDocumentResponse.statusCode !== 200) {
-        return {
-          message: "Lesson document not found",
-          statusCode: 404,
-          data: null,
-        }
-      }
-      const lessonDocument = Array.isArray(lessonDocumentResponse.data)
-                            ? lessonDocumentResponse.data[0]
-                            : lessonDocumentResponse.data;
-      lessonDocument.isActive = false;
-      lessonDocument.deletedAt = new Date();
-      const result = await this.lessonDocumentRepository.save(lessonDocument);
-      return {
-        message: "Lesson document deleted successfully",
-        statusCode: 200,
-        data: result,
-      }
-    } catch(error) {
-      return {
-        message: error.message,
-        statusCode: 400,
-        data: null,
-      }
+  async remove(id: number): Promise<LessonDocument> {
+    const lessonDocument = await this.findOne(id);
+    if (!lessonDocument) {
+      throw new NotFoundException('Lesson document not found');
     }
+    lessonDocument.isActive = false;
+    lessonDocument.deletedAt = new Date();
+    const result = await this.lessonDocumentRepository.save(lessonDocument);
+    return result;
   }
 }

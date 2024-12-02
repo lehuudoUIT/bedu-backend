@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAttendenceDto } from './dtos/create-attendence.dto';
 import { UpdateAttendenceDto } from './dtos/update-attendence.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,8 @@ import { Repository } from 'typeorm';
 import { LessonService } from '../lesson/lesson.service';
 import { UsersService } from '../users/users.service';
 import { ResponseDto } from './common/response.interface';
+import { User } from 'src/entities/user.entity';
+import { Lesson } from 'src/entities/lesson.entity';
 
 @Injectable()
 export class AttendenceService {
@@ -19,57 +21,39 @@ export class AttendenceService {
 
   async create(
     createAnswerDto: CreateAttendenceDto
-  ): Promise<ResponseDto> {
-    try {
-      const userResponse = await this.userService.findUserById(createAnswerDto.userId);
-      if (userResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: 'User not found',
-          data: null
-        }
-      }
-      const lessonResponse = await this.lessService.findOne(createAnswerDto.lessonId);
-      if (lessonResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: 'Lesson not found',
-          data: null
-        }
-      }
-      const user = Array.isArray(userResponse.data)
-                  ? userResponse.data[0]
-                  : userResponse.data;
-      const lesson = Array.isArray(lessonResponse.data)
-                  ? lessonResponse.data[0]
-                  : lessonResponse.data;    
-      const newAttendance = this.attendanceRepository.create({
-        ...createAnswerDto,
-        user,
-        lesson
-      });
-      const result = await this.attendanceRepository.save(newAttendance);
-      
-      return {
-        statusCode: 201,
-        message: 'Create attendance successfully',
-        data: result,
-      }
-    } catch (error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+  ): Promise<Attendance> {
+    const user = await this.userService.findUserById(createAnswerDto.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    const lesson = await this.lessService.findOne(createAnswerDto.lessonId);
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    const checkAttendance = await this.checkAttendance(createAnswerDto.userId, createAnswerDto.lessonId);
+    if(checkAttendance) {
+      throw new BadRequestException('Attendance already exists');
+    }
+                    
+    const newAttendance = this.attendanceRepository.create({
+      ...createAnswerDto,
+      user,
+      lesson
+    });
+    const result = await this.attendanceRepository.save(newAttendance);
+    if(!result) {
+      throw new NotFoundException('Failed to create attendance information');
+    }
+
+    return result;
   }
  
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<ResponseDto> {
-    try {
-      const attendance = await this.attendanceRepository
+  ): Promise<Attendance[]> {
+    const attendance = await this.attendanceRepository
                                   .createQueryBuilder('attendances')
                                   .leftJoinAndSelect('attendances.user', 'user')
                                   .leftJoinAndSelect('attendances.lesson', 'lesson')
@@ -79,32 +63,52 @@ export class AttendenceService {
                                   .take(limit)
                                   .getMany();
       if (!attendance || attendance.length === 0) {
-        return {
-          statusCode: 404,
-          message: 'Attendance not found',
-          data: null
-        }
+        throw new NotFoundException('No attendance found');
       }
-    return {
-      statusCode: 200,
-      message: 'Get attendance successfully',
-      data: attendance
-    } 
+    return attendance;
+  }
 
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+  async findAllByLessonId(
+    lessonId: number,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<Attendance[]> {
+    const attendances = await this.attendanceRepository
+                                  .createQueryBuilder('attendances')
+                                  .leftJoinAndSelect('attendances.user', 'user')
+                                  .leftJoinAndSelect('attendances.lesson', 'lesson')
+                                  .where('attendances.lessonId = :lessonId', { lessonId })
+                                  .andWhere('attendances.deletedAt IS NULL')
+                                  .andWhere('attendances.isActive = :isActive', { isActive: true })
+                                  .skip((page - 1) * limit)
+                                  .take(limit)
+                                  .getMany();
+    if (!attendances || attendances.length === 0) {
+      throw new NotFoundException('No attendance found');
     }
+    return attendances
+  }
+
+  async checkAttendance(
+    userId: number,
+    lessonId: number
+  ): Promise<Attendance> {
+    const attendance = await this.attendanceRepository
+                                  .createQueryBuilder('attendances')
+                                  .leftJoinAndSelect('attendances.user', 'user')
+                                  .leftJoinAndSelect('attendances.lesson', 'lesson')
+                                  .where('attendances.userId = :userId', { userId })
+                                  .andWhere('attendances.lessonId = :lessonId', { lessonId })
+                                  .andWhere('attendances.deletedAt IS NULL')
+                                  .andWhere('attendances.isActive = :isActive', { isActive: true })
+                                  .getOne();
+    return attendance;
   }
 
   async findOne(
     id: number
-  ): Promise<ResponseDto> {
-    try {
-      const attendance = await this.attendanceRepository
+  ): Promise<Attendance> {
+    const attendance = await this.attendanceRepository
                                   .createQueryBuilder('attendances')
                                   .leftJoinAndSelect('attendances.user', 'user')
                                   .leftJoinAndSelect('attendances.lesson', 'lesson')
@@ -114,114 +118,67 @@ export class AttendenceService {
                                   .getOne();
     
       if (!attendance) {
-        return {
-          statusCode: 404,
-          message: 'User has not joined the class yet',
-          data: null
-        }
+        throw new NotFoundException('Attendance not found');
       }
-      return {
-        statusCode: 200,
-        message: 'Get attendance successfully',
-        data: attendance
-      }
-
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
-    }
+      return attendance;
   }
 
-  async update(id: number, updateAnswerDto: UpdateAttendenceDto) {
-    try {
-      const attendance = await this.findOne(id);
-      if (attendance.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: 'Attendance not found',
-          data: null
-        }
-      }
-
-      const userResponse = await this.userService.findUserById(updateAnswerDto.userId);
-      if (userResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: 'User not found',
-          data: null
-        }
-      }
-      const user = Array.isArray(userResponse.data)
-                  ? userResponse.data[0]
-                  : userResponse.data;
-
-      const lessonResponse = await this.lessService.findOne(updateAnswerDto.lessonId);
-      if (lessonResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: 'Lesson not found',
-          data: null
-        }
-      }
-      const lesson = Array.isArray(lessonResponse.data)
-                  ? lessonResponse.data[0]
-                  : lessonResponse.data;
-      
-      const newAttendance = await this.attendanceRepository.create({
-        ...updateAnswerDto,
-        user,
-        lesson
-      })
-      const result = await this.attendanceRepository.save(newAttendance);
-      return {
-        statusCode: 200,
-        message: 'Update attendance successfully',
-        data: result
-      }
-
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+  async update(
+    id: number, 
+    updateAnswerDto: UpdateAttendenceDto
+  ): Promise<Attendance> {
+    const attendance = await this.findOne(id);
+    if (!attendance) {
+      throw new NotFoundException('Attendance information is not found');
     }
+
+    let user: User;
+    let lesson: Lesson;
+
+    if(updateAnswerDto.userId) {
+      user = await this.userService.findUserById(updateAnswerDto.userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+    } else {
+      user = attendance.user;
+    }
+
+     if(updateAnswerDto.lessonId) {
+      lesson = await this.lessService.findOne(updateAnswerDto.lessonId);
+      if (!lesson) {
+        throw new NotFoundException('Lesson not found');
+      }
+     } else {
+      lesson = attendance.lesson;
+     }
+
+    const checkAttendance = await this.checkAttendance(user.id, lesson.id);
+    if(checkAttendance) {
+      throw new BadRequestException('Attendance already exists');
+    }
+    
+    const newAttendance = await this.attendanceRepository.create({
+      ...updateAnswerDto,
+      user,
+      lesson
+    })
+    const result = await this.attendanceRepository.save(newAttendance);
+    return result 
   }
 
   async remove(
     id: number
-  ): Promise<ResponseDto> {
-    try {
-      const attendanceResponse = await this.findOne(id);
-      if (attendanceResponse.statusCode !== 200) {
-        return {
-          statusCode: 404,
-          message: 'Attendance not found',
-          data: null
-        }
-      }
-      const attendance = Array.isArray(attendanceResponse.data)
-                        ? attendanceResponse.data[0]
-                        : attendanceResponse.data;
-      attendance.isActive = false;
-      attendance.deletedAt = new Date();
-
-      const result = await this.attendanceRepository.save(attendance);
-
-      return {
-        statusCode: 200,
-        message: 'Delete attendance successfully',
-        data: result
-      }
-    } catch(error) {
-      return {
-        statusCode: 500,
-        message: error.message,
-        data: null
-      }
+  ): Promise<Attendance> {
+    const attendance = await this.findOne(id);
+    if (!attendance) {
+      throw new NotFoundException('Attendance not found');
     }
+
+    attendance.isActive = false;
+    attendance.deletedAt = new Date();
+
+    const result = await this.attendanceRepository.save(attendance);
+    return result
   }
 }

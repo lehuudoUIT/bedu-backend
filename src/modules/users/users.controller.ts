@@ -22,16 +22,25 @@ export class UsersController {
     // group is in [student, teacher, admin]
     @Param('groupId') group: string,
   ) {
-    return await this.usersService.findAllUserByGroup(page, limit, group);
+    return {
+      message: `Find the list of ${group} successfully`,
+      metadata: await this.usersService.findAllUserByGroup(page, limit, group),
+    }
   }
 
   @Post('new')
   async createUser(@Body(ValidationPipe) createUserDto: CreateUserDto) {
-    return await this.usersService.createUser(createUserDto);
+    return {
+      message: 'Create new user successfully',
+      metadata: await this.usersService.createUser(createUserDto),
+    }
   }
 
   @Get('item/:id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return await this.usersService.findUserById(id);
+    return {
+      message: 'Find a user successfully',
+      metadata: await this.usersService.findUserById(id),
+    }
   }
 }

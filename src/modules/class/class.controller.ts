@@ -7,42 +7,63 @@ import {
   Param,
   Delete,
   Query,
+  UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ClassService } from './class.service';
 import { CreateClassDto } from './dtos/create-class.dto';
 import { UpdateClassDto } from './dtos/update-class.dto';
+import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.filter';
+import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 
 @Controller('classes')
+@UseFilters(HttpExceptionFilter) 
+@UseInterceptors(ResponseFormatInterceptor)
 export class ClassController {
   constructor(private readonly classService: ClassService) {}
 
   @Post('new')
-  create(@Body() createClassDto: CreateClassDto) {
-    return this.classService.create(createClassDto);
+  async create(@Body() createClassDto: CreateClassDto) {
+    return {
+      message: 'Create new class successfully',
+      metadata: await this.classService.create(createClassDto),
+    }
   }
 
   //  type is in toeic, ielts, toefl
   @Get('all/type/:type')
-  findAll(
+  async findAll(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Param('type') type: string
   ) {
-    return this.classService.findAll(page, limit, type);
+    return {
+      message: 'Get all classes successfully',
+      metadata: await this.classService.findAll(page, limit, type),
+    }
   }
 
   @Get('item/:id')
-  findOne(@Param('id') id: string) {
-    return this.classService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return {
+      message: 'Get class detail successfully',
+      metadata: await this.classService.findOne(+id),
+    }
   }
 
   @Patch('item/:id')
-  update(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
-    return this.classService.update(+id, updateClassDto);
+  async update(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
+    return {
+      message: 'Update class successfully',
+      metadata: await this.classService.update(+id, updateClassDto),
+    }
   }
 
   @Delete('item/:id')
-  remove(@Param('id') id: string) {
-    return this.classService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return {
+      message: 'Delete class successfully',
+      metadata: await this.classService.remove(+id),
+    }
   }
 }
