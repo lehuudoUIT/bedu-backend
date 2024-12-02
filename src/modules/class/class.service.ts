@@ -4,7 +4,6 @@ import { UpdateClassDto } from './dtos/update-class.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Class } from 'src/entities/class.entity';
 import { In, Not, Repository } from 'typeorm';
-import { ResponseDto } from './common/response.interface';
 
 @Injectable()
 export class ClassService {

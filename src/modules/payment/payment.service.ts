@@ -7,7 +7,6 @@ import { Not, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ProgramService } from '../program/program.service';
 import { ClassService } from '../class/class.service';
-import { ResponseDto } from './common/response.interface';
 
 @Injectable()
 export class PaymentService {

@@ -4,7 +4,6 @@ import { UpdateReportDto } from './dtos/update-report.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Report } from 'src/entities/report.entity';
-import { ResponseDto } from './common/response.interface';
 import {UsersService} from "../users/users.service"
 
 @Injectable()
@@ -73,7 +72,7 @@ export class ReportService {
   async update(
     id: number, 
     updateReportDto: UpdateReportDto
-  ): Promise<ResponseDto> {
+  ): Promise<Report> {
     const report = await this.findOne(id);
     const poster = await this.userService
                             .findUserById(updateReportDto.userId);
@@ -94,11 +93,7 @@ export class ReportService {
     if (!result) {
       throw new InternalServerErrorException('Failed to update report');
     }
-    return {
-      statusCode: 200,
-      message: 'Update report successfully',
-      data: result
-    }
+    return result
   }
 
   async remove(

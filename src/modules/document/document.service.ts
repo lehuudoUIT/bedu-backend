@@ -4,7 +4,6 @@ import { UpdateDocumentDto } from './dtos/update-document.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Document } from 'src/entities/document.entity';
 import { IsNull, Not, Repository } from 'typeorm';
-import { ResponseDto } from './common/response.interface';
 import { QuestionService } from '../question/question.service';
 import { Question } from 'src/entities/question.entity';
 

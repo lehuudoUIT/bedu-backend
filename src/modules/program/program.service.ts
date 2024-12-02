@@ -4,7 +4,6 @@ import { UpdateProgramDto } from './dtos/update-program.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Program } from 'src/entities/program.entity';
-import { ResponseDto } from './common/response.interface';
 import { CourseService } from '../course/course.service';
 import { Course } from 'src/entities/course.entity';
 

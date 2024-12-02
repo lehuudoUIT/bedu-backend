@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 import { ClassService } from '../class/class.service';
 import { CourseService } from '../course/course.service';
 import { ExamService } from '../exam/exam.service';
-import { ResponseDto } from './common/response.interface';
 
 @Injectable()
 export class LessonService {

@@ -6,7 +6,6 @@ import { UserClass } from 'src/entities/user_class.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ClassService } from '../class/class.service';
-import { ResponseDto } from './common/response.interface';
 import { zipAll } from 'rxjs';
  
 @Injectable()

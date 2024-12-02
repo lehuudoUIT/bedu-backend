@@ -6,7 +6,6 @@ import { Attendance } from 'src/entities/attendence.entity';
 import { Repository } from 'typeorm';
 import { LessonService } from '../lesson/lesson.service';
 import { UsersService } from '../users/users.service';
-import { ResponseDto } from './common/response.interface';
 import { User } from 'src/entities/user.entity';
 import { Lesson } from 'src/entities/lesson.entity';
 

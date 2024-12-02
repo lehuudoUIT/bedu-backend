@@ -4,7 +4,6 @@ import { UpdateQuestionDto } from './dtos/update-question.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from 'src/entities/question.entity';
 import {Repository } from 'typeorm';
-import { ResponseDto } from './common/response.interface';
 import { MultipleChoice } from './strategies/multiple-choice-question';
 import { SingleChoice } from './strategies/single-choice-question';
 import { QuestionStrategy } from './strategies/question-strategy.interface';
@@ -192,113 +191,69 @@ export class QuestionService {
   async update(
     id: number, 
     updateQuestionDto: UpdateQuestionDto
-  ): Promise<ResponseDto> {
-    try {
-      const question = await this.findOne(id);
-      if (!question) {
-        throw new NotFoundException('Question not found');
-      }
+  ): Promise<Question> {
+    const question = await this.findOne(id);
+    if (!question) {
+      throw new NotFoundException('Question not found');
+    }
 
-      let exam: Exam[] = [];
-      if (updateQuestionDto.examId) {
-        for(let i = 0; i < updateQuestionDto.examId.length; i++) {
-          const examItem = await this.examService.findOne(updateQuestionDto.examId[i]);
-          if (!examItem) {
-            return {
-              message: 'Exam ' + updateQuestionDto.examId[i] + ' is not found',
-              statusCode: 404,
-              data: null,
-            }
-          }
-
-          exam[i] = examItem;
+    let exam: Exam[] = [];
+    if (updateQuestionDto.examId) {
+      for(let i = 0; i < updateQuestionDto.examId.length; i++) {
+        const examItem = await this.examService.findOne(updateQuestionDto.examId[i]);
+        if (!examItem) {
+          throw new NotFoundException('Exam ' + updateQuestionDto.examId[i] + ' is not found');
         }
-      }
 
-      let documents: Document[] = [];
-      if (updateQuestionDto.documentId) {
-        for (let i = 0; i < updateQuestionDto.documentId.length; i++) {
-          const documentItem = await this.documentService.findOne(updateQuestionDto.documentId[i]);
-          if (!documentItem) {
-            return {
-              message: 'Document ' + updateQuestionDto.documentId[i] + ' is not found',
-              statusCode: 404,
-              data: null,
-            }
-          }
-          documents[i] = documentItem;
-        }
-      }
-
-      if (exam.length === 0 && documents.length === 0) {
-        return {
-          message: 'Invalid information: Document and Exam is not found',
-          statusCode: 404,
-          data: null,
-        }
-      }
-
-      if (updateQuestionDto.questionType === "FillInTheBlankChoice"
-        && updateQuestionDto.answer === null  
-      ) {
-        if (updateQuestionDto.pointDivision === null) {
-          return {
-            message: 'Fill in the blank question should not have point division',
-            statusCode: 400,
-            data: null,
-          }
-        }
-      }
-                  
-      const updatedQuestion = this.questionRepository.create({
-        ...question,
-        ...updateQuestionDto,
-        document: documents,
-        exam,
-      })
-      const result = await this.questionRepository.save(updatedQuestion);
-      return {
-        message: 'Question updated successfully',
-        statusCode: 200,
-        data: result,
-      }
-    } catch (error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null,
+        exam[i] = examItem;
       }
     }
+
+    let documents: Document[] = [];
+    if (updateQuestionDto.documentId) {
+      for (let i = 0; i < updateQuestionDto.documentId.length; i++) {
+        const documentItem = await this.documentService.findOne(updateQuestionDto.documentId[i]);
+        if (!documentItem) {
+          throw new NotFoundException('Document ' + updateQuestionDto.documentId[i] + ' is not found');
+        }
+        documents[i] = documentItem;
+      }
+    }
+
+    if (exam.length === 0 && documents.length === 0) {
+      throw new NotFoundException('Invalid information: Document and Exam is not found');
+    }
+
+    if (updateQuestionDto.questionType === "FillInTheBlankChoice"
+      && updateQuestionDto.answer === null  
+    ) {
+      if (updateQuestionDto.pointDivision === null) {
+        throw new NotFoundException('Fill in the blank question should not have point division');
+      }
+    }
+                
+    const updatedQuestion = this.questionRepository.create({
+      ...question,
+      ...updateQuestionDto,
+      document: documents,
+      exam,
+    })
+    const result = await this.questionRepository.save(updatedQuestion);
+    return result;
   }
 
-  async remove(id: number): Promise<ResponseDto> {
-    try {
-      const question = await this.findOne(id);
-      if (!question) {
-        return {
-          message: 'Question not found',
-          statusCode: 404,
-          data: null,
-        }
-      }
-
-      const deletedQuestion = this.questionRepository.create({
-        ...question,
-        isActive: true,
-        deletedAt: new Date(),
-      });
-      const result = await this.questionRepository.save(deletedQuestion);
-      return {
-        message: 'Question deleted successfully',
-        statusCode: 200,
-        data: result,
-      }
-    } catch (error) {
-      return {
-        message: error.message,
-        statusCode: 500,
-        data: null,
-      }
+  async remove(id: number): Promise<Question> {
+    const question = await this.findOne(id);
+    if (!question) {
+      throw new NotFoundException('Question not found');
     }
+
+    const deletedQuestion = this.questionRepository.create({
+      ...question,
+      isActive: true,
+      deletedAt: new Date(),
+    });
+    const result = await this.questionRepository.save(deletedQuestion);
+    return result
   }
 }

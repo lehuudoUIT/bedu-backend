@@ -4,7 +4,6 @@ import { UpdateExamDto } from './dtos/update-exam.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Exam } from 'src/entities/exam.entity';
-import { ResponseDto } from './common/response.interface';
 import { QuestionService } from '../question/question.service';
 import { Question } from 'src/entities/question.entity';
 

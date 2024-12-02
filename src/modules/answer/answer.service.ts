@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Answer } from 'src/entities/answer.entity';
 import { QuestionService } from '../question/question.service';
-import { ResponseDto } from './common/response.interface';
 import { ExamService } from '../exam/exam.service';
 import {UsersService} from '../users/users.service';
 import { Exam } from 'src/entities/exam.entity';

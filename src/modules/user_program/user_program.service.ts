@@ -6,7 +6,6 @@ import { UserProgram } from 'src/entities/user_program.entity';
 import { IsNull, Repository } from 'typeorm';
 import {UsersService} from "../users/users.service"
 import {ProgramService} from "../program/program.service"
-import { ResponseDto } from './common/response.interface';
 
 @Injectable()
 export class UserProgramService {
@@ -164,7 +163,7 @@ export class UserProgramService {
     if (checkExist) {
       throw new BadRequestException('Student already exists in the program');
     }
-    
+
     const result = await this.userProgramRepository.save(newEnrollment);
     if (!result) {
       throw new InternalServerErrorException('Failed to update program registration information');
