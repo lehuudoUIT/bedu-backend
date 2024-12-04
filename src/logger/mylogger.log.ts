@@ -58,7 +58,7 @@ export class MyLoggerService implements LoggerService {
         formatPrint,
       ),
       transports: [
-        new transports.Console(),
+        // new transports.Console(),
         transportDailyErrorFile,
         transportDailyInfoFile,
       ],
