@@ -3,7 +3,7 @@ import { CreateScoreDto } from './dtos/create-score.dto';
 import { UpdateScoreDto } from './dtos/update-score.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { Score } from 'src/entities/score.entity';
+import { Score } from '../../entities/score.entity';
 import { UsersService } from '../users/users.service';
 import { ExamService } from '../exam/exam.service';
 import { ResponseDto } from './common/response.interface';

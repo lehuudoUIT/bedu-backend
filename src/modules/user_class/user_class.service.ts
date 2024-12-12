@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateUserClassDto } from './dto/create-user_class.dto';
 import { UpdateUserClassDto } from './dto/update-user_class.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserClass } from 'src/entities/user_class.entity';
+import { UserClass } from '../../entities/user_class.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ClassService } from '../class/class.service';

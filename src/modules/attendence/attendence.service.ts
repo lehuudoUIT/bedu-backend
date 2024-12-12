@@ -2,13 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateAttendenceDto } from './dtos/create-attendence.dto';
 import { UpdateAttendenceDto } from './dtos/update-attendence.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Attendance } from 'src/entities/attendence.entity';
+import { Attendance } from '../../entities/attendence.entity';
 import { Repository } from 'typeorm';
 import { LessonService } from '../lesson/lesson.service';
 import { UsersService } from '../users/users.service';
-import { User } from 'src/entities/user.entity';
-import { Lesson } from 'src/entities/lesson.entity';
-
+import { User } from '../../entities/user.entity';
+import { Lesson } from '../../entities/lesson.entity';
 @Injectable()
 export class AttendenceService {
   constructor(
@@ -51,7 +50,10 @@ export class AttendenceService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<Attendance[]> {
+  ): Promise<{
+    totalRecord: number,
+    answers: Attendance[]
+  }> {
     const attendance = await this.attendanceRepository
                                   .createQueryBuilder('attendances')
                                   .leftJoinAndSelect('attendances.user', 'user')
@@ -61,17 +63,28 @@ export class AttendenceService {
                                   .skip((page - 1) * limit)
                                   .take(limit)
                                   .getMany();
-      if (!attendance || attendance.length === 0) {
-        throw new NotFoundException('No attendance found');
-      }
-    return attendance;
+    const totalRecord = await this.attendanceRepository
+                                  .createQueryBuilder('attendances')
+                                  .where('attendances.deletedAt IS NULL')
+                                  .andWhere('attendances.isActive = :isActive', { isActive: true })
+                                  .getCount();
+    if (!attendance || attendance.length === 0) {
+      throw new NotFoundException('No attendance found');
+    }
+    return {
+      totalRecord: totalRecord,
+      answers: attendance
+    };
   }
 
   async findAllByLessonId(
     lessonId: number,
     page: number = 1,
     limit: number = 10
-  ): Promise<Attendance[]> {
+  ): Promise<{
+    totalRecord: number,
+    answers: Attendance[]
+  }> {
     const attendances = await this.attendanceRepository
                                   .createQueryBuilder('attendances')
                                   .leftJoinAndSelect('attendances.user', 'user')
@@ -82,10 +95,19 @@ export class AttendenceService {
                                   .skip((page - 1) * limit)
                                   .take(limit)
                                   .getMany();
+    const totalRecord = await this.attendanceRepository
+                                  .createQueryBuilder('attendances')
+                                  .where('attendances.lessonId = :lessonId', { lessonId })
+                                  .andWhere('attendances.deletedAt IS NULL')
+                                  .andWhere('attendances.isActive = :isActive', { isActive: true })
+                                  .getCount();
     if (!attendances || attendances.length === 0) {
       throw new NotFoundException('No attendance found');
     }
-    return attendances
+    return {
+      totalRecord: totalRecord,
+      answers: attendances
+    }
   }
 
   async checkAttendance(

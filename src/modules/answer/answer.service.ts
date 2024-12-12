@@ -3,13 +3,13 @@ import { CreateAnswerDto } from './dtos/create-answer.dto';
 import { UpdateAnswerDto } from './dtos/update-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Answer } from 'src/entities/answer.entity';
+import { Answer } from '../../entities/answer.entity';
 import { QuestionService } from '../question/question.service';
 import { ExamService } from '../exam/exam.service';
 import {UsersService} from '../users/users.service';
-import { Exam } from 'src/entities/exam.entity';
-import { Question } from 'src/entities/question.entity';
-
+import { Exam } from '../../entities/exam.entity';
+import { Question } from '../../entities/question.entity';
+// npx jest src/modules/answer/answer.service.spec.ts
 @Injectable()
 export class AnswerService {
   constructor(
@@ -61,7 +61,10 @@ export class AnswerService {
   async findAll(
     page: number = 1,
     limit: number = 10
-  ): Promise<Answer[]> {
+  ): Promise<{
+    totalRecord: number,
+    answers: Answer[]
+  }> {
     const allResults = await this.answerRepository
                                 .createQueryBuilder('answer')
                                 .leftJoinAndSelect('answer.user', 'user')
@@ -72,11 +75,19 @@ export class AnswerService {
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
+    const totalRecord = await this.answerRepository
+                                .createQueryBuilder('answer')
+                                .where('answer.deletedAt is NULL')
+                                .andWhere('answer.isActive = :isActive', { isActive: true })
+                                .getCount();
 
     if (allResults.length === 0) {
     throw new NotFoundException('No answer found');
     }
-    return allResults;
+    return {
+      totalRecord: totalRecord,
+      answers: allResults
+    };
   }
 
   async findAllByStudentAndExam(
@@ -84,7 +95,10 @@ export class AnswerService {
     examId: number,
     page: number = 1,
     limit: number = 10
-  ): Promise<Answer[]> {
+  ): Promise<{
+    totalRecord: number,
+    answers: Answer[]
+  }> {
     const allResults = await this.answerRepository
                                   .createQueryBuilder('answer')
                                   .leftJoinAndSelect('answer.user', 'user')
@@ -98,17 +112,30 @@ export class AnswerService {
                                   .skip((page - 1) * limit)
                                   .take(limit)
                                   .getMany();
+    const totalRecord = await this.answerRepository 
+                                  .createQueryBuilder('answer')
+                                  .where('answer.deletedAt is NULL')
+                                  .andWhere('answer.isActive = :isActive', { isActive: true })
+                                  .andWhere('answer.userId = :studentId', { studentId })
+                                  .andWhere('answer.examId = :examId', { examId })
+                                  .getCount();
     if (allResults.length === 0) {
       throw new NotFoundException('No answer found');
     }
-    return allResults
+    return {
+      totalRecord: totalRecord,
+      answers: allResults
+    }
   }
 
   async findAllByExam(
     examId: number,
     page: number = 1,
     limit: number = 10
-  ): Promise<Answer[]> {
+  ): Promise<{
+    totalRecord: number,
+    answers: Answer[]
+  }> {
     const allResults = await this.answerRepository
                                 .createQueryBuilder('answer')
                                 .leftJoinAndSelect('answer.user', 'user') 
@@ -121,10 +148,20 @@ export class AnswerService {
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
+    const  totalRecord = await this.answerRepository
+                                .createQueryBuilder('answer')
+                                .where('answer.deletedAt is NULL')
+                                .andWhere('answer.isActive = :isActive', { isActive: true })
+                                .andWhere('answer.examId = :examId', { examId })
+                                .getCount();
+
     if (allResults.length === 0) {
       throw new NotFoundException('No answer found');
     }
-    return allResults
+    return {
+      totalRecord: totalRecord,
+      answers: allResults
+    }
   }
 
   async findOne(

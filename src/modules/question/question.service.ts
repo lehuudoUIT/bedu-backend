@@ -2,14 +2,14 @@ import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException 
 import { CreateQuestionDto } from './dtos/create-question.dto';
 import { UpdateQuestionDto } from './dtos/update-question.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Question } from 'src/entities/question.entity';
+import { Question } from '../../entities/question.entity';
 import {Repository } from 'typeorm';
 import { MultipleChoice } from './strategies/multiple-choice-question';
 import { SingleChoice } from './strategies/single-choice-question';
 import { QuestionStrategy } from './strategies/question-strategy.interface';
 import { FillInTheBlankChoice } from './strategies/fill-in-the-blank-question';
 import { ExamService } from '../exam/exam.service';
-import { Exam } from 'src/entities/exam.entity';
+import { Exam } from '../../entities/exam.entity';
 import { DocumentService } from '../document/document.service';
 import  {Document} from "../../entities/document.entity";
 

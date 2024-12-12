@@ -1,10 +1,10 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException, Get } from '@nestjs/common';
 import { CreateCourseDto } from './dtos/create-course.dto';
 import { UpdateCourseDto } from './dtos/update-course.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Course } from 'src/entities/course.entity';
+import { Course } from '../../entities/course.entity';
 import { Repository } from 'typeorm';
-import { Program } from 'src/entities/program.entity';
+import { Program } from '../../entities/program.entity';
 import { ProgramService } from '../program/program.service';
 
 @Injectable()
@@ -43,7 +43,10 @@ export class CourseService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<Course[]> {
+  ): Promise<{
+    totalRecord: number,
+    courses: Course[]
+  }> {
     const course = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
@@ -51,19 +54,31 @@ export class CourseService {
                               .orderBy('course.id', 'DESC')
                               .skip((page - 1) * limit)
                               .take(limit)
-                                .getMany();
+                              .getMany();
+    const totalRecord = await this.courseRepository
+                              .createQueryBuilder('course')
+                              .where('course.deletedAt IS NULL')
+                              .andWhere('course.isActive = :isActive', { isActive: true })
+                              .getCount();
+
     if (course.length === 0) {
       throw new NotFoundException('No course found!');
     }
-    return course;
+    return {
+      totalRecord: totalRecord,
+      courses: course
+    };
   }
 
   async findAllByType(
     type: string,
     page: number = 1,
     limit: number = 10,
-  ): Promise<Course[]> {
-    const course = await this.courseRepository
+  ): Promise<{
+    totalRecord: number,
+    courses: Course[]
+  }> {
+    const courses = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
                               .andWhere('course.isActive = :isActive', { isActive: true })
@@ -72,10 +87,19 @@ export class CourseService {
                               .skip((page - 1) * limit)
                               .take(limit)
                               .getMany();
-    if (course.length === 0) {
+    const totalRecord = await this.courseRepository
+                              .createQueryBuilder('course')
+                              .where('course.deletedAt IS NULL')
+                              .andWhere('course.isActive = :isActive', { isActive: true })
+                              .andWhere('course.courseType = :type', { type })
+                              .getCount();
+    if (courses.length === 0) {
       throw new NotFoundException('No course found!');
     }
-    return course
+    return {
+      totalRecord: totalRecord,
+      courses: courses
+    }
   }
 
   async findOne(
@@ -84,6 +108,7 @@ export class CourseService {
     const course = await this.courseRepository 
                                 .createQueryBuilder('course')
                                 .leftJoinAndSelect('course.program', 'program')
+                                .leftJoinAndSelect('course.lesson', 'lesson')
                                 .where('course.id = :id', { id })
                                 .andWhere('course.deletedAt IS NULL')
                                 .andWhere('course.isActive = :isActive', { isActive: true })

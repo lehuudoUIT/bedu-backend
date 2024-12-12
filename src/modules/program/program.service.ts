@@ -3,9 +3,9 @@ import { CreateProgramDto } from './dtos/create-program.dto';
 import { UpdateProgramDto } from './dtos/update-program.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Program } from 'src/entities/program.entity';
+import { Program } from '../../entities/program.entity';
 import { CourseService } from '../course/course.service';
-import { Course } from 'src/entities/course.entity';
+import { Course } from '../../entities/course.entity';
 
 @Injectable()
 export class ProgramService {

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { User } from '../../entities/user.entity';
 import { IsNull, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create.user.dto';
 
