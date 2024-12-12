@@ -1,4 +1,4 @@
-import { AbstractEntity } from 'src/database/abstract.entity';
+import { AbstractEntity } from '../database/abstract.entity';
 import { Column, Entity, ManyToMany, OneToMany } from 'typeorm';
 import { Program } from './program.entity';
 import { Lesson } from './lesson.entity';

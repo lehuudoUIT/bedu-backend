@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLessonDocumentDto } from './dto/create-lesson_document.dto';
 import { UpdateLessonDocumentDto } from './dto/update-lesson_document.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessonDocument } from 'src/entities/lesson_document.entity';
+import { LessonDocument } from '../../entities/lesson_document.entity';
 import { IsNull, Repository } from 'typeorm';
 import { LessonService } from '../lesson/lesson.service';
 import { DocumentService } from '../document/document.service';

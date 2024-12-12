@@ -3,13 +3,13 @@ import { CreateAnswerDto } from './dtos/create-answer.dto';
 import { UpdateAnswerDto } from './dtos/update-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Answer } from 'src/entities/answer.entity';
+import { Answer } from '../../entities/answer.entity';
 import { QuestionService } from '../question/question.service';
 import { ExamService } from '../exam/exam.service';
 import {UsersService} from '../users/users.service';
-import { Exam } from 'src/entities/exam.entity';
-import { Question } from 'src/entities/question.entity';
-
+import { Exam } from '../../entities/exam.entity';
+import { Question } from '../../entities/question.entity';
+// npx jest src/modules/answer/answer.service.spec.ts
 @Injectable()
 export class AnswerService {
   constructor(

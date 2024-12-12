@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { CreateUserProgramDto } from './dto/create-user_program.dto';
 import { UpdateUserProgramDto } from './dto/update-user_program.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserProgram } from 'src/entities/user_program.entity';
+import { UserProgram } from '../../entities/user_program.entity';
 import { IsNull, Repository } from 'typeorm';
 import {UsersService} from "../users/users.service"
 import {ProgramService} from "../program/program.service"

@@ -2,9 +2,8 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { CreateClassDto } from './dtos/create-class.dto';
 import { UpdateClassDto } from './dtos/update-class.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Class } from 'src/entities/class.entity';
+import { Class } from '../../entities/class.entity';
 import { Repository } from 'typeorm';
-
 @Injectable()
 export class ClassService {
   constructor(
@@ -110,5 +109,5 @@ export class ClassService {
       throw new InternalServerErrorException('Failed to delete class information');
     }
     return result
-}
+  }
 }

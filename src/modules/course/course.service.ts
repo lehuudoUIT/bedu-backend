@@ -2,10 +2,11 @@ import { forwardRef, Inject, Injectable, NotFoundException, Get } from '@nestjs/
 import { CreateCourseDto } from './dtos/create-course.dto';
 import { UpdateCourseDto } from './dtos/update-course.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Course } from 'src/entities/course.entity';
+import { Course } from '../../entities/course.entity';
 import { Repository } from 'typeorm';
-import { Program } from 'src/entities/program.entity';
+import { Program } from '../../entities/program.entity';
 import { ProgramService } from '../program/program.service';
+
 @Injectable()
 export class CourseService {
   constructor(

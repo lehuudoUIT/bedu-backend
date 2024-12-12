@@ -1,5 +1,5 @@
 import { Abstract } from "@nestjs/common";
-import { AbstractEntity } from "src/database/abstract.entity";
+import { AbstractEntity } from "../database/abstract.entity";
 import { Column, Entity, ManyToOne } from "typeorm";
 import { Lesson } from "./lesson.entity";
 import {Document} from "./document.entity"

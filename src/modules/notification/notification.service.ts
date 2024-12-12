@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { NotificationDto } from './dtos/send-notification.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Notification } from 'src/entities/notification.entity';
+import { Notification } from '../../entities/notification.entity';
 
 import { IsNull, Repository } from 'typeorm';
 import {UsersService} from '../users/users.service';

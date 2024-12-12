@@ -3,9 +3,9 @@ import { CreateExamDto } from './dtos/create-exam.dto';
 import { UpdateExamDto } from './dtos/update-exam.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { Exam } from 'src/entities/exam.entity';
+import { Exam } from '../../entities/exam.entity';
 import { QuestionService } from '../question/question.service';
-import { Question } from 'src/entities/question.entity';
+import { Question } from '../../entities/question.entity';
 
 @Injectable()
 export class ExamService {

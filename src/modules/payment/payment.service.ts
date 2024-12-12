@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePaymentDto } from './dtos/create-payment.dto';
 import { UpdatePaymentDto } from './dtos/update-payment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Payment } from 'src/entities/payment.entity';
+import { Payment } from '../../entities/payment.entity';
 import { Not, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ProgramService } from '../program/program.service';

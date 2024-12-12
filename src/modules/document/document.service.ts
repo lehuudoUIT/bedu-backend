@@ -2,10 +2,10 @@ import { forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundE
 import { CreateDocumentDto } from './dtos/create-document.dto';
 import { UpdateDocumentDto } from './dtos/update-document.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Document } from 'src/entities/document.entity';
+import { Document } from '../../entities/document.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { QuestionService } from '../question/question.service';
-import { Question } from 'src/entities/question.entity';
+import { Question } from '../../entities/question.entity';
 
 @Injectable()
 export class DocumentService {

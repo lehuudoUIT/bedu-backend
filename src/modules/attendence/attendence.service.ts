@@ -2,13 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateAttendenceDto } from './dtos/create-attendence.dto';
 import { UpdateAttendenceDto } from './dtos/update-attendence.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Attendance } from 'src/entities/attendence.entity';
+import { Attendance } from '../../entities/attendence.entity';
 import { Repository } from 'typeorm';
 import { LessonService } from '../lesson/lesson.service';
 import { UsersService } from '../users/users.service';
-import { User } from 'src/entities/user.entity';
-import { Lesson } from 'src/entities/lesson.entity';
- 
+import { User } from '../../entities/user.entity';
+import { Lesson } from '../../entities/lesson.entity';
 @Injectable()
 export class AttendenceService {
   constructor(

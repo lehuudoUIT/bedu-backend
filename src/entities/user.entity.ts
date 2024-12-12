@@ -1,5 +1,5 @@
 import { Payment } from './payment.entity';
-import { AbstractEntity } from 'src/database/abstract.entity';
+import { AbstractEntity } from '../database/abstract.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { UserProgram } from './user_program.entity';
 import { UserClass } from './user_class.entity';
