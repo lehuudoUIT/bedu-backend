@@ -46,7 +46,10 @@ export class DocumentService {
     page: number = 1,
     limit: number = 10,
     type: string
-  ): Promise<Document[]> {
+  ): Promise<{
+    totalRecord: number,
+    documents: Document[]
+  }> {
     const documents = await this.documentRepository
                                 .createQueryBuilder('document')
                                 .leftJoinAndSelect('document.question', 'question')
@@ -57,16 +60,28 @@ export class DocumentService {
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
+    const totalRecord = await this.documentRepository
+                                .createQueryBuilder('document')
+                                .where('document.deletedAt is null')
+                                .andWhere('document.isActive = :isActivated', { isActivated: true }) 
+                                .andWhere('document.documentType = :type', { type })
+                                .getCount();
     if (documents.length === 0) {
     throw new NotFoundException('No document found!');
     }
-    return documents;
+    return {
+      totalRecord: totalRecord,
+      documents: documents
+    };
   }
 
   async findAll(
     page: number = 1,
     limit: number = 10
-  ): Promise<Document[]> {
+  ): Promise<{
+    totalRecord: number,
+    documents: Document[]
+  }> {
     const documents = await this.documentRepository
                           .createQueryBuilder('document')
                           .leftJoinAndSelect('document.question', 'question')
@@ -76,10 +91,18 @@ export class DocumentService {
                           .skip((page - 1) * limit)
                           .take(limit)
                           .getMany();
+    const totalRecord = await this.documentRepository
+                          .createQueryBuilder('document')
+                          .where('document.deletedAt is null')
+                          .andWhere('document.isActive = :isActivated', { isActivated: true })      
+                          .getCount();
     if (documents.length === 0) {
       throw new NotFoundException('No document found!');
     }
-    return documents;
+    return {
+      totalRecord: totalRecord,
+      documents: documents
+    };
   }
 
   async findOne(id: number): Promise<Document> {

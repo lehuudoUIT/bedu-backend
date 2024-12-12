@@ -3,7 +3,7 @@ import { CreateClassDto } from './dtos/create-class.dto';
 import { UpdateClassDto } from './dtos/update-class.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Class } from 'src/entities/class.entity';
-import { In, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ClassService {
@@ -34,7 +34,10 @@ export class ClassService {
     page: number = 1,
     limit: number = 10,
     type: string = 'toeic'
-  ) {
+  ): Promise<{
+    totalRecord: number,
+    answers: Class[]
+  }> {
     const classes = await this.classRepository
                                 .createQueryBuilder('class')
                                 .where('class.type = :type', { type })
@@ -43,10 +46,19 @@ export class ClassService {
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
-      if (!classes) {
-        throw new NotFoundException('Class information is not found');
-      }
-      return classes;
+    const totalRecord = await this.classRepository
+                                .createQueryBuilder('class')
+                                .where('class.type = :type', { type })
+                                .andWhere('class.isActive = true')
+                                .andWhere('class.deletedAt is null')
+                                .getCount();
+    if (classes.length === 0) {
+      throw new NotFoundException('Class information is not found');
+    }
+    return {
+      totalRecord: totalRecord,
+      answers: classes
+    };
   } 
 
   async findOne(

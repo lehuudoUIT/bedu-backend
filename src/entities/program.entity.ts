@@ -22,6 +22,12 @@ export class Program extends AbstractEntity<Program> {
   @Column()
   type: string;
 
+  @Column()
+  target_start: number ;
+  
+  @Column()
+  target_end: number; 
+
   @Column({ type: 'boolean', default: true}) 
   isActive: boolean;
 
@@ -40,4 +46,6 @@ export class Program extends AbstractEntity<Program> {
 
   @OneToMany(() => Payment, (payment) => payment.program)
   payment: Payment[];
+
+  
 }

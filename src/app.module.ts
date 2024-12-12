@@ -45,7 +45,7 @@ import { LessonDocumentModule } from './modules/lesson_document/lesson_document.
     ReportModule,
     UserProgramModule,
     UserClassModule,
-    LessonDocumentModule
+    LessonDocumentModule,
   ],
   controllers: [],
   providers: [],
