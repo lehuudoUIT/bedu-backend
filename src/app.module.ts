@@ -21,6 +21,7 @@ import { ReportModule } from './modules/report/report.module';
 import { UserProgramModule } from './modules/user_program/user_program.module';
 import { UserClassModule } from './modules/user_class/user_class.module';
 import { LessonDocumentModule } from './modules/lesson_document/lesson_document.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { LessonDocumentModule } from './modules/lesson_document/lesson_document.
     UserProgramModule,
     UserClassModule,
     LessonDocumentModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],

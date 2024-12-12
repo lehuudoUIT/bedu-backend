@@ -7,3 +7,9 @@ export type AuthResult = {
   username: string;
   accessToken: string;
 };
+
+export type LogParam = {
+  requestId: string;
+  context: string | object;
+  metadata: object;
+};
