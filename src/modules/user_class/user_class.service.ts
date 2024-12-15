@@ -60,7 +60,10 @@ export class UserClassService {
   async findAll(
     page: number = 1,
     limit: number = 10
-  ): Promise<UserClass[]> {
+  ): Promise<{
+    totalRecord: number,
+    userClasses: UserClass[]
+  }> {
     const userClasses = await this.userClassRepository
                           .createQueryBuilder('user_class')
                           .leftJoinAndSelect('user_class.user', 'user')
@@ -71,17 +74,28 @@ export class UserClassService {
                           .skip((page - 1) * limit)
                           .take(limit)
                           .getMany();
+    const total = await this.userClassRepository
+                          .createQueryBuilder('user_class')
+                          .where('user_class.deletedAt is null')
+                          .andWhere('user.isActive = :isActive', { isActive: 1 }) 
+                          .getCount();
     if (!userClasses) {
       throw new NotFoundException('Class registration information is not found');
     }
-    return userClasses;
+    return {
+      totalRecord: total,
+      userClasses: userClasses
+    };
   }
 
   async findAllByClass(
     page: number = 1,
     limit: number = 10,
     idClass: number
-  ) {
+  ): Promise<{
+    totalRecord: number,
+    userClasses: UserClass[]
+  }> {
     const userClasses = await this.userClassRepository
                           .createQueryBuilder('user_class')
                           .leftJoinAndSelect('user_class.user', 'user')
@@ -93,10 +107,19 @@ export class UserClassService {
                           .skip((page - 1) * limit)
                           .take(limit)
                           .getMany();
+    const total = await this.userClassRepository
+                          .createQueryBuilder('user_class')
+                          .where('user_class.deletedAt is null')
+                          .andWhere('user.isActive = :isActive', { isActive: 1 })
+                          .andWhere('class.id = :idClass', { idClass})
+                          .getCount();
     if (userClasses.length === 0) {
       throw new NotFoundException('Class registration information is not found');
     }
-    return userClasses;
+    return {
+      totalRecord: total,
+      userClasses: userClasses
+    };
   }
 
   async findOne(id: number): Promise<UserClass> {

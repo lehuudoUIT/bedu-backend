@@ -47,5 +47,9 @@ export class Program extends AbstractEntity<Program> {
   @OneToMany(() => Payment, (payment) => payment.program)
   payment: Payment[];
 
-  
+  @Column()
+  avatar: string;
+
+  @Column()
+  price: number;
 }

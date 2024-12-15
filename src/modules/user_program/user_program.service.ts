@@ -68,6 +68,11 @@ export class UserProgramService {
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
+    const total = await this.userProgramRepository
+                          .createQueryBuilder('user_program')
+                          .where('user_program.deletedAt is null')
+                          .andWhere('user_program.isActive = 1')
+                          .getCount();    
     if (enrollments.length === 0) {
       throw new NotFoundException('No program registration information found');
     }
@@ -78,7 +83,10 @@ export class UserProgramService {
     programId: number,
     page: number = 1,
     limit: number = 10
-  ): Promise<UserProgram[]> {
+  ): Promise<{
+    totalRecord: number,
+    enrollments: UserProgram[]
+  }> {
     const enrollments = await this.userProgramRepository
                                 .createQueryBuilder('user_program')
                                 .leftJoinAndSelect('user_program.user', 'user')
@@ -90,17 +98,29 @@ export class UserProgramService {
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
+    const totalRecord = await this.userProgramRepository
+                                .createQueryBuilder('user_program')
+                                .where('user_program.programId = :programId', { programId })
+                                .andWhere('user_program.isActive = 1')
+                                .andWhere('user_program.deletedAt is null')
+                                .getCount(); 
     if (enrollments.length === 0) {
       throw new NotFoundException('Program registration information not found');
     }
-    return enrollments;
+    return {
+      totalRecord: totalRecord,
+      enrollments: enrollments
+    };
   }
 
   async findAllByUserId(
     userId: number,
     page: number = 1,
     limit: number = 10
-  ): Promise<UserProgram[]> {
+  ): Promise<{
+    total: number,
+    enrollments: UserProgram[]
+  }> {
     const enrollment = await this.userProgramRepository
                                   .createQueryBuilder('user_program')
                                   .leftJoinAndSelect('user_program.user', 'user')
@@ -112,10 +132,19 @@ export class UserProgramService {
                                   .skip((page - 1) * limit)
                                   .take(limit)
                                   .getMany();
+    const total = await this.userProgramRepository
+                          .createQueryBuilder('user_program')
+                          .where('user_program.userId = :userId', { userId })
+                          .andWhere('user_program.isActive = 1')
+                          .andWhere('user_program.deletedAt is null')
+                          .getCount();
     if (enrollment.length === 0) {
       throw new NotFoundException('Program registration information not found');
     }
-    return enrollment;
+    return {
+      total: total,
+      enrollments: enrollment
+    };
   }
 
   async findOne(

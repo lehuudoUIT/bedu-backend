@@ -15,6 +15,7 @@ import { Payment } from 'src/entities/payment.entity';
 import { Program } from 'src/entities/program.entity';
 import { Question } from 'src/entities/question.entity';
 import { Report } from 'src/entities/report.entity';
+import { Role } from 'src/entities/role.entity';
 import { Score } from 'src/entities/score.entity';
 import { User } from 'src/entities/user.entity';
 import { UserClass } from 'src/entities/user_class.entity';
@@ -61,6 +62,7 @@ import { UserProgram } from 'src/entities/user_program.entity';
           UserProgram,
           UserClass,
           LessonDocument,
+          Role
         ],
         synchronize: configservice.getOrThrow('TYPEORM_MYSQL_SYNCHRONIZE'),
       }),

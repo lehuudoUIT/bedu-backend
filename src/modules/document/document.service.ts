@@ -16,9 +16,27 @@ export class DocumentService {
     private readonly questionService: QuestionService
   ) {}
 
+  extractNumber(str: string): number {
+    const match = str.match(/\d+/); 
+    return match ? parseInt(match[0], 10) : 0;
+  }
+
+  async findMaxCode(): Promise<number> {
+    const documentItem = await this.documentRepository
+                            .createQueryBuilder('document')
+                            .orderBy('document.code', 'DESC')
+                            .getOne();
+    if (!documentItem) {
+      return 0;
+    }
+    return this.extractNumber(documentItem.code);
+  }
+
   async create(
     createDocumentDto: CreateDocumentDto
   ): Promise<Document> {
+    const maxCode = await this.findMaxCode();
+    const code = `DOC${maxCode + 1}`;
     let questions: Question[] = [];
       if (createDocumentDto.questionId) {
         for(let i = 0; i < createDocumentDto.questionId.length; i++) { 
@@ -34,6 +52,7 @@ export class DocumentService {
       const document = await this.documentRepository.create({
         ...createDocumentDto,
         question: questions,
+        code
       });
       const result = await this.documentRepository.save(document);
       if(!result) {
