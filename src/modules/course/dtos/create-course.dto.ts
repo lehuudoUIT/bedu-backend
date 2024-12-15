@@ -1,6 +1,5 @@
 export class CreateCourseDto {
   courseType: string;
-  code: string;
   title: string;
   description: string;
   image: string;
@@ -8,4 +7,5 @@ export class CreateCourseDto {
   timePerLesson: number;
   price: number;
   programId: number[];
+  isActive?: boolean;
 }

@@ -16,6 +16,22 @@ export class CourseService {
     private readonly programService: ProgramService
   ) {}
 
+  extractNumber(str: string): number {
+    const match = str.match(/\d+/); 
+    return match ? parseInt(match[0], 10) : 0;
+  }
+
+  async findMaxCode(): Promise<number> {
+    const courseItem = await this.courseRepository
+                            .createQueryBuilder('course')
+                            .orderBy('course.code', 'DESC')
+                            .getOne();
+    if (!courseItem) {
+      return 0;
+    }
+    return this.extractNumber(courseItem.code);
+  }
+
   async create(
     createClassDto: CreateCourseDto
   ): Promise<Course> {
@@ -29,9 +45,14 @@ export class CourseService {
         program[i] = program;
       }
     }
+
+    const maxCode = await this.findMaxCode();
+    const code = `CRS${maxCode + 1}`;
+
     const course = await this.courseRepository.create({
       ...createClassDto,
-      program
+      program,
+      code
     });
     const result = await this.courseRepository.save(course);
     if (!result) {
@@ -49,6 +70,8 @@ export class CourseService {
   }> {
     const course = await this.courseRepository
                               .createQueryBuilder('course')
+                              .leftJoinAndSelect('course.program', 'program')
+                              .leftJoinAndSelect('course.lesson', 'lesson')
                               .where('course.deletedAt IS NULL')
                               .where('course.isActive = :isActive', { isActive: true })
                               .orderBy('course.id', 'DESC')
@@ -80,6 +103,8 @@ export class CourseService {
   }> {
     const courses = await this.courseRepository
                               .createQueryBuilder('course')
+                              .leftJoinAndMapMany('course.program', 'course.program', 'program')
+                              .leftJoinAndMapMany('course.lesson', 'course.lesson', 'lesson')
                               .where('course.deletedAt IS NULL')
                               .andWhere('course.isActive = :isActive', { isActive: true })
                               .andWhere('course.courseType = :type', { type })

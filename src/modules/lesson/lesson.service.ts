@@ -52,7 +52,10 @@ export class LessonService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<Lesson[]> {
+  ): Promise<{
+    totalRecord: number,
+    lessons: Lesson[]
+  }> {
     const  lessons = await this.lessonRepository
                                   .createQueryBuilder('lesson')
                                   .leftJoinAndSelect('lesson.teacher', 'teacher')
@@ -65,10 +68,18 @@ export class LessonService {
                                   .skip((page - 1) * limit)
                                   .take(limit)
                                   .getMany();
+    const totalRecord = await this.lessonRepository
+                                  .createQueryBuilder('lesson')
+                                  .where('lesson.deletedAt is NULL')
+                                  .andWhere('lesson.isActive = :isActive', { isActive: true })
+                                  .getCount();  
     if(lessons.length === 0) {
       throw new NotFoundException('No lesson found!');
     }
-    return lessons;
+    return {
+      totalRecord: totalRecord,
+      lessons: lessons
+    };
   }
 
   async findOne(

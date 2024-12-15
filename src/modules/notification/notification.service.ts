@@ -55,7 +55,10 @@ export class NotificationService {
   async findAll_Base(
     page: number = 1,
     limit: number = 10,
-  ) {
+  ): Promise<{
+    totalRecord: number,
+    notifications: Notification[]
+  }> {
     const notifications = await this.notificationRepository
                                       .createQueryBuilder('notification')
                                       .leftJoinAndSelect('notification.sender', 'sender')
@@ -65,10 +68,17 @@ export class NotificationService {
                                       .skip((page - 1) * limit)
                                       .take(limit)
                                       .getMany();
+    const total = await this.notificationRepository
+                          .createQueryBuilder('notification')
+                          .where('notification.deletedAt IS NULL')
+                          .getCount();
     if (notifications.length === 0) {
       throw new NotFoundException('Notification not found');
     }
-    return notifications
+    return {
+      totalRecord: total,
+      notifications: notifications
+    }
   }
 
   async findOne(id: number) {
@@ -224,7 +234,10 @@ export class NotificationService {
     userId: number,
     page: number = 1,
     limit: number = 10
-  ) {
+  ): Promise<{
+    totalRecord: number,
+    notifications: Notification[]
+  }> {
     const notifications = await this.notificationRepository
                                     .createQueryBuilder('notification')
                                     .leftJoinAndSelect('notification.sender', 'sender')
@@ -234,9 +247,18 @@ export class NotificationService {
                                     .andWhere('notification.receiverId = :userId', { userId })
                                     .orderBy('notification.createdAt', 'DESC')
                                     .getMany();
+    const total = await this.notificationRepository
+                          .createQueryBuilder('notification')
+                          .where('notification.deletedAt IS NULL')
+                          .andWhere('notification.isActive = :isActive', { isActive: true })
+                          .andWhere('notification.receiverId = :userId', { userId })
+                          .getCount();
 
     if (notifications.length == 0)
       throw new NotFoundException('User not found');
-    else return notifications;
+    else return {
+      totalRecord: total,
+      notifications: notifications
+    };
   }
 }

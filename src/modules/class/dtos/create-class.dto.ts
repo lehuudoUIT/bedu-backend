@@ -1,5 +1,4 @@
 export class CreateClassDto {
-  code: string;
   name: string;
   studyForm: string;
   startDate: Date;

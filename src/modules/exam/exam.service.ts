@@ -42,7 +42,10 @@ export class ExamService {
   async findAll(
     page: number,
     limit: number,
-  ) {
+  ): Promise<{
+    totalRecord: number,
+    exams: Exam[]
+  }> {
     const exams = await this.examRepository
                           .createQueryBuilder('exam')
                           .leftJoinAndSelect('exam.questions', 'question')
@@ -52,17 +55,28 @@ export class ExamService {
                           .skip((page - 1) * limit)
                           .take(limit)
                           .getMany();
+    const total = await this.examRepository
+                          .createQueryBuilder('exam')
+                          .where('exam.deletedAt IS NULL')
+                          .andWhere('exam.isActive = :isActive', { isActive: true })
+                          .getCount();
     if (exams.length === 0) {
       throw new NotFoundException('No exam found');
     }
-    return exams;
+    return {
+      totalRecord: total,
+      exams: exams
+    };
   }
 
   async findAllByType(
     page: number,
     limit: number,
     type: string,
-  ): Promise<Exam[]> {
+  ): Promise<{
+    totalRecord: number, 
+    exams: Exam[]
+  }> {
     const exams = await this.examRepository
                           .createQueryBuilder('exam')
                           .leftJoinAndSelect('exam.questions', 'question')
@@ -73,10 +87,19 @@ export class ExamService {
                           .skip((page - 1) * limit)
                           .take(limit)
                           .getMany();
+    const total = await this.examRepository
+                          .createQueryBuilder('exam')
+                          .where('exam.deletedAt IS NULL')
+                          .andWhere('exam.isActive = :isActive', { isActive: true })
+                          .andWhere('exam.examType = :type', { type })
+                          .getCount();
     if (exams.length === 0) {
       throw new NotFoundException('No exam found');
     }
-    return exams;
+    return {
+      totalRecord: total,
+      exams: exams
+    };
   }
 
   async findOne(id: number): Promise<Exam> {

@@ -1,6 +1,6 @@
 import { Payment } from './payment.entity';
 import { AbstractEntity } from '../database/abstract.entity';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { UserProgram } from './user_program.entity';
 import { UserClass } from './user_class.entity';
 import { Score } from './score.entity';
@@ -10,6 +10,7 @@ import { Lesson } from './lesson.entity';
 import { Answer } from './answer.entity';
 import { Notification } from './notification.entity';
 import {Report} from './report.entity';
+import { Role } from './role.entity';
 
 @Entity({ name: 'users' })
 export class User extends AbstractEntity<User> {
@@ -75,4 +76,7 @@ export class User extends AbstractEntity<User> {
 
   @OneToMany(() => Report, (report) => report.user)
   report: Report[];
+
+  @ManyToOne(() => Role, (role) => role.user)
+  role: Role;
 }

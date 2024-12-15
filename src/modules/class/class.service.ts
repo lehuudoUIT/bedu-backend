@@ -11,12 +11,31 @@ export class ClassService {
     private readonly classRepository: Repository<Class>,
   ) {}
 
+  extractNumber(str: string): number {
+    const match = str.match(/\d+/); 
+    return match ? parseInt(match[0], 10) : 0;
+  }
+
+  async findMaxCode(): Promise<number> {
+    const classItem = await this.classRepository
+                            .createQueryBuilder('class')
+                            .orderBy('class.code', 'DESC')
+                            .getOne();
+    if (!classItem) {
+      return 0;
+    }
+    return this.extractNumber(classItem.code);  
+  }
+
   async create(
     createClassDto: CreateClassDto
   ): Promise<Class> {
       try {
-        const classEntity = this.classRepository
-                            .create(createClassDto);
+        const maxCode = await this.findMaxCode();
+        const classEntity = this.classRepository.create({
+                              ...createClassDto,
+                              code: `CLS${maxCode + 1}`
+                            });
         const result = await this.classRepository
                             .save(classEntity);
         if(!result) {
@@ -31,6 +50,37 @@ export class ClassService {
 
   async findAll(
     page: number = 1,
+    limit: number = 10
+  ): Promise<{
+    totalRecord: number,
+    answers: Class[]
+  }> {
+    try {
+      const classes = await this.classRepository
+                                .createQueryBuilder('class')
+                                .leftJoinAndSelect('class.program', 'program')
+                                .leftJoinAndSelect('class.lesson', 'lesson')
+                                .where('class.isActive = true')
+                                .andWhere('class.deletedAt is null')
+                                .skip((page - 1) * limit)
+                                .take(limit)
+                                .getMany();   
+      const totalRecord = await this.classRepository
+                                .createQueryBuilder('class')
+                                .where('class.isActive = true')
+                                .andWhere('class.deletedAt is null')
+                                .getCount();
+      return {
+        totalRecord: totalRecord,
+        answers: classes
+      }
+    } catch(error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async findAllByType(
+    page: number = 1,
     limit: number = 10,
     type: string = 'toeic'
   ): Promise<{
@@ -39,6 +89,8 @@ export class ClassService {
   }> {
     const classes = await this.classRepository
                                 .createQueryBuilder('class')
+                                .leftJoinAndSelect('class.program', 'program')
+                                .leftJoinAndSelect('class.lesson', 'lesson')
                                 .where('class.type = :type', { type })
                                 .andWhere('class.isActive = true')
                                 .andWhere('class.deletedAt is null')
@@ -62,16 +114,19 @@ export class ClassService {
 
   async findOne(
     id: number
-  ){
-    const classEntity = await this.classRepository.findOneBy({
-      id,
-      isActive: true,
-      deletedAt: null
-    });
-    if (!classEntity) {
+  ): Promise<Class>{
+    const classItem = await this.classRepository
+                          .createQueryBuilder('class')
+                          .leftJoinAndSelect('class.program', 'program')
+                          .leftJoinAndSelect('class.lesson', 'lesson')
+                          .where('class.id = :id', { id })
+                          .andWhere('class.isActive = true')
+                          .andWhere('class.deletedAt is null')
+                          .getOne();
+    if (!classItem) {
       throw new NotFoundException("Class is not found");
     }
-    return classEntity
+    return classItem
   }
 
   async update(

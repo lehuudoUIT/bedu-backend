@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { IsNull, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create.user.dto';
+import { RoleService } from '../role/role.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) 
     private userRepository: Repository<User>,
+    private readonly roleService: RoleService
   ) {}
 
   async findAllUserByGroup(
@@ -49,15 +51,62 @@ export class UsersService {
       return users
   }
 
+  extractNumber(str: string): number {
+    const match = str.match(/\d+/); 
+    return match ? parseInt(match[0], 10) : 0;
+  }
+
+  async findMaxCID(): Promise<number> {
+
+    // get the last user in the database   
+    const lastUser = await this.userRepository
+                              .createQueryBuilder('user')
+                              .orderBy('user.id', 'DESC')
+                              .getOne();
+    if (!lastUser) {
+      return 0;
+    }
+    const cid = lastUser.cid;
+    return this.extractNumber(cid);
+  }
+
   async createUser(
     createUserDto: CreateUserDto
   ): Promise<User> {
-    const user = this.userRepository.create(createUserDto);
-    const newUser = await this.userRepository.save(user);
-    if(!newUser) {
-      throw new Error("Failed to create user");
+    try {
+      const group = await this.roleService.findOne(createUserDto.groupId);
+
+      if (!group) {
+        throw new Error("Group not found");
+      }
+      const maxCID = await this.findMaxCID();
+      let cid=null;
+
+      if (createUserDto.groupId == 1) {
+        cid = `STU${maxCID + 1}`;
+      } else if (createUserDto.groupId == 2) {
+        cid = `TEA${maxCID + 1}`;
+      } else if (createUserDto.groupId == 3) {
+        cid = `ADM${maxCID + 1}`;
+      } else {
+        throw new Error("Invalid group");
+      }
+
+      //const cid = `CID${maxCID + 1}`;
+      const user = this.userRepository.create({
+        ...createUserDto,
+        role: group,
+        cid,
+      });
+    
+      const newUser = await this.userRepository.save(user);
+      if(!newUser) {
+        throw new Error("Failed to create user");
+      }
+      return newUser;
+    } catch (error) {
+      throw new Error(error);
     }
-    return newUser;
   }
 
   async findUserByUsername(
@@ -90,5 +139,26 @@ export class UsersService {
       }
 
       return user
+  }
+
+  async grantPermission(
+    idUser: number,
+    role: number
+  ): Promise<User> {
+    try {
+      const user = await this.findUserById(idUser);
+      if (!user) {
+        throw new Error("User not found");
+      }
+      const newRole = await this.roleService.findOne(role);
+      if (!newRole) {
+        throw new Error("Role not found");
+      }
+      
+      user.role = newRole;
+      return await this.userRepository.save(user);
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }

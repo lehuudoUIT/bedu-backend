@@ -42,7 +42,10 @@ export class LessonDocumentService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<LessonDocument[]> {
+  ): Promise<{
+    totalRecord: number,
+    lessonDocuments: LessonDocument[]
+  }> {
     const lessonDocumentResponse = await this.lessonDocumentRepository
                                               .createQueryBuilder('lesson_document')
                                               .leftJoinAndSelect('lesson_document.lesson', 'lesson')
@@ -52,10 +55,18 @@ export class LessonDocumentService {
                                               .skip((page - 1) * limit)
                                               .take(limit)
                                               .getMany();
+      const total = await this.lessonDocumentRepository
+                          .createQueryBuilder('lesson_document')
+                          .where('lesson_document.deletedAt IS NULL')
+                          .andWhere('lesson.isActive = :isActive', { isActive: true })
+                          .getCount();
       if (lessonDocumentResponse.length === 0) {
         throw new NotFoundException('No lesson document found');
       }
-      return lessonDocumentResponse;
+      return {
+        totalRecord: total,
+        lessonDocuments: lessonDocumentResponse
+      };
   }
 
   async findOne(id: number): Promise<LessonDocument> {

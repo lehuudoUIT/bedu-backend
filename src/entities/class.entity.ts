@@ -47,4 +47,8 @@ export class Class extends AbstractEntity<Class> {
 
   @OneToMany(() => Lesson, (lesson) => lesson.class)
   lesson: Lesson[];
+
+  @Column()
+  avatar: string;
+ 
 }

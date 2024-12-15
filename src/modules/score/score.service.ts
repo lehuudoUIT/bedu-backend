@@ -61,7 +61,10 @@ export class ScoreService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ): Promise<Score[]> {
+  ): Promise<{
+    totalRecord: number,
+    scores: Score[]
+  }> {
     const scores = await this.scoreRepository
                               .createQueryBuilder('score')
                               .leftJoinAndSelect('score.user', 'user')
@@ -72,11 +75,19 @@ export class ScoreService {
                               .skip((page - 1) * limit)
                               .take(limit)
                               .getMany();
+    const total = await this.scoreRepository
+                              .createQueryBuilder('score')
+                              .where('score.isActive = :isActive', { isActive: true })
+                              .andWhere('score.deletedAt IS NULL')
+                              .getCount();
 
     if (!scores) {
       throw new NotFoundException('No score found');
     }
-    return scores;
+    return {
+      totalRecord: total,
+      scores: scores
+    };
   }
 
   async findOne(id: number): Promise<Score> {
@@ -100,7 +111,10 @@ export class ScoreService {
     page: number = 1,
     limit: number = 10,
     examId: number,
-  ): Promise<Score[]> {
+  ): Promise<{
+    totalRecord: number,
+    scores: Score[]
+  }> {
     const user = await this.userService.findUserById(studentId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -117,17 +131,30 @@ export class ScoreService {
                             .skip((page - 1) * limit)
                             .take(limit)
                             .getMany();
+    const total = await this.scoreRepository
+                            .createQueryBuilder('score')
+                            .where('score.userId = :user', { user })
+                            .andWhere('score.examId= :examId', { examId })
+                            .andWhere('score.isActive = :isActive', { isActive: true })
+                            .andWhere('score.deletedAt IS NULL')
+                            .getCount();        
     if (!scores) {
       throw new NotFoundException('Student studying results not found');
     }
-    return scores;
+    return {
+      totalRecord: total,
+      scores: scores
+    };
   }
 
   async findStudyingResultByExamId(
     idExam: number,
     page: number = 1,
     limit: number = 10,
-  ): Promise<Score[]> {
+  ): Promise<{
+    totalRecord: number,
+    scores: Score[]
+  }> {
     const exam = await this.examService.findOne(idExam);
     if (!exam) {
       throw new NotFoundException('Exam not found');
@@ -142,10 +169,19 @@ export class ScoreService {
                             .skip((page - 1) * limit)
                             .take(limit)
                             .getMany();
+    const total = await this.scoreRepository
+                            .createQueryBuilder('score')
+                            .where('score.exam = :exam', { exam: exam.id })
+                            .andWhere('score.isActive = :isActive', { isActive: true })
+                            .andWhere('score.deletedAt IS NULL')
+                            .getCount();
     if (!scores) {
       throw new NotFoundException('Student studying results not found');
     }
-    return scores;
+    return {
+      totalRecord: total,
+      scores: scores
+    };
   }
 
   async update(

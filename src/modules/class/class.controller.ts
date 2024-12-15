@@ -32,14 +32,14 @@ export class ClassController {
 
   //  type is in toeic, ielts, toefl
   @Get('all/type/:type')
-  async findAll(
+  async findAllByType(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Param('type') type: string
   ) {
     return {
       message: 'Get all classes successfully',
-      metadata: await this.classService.findAll(page, limit, type),
+      metadata: await this.classService.findAllByType(page, limit, type),
     }
   }
 

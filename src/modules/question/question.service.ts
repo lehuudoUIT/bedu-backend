@@ -119,7 +119,10 @@ export class QuestionService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ) {
+  ): Promise<{
+    totalRecord: number,
+    questions: Question[]
+  }> {
     const questions = await this.questionRepository
                             .createQueryBuilder('question')
                             .leftJoinAndSelect('question.exam', 'exam')
@@ -130,10 +133,18 @@ export class QuestionService {
                             .skip((page - 1) * limit)
                             .take(limit)
                             .getMany();
+    const total = await this.questionRepository
+                            .createQueryBuilder('question')
+                            .where('question.deletedAt IS NULL')
+                            .andWhere('question.isActive = :isActive', { isActive: true })
+                            .getCount();
     if (questions.length === 0) {
       throw new NotFoundException('No question found');
     }
-    return questions;
+    return {
+      totalRecord: total,
+      questions
+    };
   }
 
   async findAllByType(

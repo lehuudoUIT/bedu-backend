@@ -50,7 +50,10 @@ export class PaymentService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-  ) {
+  ): Promise<{
+    totalRecord: number,
+    payments: Payment[]
+  }> {
     const payments = await this.paymentRepository
                         .createQueryBuilder('payment')
                         .leftJoinAndSelect('payment.user', 'user')
@@ -62,10 +65,18 @@ export class PaymentService {
                         .skip((page - 1) * limit)
                         .take(limit)
                         .getMany();
+    const total = await this.paymentRepository
+                        .createQueryBuilder('payment')
+                        .where('payment.deletedAt IS NULL')
+                        .andWhere('payment.isActive = true')
+                        .getCount();
     if (payments.length === 0) {
       throw new NotFoundException('No payment found!');
     }
-    return payments;
+    return {
+      totalRecord: total,
+      payments: payments
+    };
   }
 
   async findOne(

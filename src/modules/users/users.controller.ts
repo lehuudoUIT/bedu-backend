@@ -43,4 +43,15 @@ export class UsersController {
       metadata: await this.usersService.findUserById(id),
     }
   }
+
+  @Post('permission/:userId/role/:roleId')
+  async grantPermission(
+    @Param('userId', ParseIntPipe) idUser: number,
+    @Param('roleId', ParseIntPipe) role: number,
+  ) {
+    return {
+      message: 'Grant permission successfully',
+      metadata: await this.usersService.grantPermission(idUser, role),
+    }
+  }
 }
