@@ -22,7 +22,7 @@ import { UserProgramModule } from './modules/user_program/user_program.module';
 import { UserClassModule } from './modules/user_class/user_class.module';
 import { LessonDocumentModule } from './modules/lesson_document/lesson_document.module';
 import { RoleModule } from './modules/role/role.module';
-
+import { UploadModule } from './modules/upload/upload.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -47,7 +47,9 @@ import { RoleModule } from './modules/role/role.module';
     UserProgramModule,
     UserClassModule,
     LessonDocumentModule,
-    RoleModule
+    RoleModule,
+    UploadModule,
+  
   ],
   controllers: [],
   providers: [],

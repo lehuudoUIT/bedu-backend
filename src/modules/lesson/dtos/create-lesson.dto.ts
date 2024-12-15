@@ -3,8 +3,8 @@ export class CreateLessonDto {
   endDate: Date;
   type: string;
   videoUrl: string;
-  classId: number;
+  classId?: number;
   courseId: number;
-  examId: number;
-  teacherId: number;
+  examId?: number;
+  teacherId?: number;
 }
