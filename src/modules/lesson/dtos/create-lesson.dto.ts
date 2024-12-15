@@ -4,7 +4,7 @@ export class CreateLessonDto {
   type: string;
   videoUrl: string;
   classId?: number;
-  courseId: number;
+  courseId?: number;
   examId?: number;
-  teacherId?: number;
+  teacherId: number;
 }
