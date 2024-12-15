@@ -27,21 +27,27 @@ export class LessonService {
       if (!teacher) {
         throw new NotFoundException('Teacher information is not found');
       }
-      const  classData = await this.classService.findOne(createLessonDto.classId);
-      const course = await this.courseService.findOne(createLessonDto.courseId);
-
-      const exam = await this.examService.findOne(createLessonDto.examId);
-      if (!exam && !course && !classData) {
-        throw new NotFoundException('Class, course or exam information is not found');  
-      }
-      
       const newLesson = this.lessonRepository.create({
         ...createLessonDto,
         teacher,
-        class: classData,
-        course,
-        exam
       })
+      let classData=null, course=null, exam=null;
+      if (typeof createLessonDto.classId !== 'undefined') {
+        classData = await this.classService.findOne(createLessonDto.classId);
+        newLesson.class = classData;
+      }
+      if (typeof createLessonDto.courseId !== 'undefined') {
+        course = await this.courseService.findOne(createLessonDto.courseId);
+        newLesson.course = course;
+      }
+      if (typeof createLessonDto.examId !== 'undefined') {
+        exam = await this.examService.findOne(createLessonDto.examId);
+        newLesson.exam = exam;
+      }
+      if (!exam && !course && !classData) {
+        throw new NotFoundException('Class, course or exam information is not found');
+      }      
+
       const result = await this.lessonRepository.save(newLesson);
       if (!result) {
         throw new NotFoundException('Failed to create lesson information');
