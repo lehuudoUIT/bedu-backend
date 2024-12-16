@@ -117,7 +117,6 @@ export class ClassService {
   ): Promise<Class>{
     const classItem = await this.classRepository
                           .createQueryBuilder('class')
-                          .leftJoinAndSelect('class.program', 'program')
                           .leftJoinAndSelect('class.lesson', 'lesson')
                           .where('class.id = :id', { id })
                           .andWhere('class.isActive = true')

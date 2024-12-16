@@ -27,15 +27,18 @@ export class LessonService {
       if (!teacher) {
         throw new NotFoundException('Teacher information is not found');
       }
+
       const newLesson = this.lessonRepository.create({
         ...createLessonDto,
         teacher,
       })
+
       let classData=null, course=null, exam=null;
       if (typeof createLessonDto.classId !== 'undefined') {
         classData = await this.classService.findOne(createLessonDto.classId);
         newLesson.class = classData;
       }
+      console.log("Come here");
       if (typeof createLessonDto.courseId !== 'undefined') {
         course = await this.courseService.findOne(createLessonDto.courseId);
         newLesson.course = course;

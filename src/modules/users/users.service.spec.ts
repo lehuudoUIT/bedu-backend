@@ -3,7 +3,6 @@ import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { RoleService } from '../role/role.service';
-import { CreateUserDto } from './dtos/create.user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
