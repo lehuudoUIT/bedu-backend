@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProgramDto } from './dtos/create-program.dto';
 import { UpdateProgramDto } from './dtos/update-program.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,26 +20,24 @@ export class ProgramService {
   ) {}
 
   extractNumber(str: string): number {
-    const match = str.match(/\d+/); 
+    const match = str.match(/\d+/);
     return match ? parseInt(match[0], 10) : 0;
   }
 
   async findMaxCode(): Promise<number> {
     const programItem = await this.programRepository
-                            .createQueryBuilder('program')
-                            .orderBy('program.code', 'DESC')
-                            .getOne();
+      .createQueryBuilder('program')
+      .orderBy('program.code', 'DESC')
+      .getOne();
     if (!programItem) {
       return 0;
     }
     return this.extractNumber(programItem.code);
   }
 
-  async create(
-    createProgramDto: CreateProgramDto
-  ): Promise<Program> {
+  async create(createProgramDto: CreateProgramDto): Promise<Program> {
     const maxCode = await this.findMaxCode();
-    let cid=null;
+    let cid = null;
     if (createProgramDto.type == 'toeic') {
       cid = `PT${maxCode + 1}`;
     } else if (createProgramDto.type == 'ielts') {
@@ -48,22 +50,24 @@ export class ProgramService {
     let course: Course[] = [];
     let totalPrice: number = 0;
     if (createProgramDto.courseId) {
-    for(let i = 0; i < createProgramDto.courseId.length; i++) {
-      const courseItem = await this.courseService.findOne(createProgramDto.courseId[i]);
-      console.log("Course item: ", courseItem);
-      if (!courseItem) {
-        throw new NotFoundException('Course information is not found');
+      for (let i = 0; i < createProgramDto.courseId.length; i++) {
+        const courseItem = await this.courseService.findOne(
+          createProgramDto.courseId[i],
+        );
+        console.log('Course item: ', courseItem);
+        if (!courseItem) {
+          throw new NotFoundException('Course information is not found');
+        }
+        totalPrice += courseItem.price;
+        course[i] = courseItem;
       }
-      totalPrice += courseItem.price;
-      course[i] = courseItem;
     }
-  }
 
     const newProgram = this.programRepository.create({
       ...createProgramDto,
       course: course,
       code: cid,
-      price: totalPrice
+      price: totalPrice,
     });
     const result = await this.programRepository.save(newProgram);
     return result;
@@ -71,30 +75,30 @@ export class ProgramService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<{
-    totalRecord: number,
-    programs: Program[]
+    totalRecord: number;
+    programs: Program[];
   }> {
     try {
       const programs = await this.programRepository
-                              .createQueryBuilder('program')
-                              .leftJoinAndSelect('program.course', 'course')
-                              .where('program.isActive = true')
-                              .andWhere('program.deletedAt IS NULL')
-                              .skip((page - 1) * limit)
-                              .take(limit)
-                              .getMany();
+        .createQueryBuilder('program')
+        .leftJoinAndSelect('program.course', 'course')
+        .where('program.isActive = true')
+        .andWhere('program.deletedAt IS NULL')
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany();
       const total = await this.programRepository
-                              .createQueryBuilder('program')
-                              .where('program.isActive = true')
-                              .andWhere('program.deletedAt IS NULL')
-                              .getCount();
+        .createQueryBuilder('program')
+        .where('program.isActive = true')
+        .andWhere('program.deletedAt IS NULL')
+        .getCount();
       return {
         totalRecord: total,
-        programs: programs
-      }
-    } catch(error) {
+        programs: programs,
+      };
+    } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -102,35 +106,34 @@ export class ProgramService {
   async findAllByType(
     page: number = 1,
     limit: number = 10,
-    type: string = 'toeic'
+    type: string = 'toeic',
   ): Promise<{
-    totalRecord: number,
-    programs: Program[]
+    totalRecord: number;
+    programs: Program[];
   }> {
     try {
       const programs = await this.programRepository
-                              .createQueryBuilder('program')
-                              .leftJoinAndSelect('program.course', 'course')
-                              .where('program.type = :type', { type })
-                              .andWhere('program.isActive = true')
-                              .andWhere('program.deletedAt IS NULL')
-                              .skip((page - 1) * limit)
-                              .take(limit)
-                              .getMany();
+        .createQueryBuilder('program')
+        .leftJoinAndSelect('program.course', 'course')
+        .where('program.type = :type', { type })
+        .andWhere('program.isActive = true')
+        .andWhere('program.deletedAt IS NULL')
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany();
       const total = await this.programRepository
-                              .createQueryBuilder('program')
-                              .where('program.type = :type', { type })
-                              .andWhere('program.isActive = true')
-                              .andWhere('program.deletedAt IS NULL')
-                              .getCount();
+        .createQueryBuilder('program')
+        .where('program.type = :type', { type })
+        .andWhere('program.isActive = true')
+        .andWhere('program.deletedAt IS NULL')
+        .getCount();
       if (programs.length === 0) {
         throw new NotFoundException('Program not found');
       }
       return {
         totalRecord: total,
-        programs: programs
+        programs: programs,
       };
-
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -141,14 +144,14 @@ export class ProgramService {
       const program = await this.programRepository.findOneBy({
         id,
         isActive: true,
-        deletedAt: null
+        deletedAt: null,
       });
 
       if (!program) {
         throw new NotFoundException('Program not found');
       }
 
-      console.log("Program", program);
+      console.log('Program', program);
 
       return program;
     } catch (error) {
@@ -156,10 +159,7 @@ export class ProgramService {
     }
   }
 
-  async update(
-    id: number, 
-    updateProgramDto: UpdateProgramDto
-  ) {
+  async update(id: number, updateProgramDto: UpdateProgramDto) {
     try {
       const program = await this.findOne(id);
 
@@ -169,10 +169,12 @@ export class ProgramService {
       let programPrice: number = 0;
       let course: Course[] = [];
       if (updateProgramDto.courseId) {
-        for(let i = 0; i < updateProgramDto.courseId.length; i++) {
-          const courseItem = await this.courseService.findOne(updateProgramDto.courseId[i]);
+        for (let i = 0; i < updateProgramDto.courseId.length; i++) {
+          const courseItem = await this.courseService.findOne(
+            updateProgramDto.courseId[i],
+          );
           if (!courseItem) {
-            throw new NotFoundException('Course information is not found')
+            throw new NotFoundException('Course information is not found');
           }
           programPrice += courseItem.price;
           course[i] = courseItem;
@@ -183,21 +185,17 @@ export class ProgramService {
         ...program,
         ...updateProgramDto,
         course,
-        price: programPrice
-      })
-      const updatedProgram = await this.programRepository
-                                    .save(newProgram);
-      
-      return updatedProgram;
+        price: programPrice,
+      });
+      const updatedProgram = await this.programRepository.save(newProgram);
 
+      return updatedProgram;
     } catch (error) {
-      throw new InternalServerErrorException(error.message); 
+      throw new InternalServerErrorException(error.message);
     }
   }
 
-  async remove(
-    id: number
-  ) {
+  async remove(id: number) {
     try {
       const program = await this.findOne(id);
       if (!program) {
