@@ -33,12 +33,6 @@ export class Class extends AbstractEntity<Class> {
   @Column()
   price: number; 
 
-  @Column()
-  target_start: number ;
-  
-  @Column()
-  target_end: number; 
-
   @OneToMany(() => UserClass, (userClass) => userClass.class)
   class: Class[];
 
