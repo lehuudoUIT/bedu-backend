@@ -60,8 +60,7 @@ export class AnswerService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     answers: Answer[]
@@ -72,14 +71,14 @@ export class AnswerService {
                                 .leftJoinAndSelect('answer.exam', 'exam')
                                 .leftJoinAndSelect('answer.question', 'question')
                                 .where('answer.deletedAt is NULL')
-                                .andWhere('answer.isActive = :isActive', { isActive: status })
+                                //.andWhere('answer.isActive = :isActive', { isActive: status })
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
     const totalRecord = await this.answerRepository
                                 .createQueryBuilder('answer')
                                 .where('answer.deletedAt is NULL')
-                                .andWhere('answer.isActive = :isActive', { isActive: status })
+                                //.andWhere('answer.isActive = :isActive', { isActive: status })
                                 .getCount();
 
     if (allResults.length === 0) {
@@ -95,8 +94,7 @@ export class AnswerService {
     studentId: number,
     examId: number,
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     answers: Answer[]
@@ -107,7 +105,7 @@ export class AnswerService {
                                   .leftJoinAndSelect('answer.exam', 'exam')
                                   .leftJoinAndSelect('answer.question', 'question')
                                   .where('answer.deletedAt is NULL')
-                                  .andWhere('answer.isActive = :isActive', { isActive: status })
+                                 // .andWhere('answer.isActive = :isActive', { isActive: status })
                                   .andWhere('answer.userId = :studentId', { studentId })
                                   .andWhere('answer.examId = :examId', { examId })
                                   .orderBy('answer.questionId', 'ASC')
@@ -117,7 +115,7 @@ export class AnswerService {
     const totalRecord = await this.answerRepository 
                                   .createQueryBuilder('answer')
                                   .where('answer.deletedAt is NULL')
-                                  .andWhere('answer.isActive = :isActive', { isActive: status })
+                                 // .andWhere('answer.isActive = :isActive', { isActive: status })
                                   .andWhere('answer.userId = :studentId', { studentId })
                                   .andWhere('answer.examId = :examId', { examId })
                                   .getCount();
@@ -133,8 +131,7 @@ export class AnswerService {
   async findAllByExam(
     examId: number,
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     answers: Answer[]
@@ -145,7 +142,7 @@ export class AnswerService {
                                 .leftJoinAndSelect('answer.exam', 'exam')
                                 .leftJoinAndSelect('answer.question', 'question')
                                 .where('answer.deletedAt = :isDeleted is NULL')
-                                .andWhere('answer.isActive = :isActive', { isActive: status })
+                               // .andWhere('answer.isActive = :isActive', { isActive: status })
                                 .andWhere('answer.examId = :examId', { examId })
                                 .orderBy('answer.userId', 'ASC')
                                 .skip((page - 1) * limit)
@@ -154,7 +151,7 @@ export class AnswerService {
     const  totalRecord = await this.answerRepository
                                 .createQueryBuilder('answer')
                                 .where('answer.deletedAt is NULL')
-                                .andWhere('answer.isActive = :isActive', { isActive: status })
+                               // .andWhere('answer.isActive = :isActive', { isActive: status })
                                 .andWhere('answer.examId = :examId', { examId })
                                 .getCount();
 

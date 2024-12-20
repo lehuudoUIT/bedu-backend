@@ -54,8 +54,7 @@ export class NotificationService {
 
   async findAll_Base(
     page: number = 1,
-    limit: number = 10,
-    status: string,
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     notifications: Notification[]
@@ -65,7 +64,7 @@ export class NotificationService {
                                       .leftJoinAndSelect('notification.sender', 'sender')
                                       .leftJoinAndSelect('notification.receiver', 'receiver')
                                       .where('notification.deletedAt IS NULL')
-                                      .andWhere('notification.isActive = :isActive', { isActive: status })
+                                      //.andWhere('notification.isActive = :isActive', { isActive: status })
                                       .orderBy('notification.createdAt', 'DESC')
                                       .skip((page - 1) * limit)
                                       .take(limit)
@@ -73,7 +72,7 @@ export class NotificationService {
     const total = await this.notificationRepository
                           .createQueryBuilder('notification')
                           .where('notification.deletedAt IS NULL')
-                          .andWhere('notification.isActive = :isActive', { isActive: status })
+                         // .andWhere('notification.isActive = :isActive', { isActive: status })
                           .getCount();
     if (notifications.length === 0) {
       throw new NotFoundException('Notification not found');
@@ -216,7 +215,6 @@ export class NotificationService {
     userId: number,
     page: number = 1,
     limit: number = 10,
-    status: string = 'active'
   ): Promise<{
     totalRecord: number,
     notifications: Notification[]
@@ -226,14 +224,14 @@ export class NotificationService {
                                     .leftJoinAndSelect('notification.sender', 'sender')
                                     .leftJoinAndSelect('notification.receiver', 'receiver')
                                     .where('notification.deletedAt IS NULL')
-                                    .andWhere('notification.isActive = :isActive', { isActive: status })
+                                   // .andWhere('notification.isActive = :isActive', { isActive: status })
                                     .andWhere('notification.receiverId = :userId', { userId })
                                     .orderBy('notification.createdAt', 'DESC')
                                     .getMany();
     const total = await this.notificationRepository
                           .createQueryBuilder('notification')
                           .where('notification.deletedAt IS NULL')
-                          .andWhere('notification.isActive = :isActive', { isActive: status })
+                          //.andWhere('notification.isActive = :isActive', { isActive: status })
                           .andWhere('notification.receiverId = :userId', { userId })
                           .getCount();
 

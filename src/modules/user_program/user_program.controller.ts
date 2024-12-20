@@ -24,11 +24,10 @@ export class UserProgramController {
   async findAll(
     @Query ('page', ParseIntPipe) page: number = 1,
     @Query ('limit', ParseIntPipe) limit: number = 10,
-    @Body('status') status: string = 'active'
   ) {
     return {
       message: "Get all user programs successfully",
-      metadata: this.userProgramService.findAll(page, limit, status)
+      metadata: this.userProgramService.findAll(page, limit)
     }
   }
 
@@ -37,11 +36,10 @@ export class UserProgramController {
     @Param('id', ParseIntPipe) id: number,
     @Query ('page', ParseIntPipe) page: number = 1,
     @Query ('limit', ParseIntPipe) limit: number = 10,
-    @Body('status') status: string = 'active'
   ) {
     return {
       message: "Get all user programs by program successfully",
-      metadata: this.userProgramService.findAllByProgramId(id, page, limit, status)
+      metadata: this.userProgramService.findAllByProgramId(id, page, limit)
     }
   }   
   
@@ -50,11 +48,10 @@ export class UserProgramController {
     @Param('id', ParseIntPipe) id: number,
     @Query ('page', ParseIntPipe) page: number = 1,
     @Query ('limit', ParseIntPipe) limit: number = 10,
-    @Body('status') status: string = 'active'
   ) {
     return {
       message: "Get all user enroll the program successfully",
-      metadata: await this.userProgramService.findAllByUserId(id, page, limit, status)
+      metadata: await this.userProgramService.findAllByUserId(id, page, limit)
     }
   }
   

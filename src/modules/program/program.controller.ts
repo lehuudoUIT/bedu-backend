@@ -35,24 +35,22 @@ export class ProgramController {
   async findAllByType(
     @Query ('page', ParseIntPipe) page: number,
     @Query ('limit', ParseIntPipe) limit: number,
-    @Param('type') type: string,
-    @Body('status') status: string = 'active'
+    @Param('type') type: string
   ) {
     return {
       message: "Get all programs successfully",
-      metadata: await this.programService.findAllByType(page, limit, type, status)
+      metadata: await this.programService.findAllByType(page, limit, type)
     };
   }
 
   @Get('all')
   async findAll(
     @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number,
-    @Body('status') status: string = 'active'
+    @Query('limit', ParseIntPipe) limit: number
   ) {
     return {
       message: "Get all programs successfully",
-      metadata: await this.programService.findAll(page, limit, status)
+      metadata: await this.programService.findAll(page, limit)
     };
   }
 

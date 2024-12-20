@@ -35,7 +35,7 @@ export class ScoreService {
                                   .createQueryBuilder('score')
                                   .where('score.userId = :user', { user: user.id })
                                   .andWhere('score.examId = :exam', { exam: exam.id })
-                                  .andWhere('score.isActive = :isActive', { isActive: true })
+                                 // .andWhere('score.isActive = :isActive', { isActive: true })
                                   .andWhere('score.deletedAt IS NULL')
                                   .getOne();
     console.log(checkExist);
@@ -61,7 +61,7 @@ export class ScoreService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    status: string
+
   ): Promise<{
     totalRecord: number,
     scores: Score[]
@@ -70,7 +70,7 @@ export class ScoreService {
                               .createQueryBuilder('score')
                               .leftJoinAndSelect('score.user', 'user')
                               .leftJoinAndSelect('score.exam', 'exam')
-                              .where('score.isActive = :isActive', { isActive: status })
+                             // .where('score.isActive = :isActive', { isActive: status })
                               .andWhere('score.deletedAt IS NULL')
                               .groupBy('score.id')
                               .skip((page - 1) * limit)
@@ -78,7 +78,7 @@ export class ScoreService {
                               .getMany();
     const total = await this.scoreRepository
                               .createQueryBuilder('score')
-                              .where('score.isActive = :isActive', { isActive: status })
+                             // .where('score.isActive = :isActive', { isActive: status })
                               .andWhere('score.deletedAt IS NULL')
                               .getCount();
 
@@ -111,8 +111,7 @@ export class ScoreService {
     studentId: number,
     page: number = 1,
     limit: number = 10,
-    examId: number,
-    status: string
+    examId: number
   ): Promise<{
     totalRecord: number,
     scores: Score[]
@@ -128,7 +127,7 @@ export class ScoreService {
                             .leftJoinAndSelect('score.user', 'user')
                             .where('score.userId = :user', { user })
                             .andWhere('score.examId= :examId', { examId })
-                            .andWhere('score.isActive = :isActive', { isActive: status })
+                           // .andWhere('score.isActive = :isActive', { isActive: status })
                             .andWhere('score.deletedAt IS NULL')
                             .skip((page - 1) * limit)
                             .take(limit)
@@ -137,7 +136,7 @@ export class ScoreService {
                             .createQueryBuilder('score')
                             .where('score.userId = :user', { user })
                             .andWhere('score.examId= :examId', { examId })
-                            .andWhere('score.isActive = :isActive', { isActive: status})
+                            //.andWhere('score.isActive = :isActive', { isActive: status})
                             .andWhere('score.deletedAt IS NULL')
                             .getCount();        
     if (!scores) {
@@ -152,8 +151,7 @@ export class ScoreService {
   async findStudyingResultByExamId(
     idExam: number,
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     scores: Score[]
@@ -167,7 +165,7 @@ export class ScoreService {
                             .leftJoinAndSelect('score.user', 'user')
                             .leftJoinAndSelect('score.exam', 'exam')
                             .where('score.exam = :exam', { exam: exam.id })
-                            .andWhere('score.isActive = :isActive', { isActive: status })
+                           // .andWhere('score.isActive = :isActive', { isActive: status })
                             .andWhere('score.deletedAt IS NULL')
                             .skip((page - 1) * limit)
                             .take(limit)
@@ -175,7 +173,7 @@ export class ScoreService {
     const total = await this.scoreRepository
                             .createQueryBuilder('score')
                             .where('score.exam = :exam', { exam: exam.id })
-                            .andWhere('score.isActive = :isActive', { isActive: status })
+                           // .andWhere('score.isActive = :isActive', { isActive: status })
                             .andWhere('score.deletedAt IS NULL')
                             .getCount();
     if (!scores) {
@@ -216,7 +214,7 @@ export class ScoreService {
                                   .findOneBy({
                                     user: user,
                                     exam: exam,
-                                    isActive: true,
+                                  //  isActive: true,
                                     deletedAt: IsNull(),
                                   });
     if (checkExist) {

@@ -50,7 +50,6 @@ export class PaymentService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    status: string = 'active'
   ): Promise<{
     totalRecord: number,
     payments: Payment[]
@@ -61,7 +60,7 @@ export class PaymentService {
                         .leftJoinAndSelect('payment.program', 'program')
                         .leftJoinAndSelect('payment.class', 'class')
                         .where('payment.deletedAt IS NULL')
-                        .where('payment.isActive := isActive', { isActive: status })  
+                       // .where('payment.isActive := isActive', { isActive: status })  
                         .orderBy('payment.createdAt', 'DESC')
                         .skip((page - 1) * limit)
                         .take(limit)
@@ -69,7 +68,7 @@ export class PaymentService {
     const total = await this.paymentRepository
                         .createQueryBuilder('payment')
                         .where('payment.deletedAt IS NULL')
-                        .where('payment.isActive := isActive', { isActive: status })
+                        //.where('payment.isActive := isActive', { isActive: status })
                         .getCount();
     if (payments.length === 0) {
       throw new NotFoundException('No payment found!');

@@ -71,8 +71,7 @@ export class ProgramService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     programs: Program[]
@@ -81,14 +80,14 @@ export class ProgramService {
       const programs = await this.programRepository
                               .createQueryBuilder('program')
                               .leftJoinAndSelect('program.course', 'course')
-                              .where('program.isActive = :isActive', { isActive: status})
+                             // .where('program.isActive = :isActive', { isActive: status})
                               .andWhere('program.deletedAt IS NULL')
                               .skip((page - 1) * limit)
                               .take(limit)
                               .getMany();
       const total = await this.programRepository
                               .createQueryBuilder('program')
-                              .where('program.isActive = :isActive', { isActive: status})
+                              //.where('program.isActive = :isActive', { isActive: status})
                               .andWhere('program.deletedAt IS NULL')
                               .getCount();
       return {
@@ -103,8 +102,7 @@ export class ProgramService {
   async findAllByType(
     page: number = 1,
     limit: number = 10,
-    type: string = 'toeic',
-    status: string
+    type: string = 'toeic'
   ): Promise<{
     totalRecord: number,
     programs: Program[]
@@ -114,7 +112,7 @@ export class ProgramService {
                               .createQueryBuilder('program')
                               .leftJoinAndSelect('program.course', 'course')
                               .where('program.type = :type', { type })
-                              .andWhere('program.isActive = :isActive', { isActive: status })
+                             // .andWhere('program.isActive = :isActive', { isActive: status })
                               .andWhere('program.deletedAt IS NULL')
                               .skip((page - 1) * limit)
                               .take(limit)
@@ -122,7 +120,7 @@ export class ProgramService {
       const total = await this.programRepository
                               .createQueryBuilder('program')
                               .where('program.type = :type', { type })
-                              .andWhere('program.isActive = :isActive', { isActive: status })
+                              //.andWhere('program.isActive = :isActive', { isActive: status })
                               .andWhere('program.deletedAt IS NULL')
                               .getCount();
       if (programs.length === 0) {

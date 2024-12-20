@@ -36,11 +36,10 @@ export class ScoreController {
   async findAll(
     @Query ('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'This action returns all score',
-      metadata: await this.scoreService.findAll(page, limit, status),
+      metadata: await this.scoreService.findAll(page, limit),
     }
   }
 
@@ -50,11 +49,10 @@ export class ScoreController {
     @Param ('idExam', ParseIntPipe) idExam: number,
     @Query ('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'This action returns all score by student',
-      metadata: await this.scoreService.findStudyingResultByStudentId(page, limit, idStudent, idExam, status),
+      metadata: await this.scoreService.findStudyingResultByStudentId(page, limit, idStudent, idExam),
     }
   }
 
@@ -63,11 +61,10 @@ export class ScoreController {
     @Param ('idExam', ParseIntPipe) idExam: number,
     @Query ('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'This action returns all score by exam',
-      metadata: await this.scoreService.findStudyingResultByExamId(idExam, page, limit, status),
+      metadata: await this.scoreService.findStudyingResultByExamId(idExam, page, limit),
     }
   }
 

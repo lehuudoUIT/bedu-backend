@@ -34,11 +34,10 @@ export class PaymentController {
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Body('status') status: string = 'active'
   ) {
     return {
       message: "Get all payments successfully",
-      metadata: await this.paymentService.findAll(page, limit, status)
+      metadata: await this.paymentService.findAll(page, limit)
     }
   }
 

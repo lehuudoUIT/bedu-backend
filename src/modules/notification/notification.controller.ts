@@ -37,11 +37,10 @@ export class NotificationController {
     @Param('userId', ParseIntPipe) userId: number,
     @Query  ('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of notifications successfully',
-      metadata: await this.notificationService.findAll(userId, page, limit, status),
+      metadata: await this.notificationService.findAll(userId, page, limit),
     }
   }
 

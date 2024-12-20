@@ -41,8 +41,7 @@ export class LessonDocumentService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     lessonDocuments: LessonDocument[]
@@ -52,14 +51,14 @@ export class LessonDocumentService {
                                               .leftJoinAndSelect('lesson_document.lesson', 'lesson')
                                               .leftJoinAndSelect('lesson_document.document', 'document')
                                               .where('lesson_document.deletedAt IS NULL')
-                                              .where('lesson.isActive = :isActive', { isActive: status })
+                                             // .where('lesson.isActive = :isActive', { isActive: status })
                                               .skip((page - 1) * limit)
                                               .take(limit)
                                               .getMany();
       const total = await this.lessonDocumentRepository
                           .createQueryBuilder('lesson_document')
                           .where('lesson_document.deletedAt IS NULL')
-                          .andWhere('lesson.isActive = :isActive', { isActive: status })
+                         // .andWhere('lesson.isActive = :isActive', { isActive: status })
                           .getCount();
       if (lessonDocumentResponse.length === 0) {
         throw new NotFoundException('No lesson document found');
