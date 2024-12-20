@@ -70,8 +70,8 @@ export class ClassService {
     status: string,
 
   ): Promise<{
-    totalRecord: number;
-    answers: Class[];
+    totalRecord: number,
+    classes: Class[]
   }> {
     try {
       const classes = await this.classRepository
@@ -92,9 +92,10 @@ export class ClassService {
 
       return {
         totalRecord: totalRecord,
-        answers: classes,
-      };
-    } catch (error) {
+        classes: classes
+      }
+    } catch(error) {
+
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -107,8 +108,9 @@ export class ClassService {
     status: string,
 
   ): Promise<{
-    totalRecord: number;
-    answers: Class[];
+    totalRecord: number,
+    classes: Class[]
+
   }> {
     const classes = await this.classRepository
 
@@ -132,7 +134,8 @@ export class ClassService {
     }
     return {
       totalRecord: totalRecord,
-      answers: classes,
+      classes: classes
+
     };
   }
 
