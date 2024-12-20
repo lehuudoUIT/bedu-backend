@@ -23,6 +23,7 @@ import { UserClassModule } from './modules/user_class/user_class.module';
 import { LessonDocumentModule } from './modules/lesson_document/lesson_document.module';
 import { RoleModule } from './modules/role/role.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { GoogleModule } from './modules/google/google.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -49,7 +50,8 @@ import { UploadModule } from './modules/upload/upload.module';
     LessonDocumentModule,
     RoleModule,
     UploadModule,
-  
+
+    GoogleModule,
   ],
   controllers: [],
   providers: [],

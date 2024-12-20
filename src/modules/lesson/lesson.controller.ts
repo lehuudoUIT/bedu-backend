@@ -11,15 +11,17 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
-import { CreateLessonDto } from './dtos/create-lesson.dto';
+import {
+  CreateLessonDto,
+  CreateRecurringLessonDto,
+} from './dtos/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/update-lesson.dto';
 import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.filter';
 import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 
 @Controller('lessons')
-@UseFilters(HttpExceptionFilter) 
+@UseFilters(HttpExceptionFilter)
 @UseInterceptors(ResponseFormatInterceptor)
-
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
@@ -28,11 +30,24 @@ export class LessonController {
     return {
       message: 'Create new lesson successfully',
       metadata: await this.lessonService.create(createLessonDto),
-    }
+    };
+  }
+
+  @Post('new-recurring')
+  async createRecurring(
+    @Body() createRecurringLessonDto: CreateRecurringLessonDto,
+  ) {
+    return {
+      message: 'Create recurring lesson successfully',
+      metadata: await this.lessonService.createRecurringLessonForClass(
+        createRecurringLessonDto,
+      ),
+    };
   }
 
   @Get('all')
   async findAll(
+
     @Query ('page') page: number = 1,
     @Query ('limit') limit: number = 10,
     @Body('status') status: string = 'active'
@@ -48,15 +63,18 @@ export class LessonController {
     return {
       message: 'Find a lesson successfully',
       metadata: await this.lessonService.findOne(+id),
-    }
+    };
   }
 
   @Patch('item/:id')
-  async update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateLessonDto: UpdateLessonDto,
+  ) {
     return {
       message: 'Update lesson information successfully',
       metadata: await this.lessonService.update(+id, updateLessonDto),
-    }
+    };
   }
 
   @Delete('item/:id')
@@ -64,6 +82,6 @@ export class LessonController {
     return {
       message: 'Remove lesson successfully',
       metadata: await this.lessonService.remove(+id),
-    }
+    };
   }
 }

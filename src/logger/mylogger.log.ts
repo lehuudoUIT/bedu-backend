@@ -20,14 +20,15 @@ export class MyLoggerService implements LoggerService {
     const transportDailyInfoFile = new transports.DailyRotateFile({
       dirname: 'src/logs',
       filename: 'application-%DATE%.info.log',
-      datePattern: 'YYYY-MM-DD-HH',
+      datePattern: 'YYYY-MM-DD',
       zippedArchive: true, //! backup log zip
       maxSize: '20m', //! Dung luong file toi da de tach
       maxFiles: '14d', //! Neu dat thi se xoa log trong 14 ngay
       level: 'info',
       format: format.combine(
+        // full option: YYYY-MM-DD hh:mm:ss.SSS A
         format.timestamp({
-          format: 'YYYY-MM-DD hh:mm:ss.SSS A',
+          format: 'YYYY-MM-DD',
         }),
         formatPrint,
       ),
@@ -43,7 +44,7 @@ export class MyLoggerService implements LoggerService {
       level: 'error',
       format: format.combine(
         format.timestamp({
-          format: 'YYYY-MM-DD hh:mm:ss.SSS A',
+          format: 'YYYY-MM-DD',
         }),
         formatPrint,
       ),
@@ -96,8 +97,6 @@ export class MyLoggerService implements LoggerService {
       },
       logParam,
     );
-
-    console.log(logObject);
 
     this.logger.error(logObject);
   }
