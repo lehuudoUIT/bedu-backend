@@ -1,65 +1,81 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateClassDto } from './dtos/create-class.dto';
 import { UpdateClassDto } from './dtos/update-class.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Class } from '../../entities/class.entity';
 import { Repository } from 'typeorm';
+import { GoogleService } from '../google/google.service';
 @Injectable()
 export class ClassService {
   constructor(
     @InjectRepository(Class)
     private readonly classRepository: Repository<Class>,
+    private readonly googleService: GoogleService,
   ) {}
 
   // còn thiếu cái phương thức lấy dư liệu cho các student và teacher
 
   extractNumber(str: string): number {
-    const match = str.match(/\d+/); 
+    const match = str.match(/\d+/);
     return match ? parseInt(match[0], 10) : 0;
   }
 
   async findMaxCode(): Promise<number> {
     const classItem = await this.classRepository
-                            .createQueryBuilder('class')
-                            .orderBy('class.code', 'DESC')
-                            .getOne();
+      .createQueryBuilder('class')
+      .orderBy('class.code', 'DESC')
+      .getOne();
     if (!classItem) {
       return 0;
     }
-    return this.extractNumber(classItem.code);  
+    return this.extractNumber(classItem.code);
   }
 
-  async create(
-    createClassDto: CreateClassDto
-  ): Promise<Class> {
-      try {
-        const maxCode = await this.findMaxCode();
-        const classEntity = this.classRepository.create({
-                              ...createClassDto,
-                              code: `CLS${maxCode + 1}`
-                            });
-        const result = await this.classRepository
-                            .save(classEntity);
-        if(!result) {
-          throw new InternalServerErrorException('Failed to create class information');
-        }
+  async create(createClassDto: CreateClassDto): Promise<Class> {
+    try {
+      const code = `CLS${(await this.findMaxCode()) + 1}`;
 
-        return result
-      } catch(error) {
-        throw new InternalServerErrorException(error.message);
+      const calendar = await this.googleService.createCalendar(
+        code,
+        createClassDto.description,
+      );
+
+      const classEntity = this.classRepository.create({
+        ...createClassDto,
+        code,
+        calendarId: calendar.id,
+      });
+      const result = await this.classRepository.save(classEntity);
+
+      if (!result) {
+        throw new InternalServerErrorException(
+          'Failed to create class information',
+        );
       }
+
+      return result;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async findAll(
     page: number = 1,
     limit: number = 10,
+
     status: string,
+
   ): Promise<{
     totalRecord: number,
     classes: Class[]
   }> {
     try {
       const classes = await this.classRepository
+
                                 .createQueryBuilder('class')
                                 .leftJoinAndSelect('class.program', 'program')
                                 .leftJoinAndSelect('class.lesson', 'lesson')
@@ -73,11 +89,13 @@ export class ClassService {
                                 .andWhere('class.isActive = :isActive', { isActive: status })
                                 .andWhere('class.deletedAt is null')
                                 .getCount();
+
       return {
         totalRecord: totalRecord,
         classes: classes
       }
     } catch(error) {
+
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -86,12 +104,16 @@ export class ClassService {
     page: number = 1,
     limit: number = 10,
     type: string = 'toeic',
+
     status: string,
+
   ): Promise<{
     totalRecord: number,
     classes: Class[]
+
   }> {
     const classes = await this.classRepository
+
                                 .createQueryBuilder('class')
                                 .leftJoinAndSelect('class.lesson', 'lesson')
                                 .where('class.type = :type', { type })
@@ -106,34 +128,32 @@ export class ClassService {
                                 .andWhere('class.isActive = :isActive', { isActive: status })
                                 .andWhere('class.deletedAt is null')
                                 .getCount();
+
     if (classes.length === 0) {
       throw new NotFoundException('Class information is not found');
     }
     return {
       totalRecord: totalRecord,
       classes: classes
-    };
-  } 
 
-  async findOne(
-    id: number
-  ): Promise<Class>{
+    };
+  }
+
+  async findOne(id: number): Promise<Class> {
     const classItem = await this.classRepository
                           .createQueryBuilder('class')
                           .leftJoinAndSelect('class.lesson', 'lesson')
                           .where('class.id = :id', { id })
                           .andWhere('class.deletedAt is null')
                           .getOne();
+
     if (!classItem) {
-      throw new NotFoundException("Class is not found");
+      throw new NotFoundException('Class is not found');
     }
-    return classItem
+    return classItem;
   }
 
-  async update(
-    id: number, updateAnswerDto: UpdateClassDto
-  ) {
-
+  async update(id: number, updateAnswerDto: UpdateClassDto) {
     const classItem = await this.findOne(id);
     if (!classItem) {
       throw new NotFoundException('Class information is not found');
@@ -141,19 +161,18 @@ export class ClassService {
 
     const newClass = this.classRepository.create({
       ...classItem,
-      ...updateAnswerDto
+      ...updateAnswerDto,
     });
     const result = await this.classRepository.save(newClass);
     if (!result) {
-      throw new InternalServerErrorException('Failed to update class information');
+      throw new InternalServerErrorException(
+        'Failed to update class information',
+      );
     }
     return result;
-
   }
 
-  async remove(
-    id: number
-  ) {
+  async remove(id: number) {
     const classItem = await this.findOne(id);
     if (!classItem) {
       throw new NotFoundException('Class information is not found');
@@ -162,8 +181,10 @@ export class ClassService {
     classItem.deletedAt = new Date();
     const result = await this.classRepository.save(classItem);
     if (!result) {
-      throw new InternalServerErrorException('Failed to delete class information');
+      throw new InternalServerErrorException(
+        'Failed to delete class information',
+      );
     }
-    return result
+    return result;
   }
 }

@@ -1,13 +1,17 @@
 import { UsersService } from './../users/users.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateLessonDto } from './dtos/create-lesson.dto';
+import {
+  CreateLessonDto,
+  CreateRecurringLessonDto,
+} from './dtos/create-lesson.dto';
 import { UpdateLessonDto } from './dtos/update-lesson.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Lesson } from '../../entities/lesson.entity';
+import { Lesson, LessonType } from '../../entities/lesson.entity';
 import { Repository } from 'typeorm';
 import { ClassService } from '../class/class.service';
 import { CourseService } from '../course/course.service';
 import { ExamService } from '../exam/exam.service';
+import { GoogleService } from '../google/google.service';
 
 @Injectable()
 export class LessonService {
@@ -18,44 +22,100 @@ export class LessonService {
     private readonly classService: ClassService,
     private readonly courseService: CourseService,
     private readonly examService: ExamService,
+    private readonly googleService: GoogleService,
   ) {}
 
-  async create(
-    createLessonDto: CreateLessonDto
-  ): Promise<Lesson> {
-    const teacher = await this.usersService.findUserById(createLessonDto.teacherId);
-      if (!teacher) {
-        throw new NotFoundException('Teacher information is not found');
-      }
+  async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
+    const teacher = await this.usersService.findUserById(
+      createLessonDto.teacherId,
+    );
+    if (!teacher) {
+      throw new NotFoundException('Teacher information is not found');
+    }
 
-      const newLesson = this.lessonRepository.create({
-        ...createLessonDto,
-        teacher,
+    const newLesson = this.lessonRepository.create({
+      ...createLessonDto,
+      teacher,
+    });
+
+    let classData = null,
+      course = null,
+      exam = null;
+    if (typeof createLessonDto.classId !== 'undefined') {
+      classData = await this.classService.findOne(createLessonDto.classId);
+      newLesson.class = classData;
+    }
+    console.log('Come here');
+    if (typeof createLessonDto.courseId !== 'undefined') {
+      course = await this.courseService.findOne(createLessonDto.courseId);
+      newLesson.course = course;
+    }
+    if (typeof createLessonDto.examId !== 'undefined') {
+      exam = await this.examService.findOne(createLessonDto.examId);
+      newLesson.exam = exam;
+    }
+    if (!exam && !course && !classData) {
+      throw new NotFoundException(
+        'Class, course or exam information is not found',
+      );
+    }
+
+    const result = await this.lessonRepository.save(newLesson);
+    if (!result) {
+      throw new NotFoundException('Failed to create lesson information');
+    }
+    return result;
+  }
+
+  async createRecurringLessonForClass(
+    createRecurringLessonDto: CreateRecurringLessonDto,
+  ): Promise<Lesson[]> {
+    const teacher = await this.usersService.findUserById(
+      createRecurringLessonDto.teacherId,
+    );
+    if (!teacher) {
+      throw new NotFoundException('Teacher information is not found');
+    }
+
+    const classData = await this.classService.findOne(
+      createRecurringLessonDto.classId,
+    );
+
+    const listEvents = await this.googleService
+      .createRecurringEvent({
+        calendarId: classData.calendarId,
+        summary: createRecurringLessonDto.summary,
+        description: createRecurringLessonDto.description,
+        startDate: createRecurringLessonDto.startDate, // Ngày bắt đầu do người dùng chọn
+        startTime: createRecurringLessonDto.startTime, // Giờ bắt đầu (HH:mm)
+        endTime: createRecurringLessonDto.endTime, // Giờ kết thúc (HH:mm)
+        selectedDays: createRecurringLessonDto.selectedDays, // ['Mon', 'Wed', 'Fri']
+        lessonQuantity: createRecurringLessonDto.lessonQuantity, // Số buổi lặp lại
+        attendees: [{ email: teacher.email }],
       })
+      .then(async () => {
+        return await this.googleService.listEvents(classData.calendarId);
+      });
 
-      let classData=null, course=null, exam=null;
-      if (typeof createLessonDto.classId !== 'undefined') {
-        classData = await this.classService.findOne(createLessonDto.classId);
-        newLesson.class = classData;
-      }
-      console.log("Come here");
-      if (typeof createLessonDto.courseId !== 'undefined') {
-        course = await this.courseService.findOne(createLessonDto.courseId);
-        newLesson.course = course;
-      }
-      if (typeof createLessonDto.examId !== 'undefined') {
-        exam = await this.examService.findOne(createLessonDto.examId);
-        newLesson.exam = exam;
-      }
-      if (!exam && !course && !classData) {
-        throw new NotFoundException('Class, course or exam information is not found');
-      }      
+    const listLesson = await Promise.all(
+      listEvents.map((event) => {
+        const newLesson = this.lessonRepository.create({
+          startDate: event.startTime,
+          endDate: event.endTime,
+          type: LessonType.LIVE,
+          class: classData,
+          calendarEventId: event.id,
+          teacher,
+        });
+        const result = this.lessonRepository.save(newLesson);
+        return result;
+      }),
+    );
 
-      const result = await this.lessonRepository.save(newLesson);
-      if (!result) {
-        throw new NotFoundException('Failed to create lesson information');
-      }
-      return result;
+    if (!listLesson) {
+      throw new NotFoundException('Failed to create lesson information');
+    }
+    return listLesson;
   }
 
   async findAll(
@@ -63,9 +123,10 @@ export class LessonService {
     limit: number = 10,
     status: string
   ): Promise<{
-    totalRecord: number,
-    lessons: Lesson[]
+    totalRecord: number;
+    lessons: Lesson[];
   }> {
+
     const  lessons = await this.lessonRepository
                                   .createQueryBuilder('lesson')
                                   .leftJoinAndSelect('lesson.teacher', 'teacher')
@@ -84,17 +145,16 @@ export class LessonService {
                                   .andWhere('lesson.isActive = :isActive', { isActive: status })
                                   .getCount();  
     if(lessons.length === 0) {
+
       throw new NotFoundException('No lesson found!');
     }
     return {
       totalRecord: totalRecord,
-      lessons: lessons
+      lessons: lessons,
     };
   }
 
-  async findOne(
-    id: number
-  ): Promise<Lesson> {
+  async findOne(id: number): Promise<Lesson> {
     const lesson = await this.lessonRepository
                               .createQueryBuilder('lesson')
                               .leftJoinAndSelect('lesson.teacher', 'teacher')
@@ -104,10 +164,11 @@ export class LessonService {
                               .where('lesson.id = :id', { id })
                               .andWhere('lesson.deletedAt is NULL')
                               .getOne();
+
     if (!lesson) {
       throw new NotFoundException('Lesson information not found');
     }
-    return lesson
+    return lesson;
   }
 
   async update(
@@ -184,7 +245,7 @@ export class LessonService {
     });
 
     const result = await this.lessonRepository.save(newLesson);
-    if(!result) {
+    if (!result) {
       throw new NotFoundException('Failed to delete lesson information');
     }
     return result;

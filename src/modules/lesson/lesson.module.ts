@@ -7,17 +7,19 @@ import { ClassModule } from '../class/class.module';
 import { CourseModule } from '../course/course.module';
 import { ExamModule } from '../exam/exam.module';
 import { UsersModule } from '../users/users.module';
+import { GoogleModule } from '../google/google.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Lesson]),
     ClassModule,
-    CourseModule, 
-    ExamModule,   
-    UsersModule
+    CourseModule,
+    ExamModule,
+    UsersModule,
+    GoogleModule,
   ],
   controllers: [LessonController],
   providers: [LessonService],
-  exports: [LessonService]  
+  exports: [LessonService],
 })
 export class LessonModule {}
