@@ -19,6 +19,5 @@ export class CreateRecurringLessonDto {
   startTime: string; // Giờ bắt đầu (HH:mm)
   endTime: string; // Giờ kết thúc (HH:mm)
   selectedDays: string[]; // ['Mon', 'Wed', 'Fri']
-  weeks: number; // Số tuần lặp lại
-  attendees: { email: string }[];
+  lessonQuantity: number; // Số tuần lặp lại
 }

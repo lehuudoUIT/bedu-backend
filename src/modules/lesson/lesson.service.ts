@@ -90,8 +90,8 @@ export class LessonService {
         startTime: createRecurringLessonDto.startTime, // Giờ bắt đầu (HH:mm)
         endTime: createRecurringLessonDto.endTime, // Giờ kết thúc (HH:mm)
         selectedDays: createRecurringLessonDto.selectedDays, // ['Mon', 'Wed', 'Fri']
-        weeks: createRecurringLessonDto.weeks, // Số tuần lặp lại
-        attendees: createRecurringLessonDto.attendees,
+        lessonQuantity: createRecurringLessonDto.lessonQuantity, // Số buổi lặp lại
+        attendees: [{ email: teacher.email }],
       })
       .then(async () => {
         return await this.googleService.listEvents(classData.calendarId);

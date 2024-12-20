@@ -51,7 +51,10 @@ export class GoogleService {
     return res.data;
   }
 
-  generateRecurrenceRule(selectedDays: string[], weeks: number): string {
+  generateRecurrenceRule(
+    selectedDays: string[],
+    lessonQuantity: number,
+  ): string {
     const daysMapping: Record<string, string> = {
       Mon: 'MO',
       Tue: 'TU',
@@ -66,7 +69,7 @@ export class GoogleService {
     const byDay = selectedDays.map((day) => daysMapping[day]).join(',');
 
     // Tạo RRULE
-    return `RRULE:FREQ=WEEKLY;COUNT=${weeks * selectedDays.length};BYDAY=${byDay}`;
+    return `RRULE:FREQ=WEEKLY;COUNT=${lessonQuantity};BYDAY=${byDay}`;
   }
 
   validateAndAdjustStartDate(
@@ -103,7 +106,7 @@ export class GoogleService {
     startTime: string; // Giờ bắt đầu (HH:mm)
     endTime: string; // Giờ kết thúc (HH:mm)
     selectedDays: string[]; // ['Mon', 'Wed', 'Fri']
-    weeks: number; // Số tuần lặp lại
+    lessonQuantity: number; // Số tuần lặp lại
     attendees: { email: string }[];
   }): Promise<calendar_v3.Schema$Event> {
     // Kết hợp startDate và startTime thành startDateTime
@@ -120,7 +123,7 @@ export class GoogleService {
 
     // Tạo RRULE từ selectedDays và weeks
     const recurrence = [
-      this.generateRecurrenceRule(body.selectedDays, body.weeks),
+      this.generateRecurrenceRule(body.selectedDays, body.lessonQuantity),
     ];
 
     const event = {

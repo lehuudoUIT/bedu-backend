@@ -17,7 +17,7 @@ import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.
 import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 
 @Controller('classes')
-@UseFilters(HttpExceptionFilter) 
+@UseFilters(HttpExceptionFilter)
 @UseInterceptors(ResponseFormatInterceptor)
 export class ClassController {
   constructor(private readonly classService: ClassService) {}
@@ -27,7 +27,7 @@ export class ClassController {
     return {
       message: 'Create new class successfully',
       metadata: await this.classService.create(createClassDto),
-    }
+    };
   }
 
   //  type is in toeic, ielts, toefl
@@ -35,12 +35,12 @@ export class ClassController {
   async findAllByType(
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Param('type') type: string
+    @Param('type') type: string,
   ) {
     return {
       message: 'Get all classes successfully',
       metadata: await this.classService.findAllByType(page, limit, type),
-    }
+    };
   }
 
   @Get('item/:id')
@@ -48,15 +48,18 @@ export class ClassController {
     return {
       message: 'Get class detail successfully',
       metadata: await this.classService.findOne(+id),
-    }
+    };
   }
 
   @Patch('item/:id')
-  async update(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateClassDto: UpdateClassDto,
+  ) {
     return {
       message: 'Update class successfully',
       metadata: await this.classService.update(+id, updateClassDto),
-    }
+    };
   }
 
   @Delete('item/:id')
@@ -64,6 +67,6 @@ export class ClassController {
     return {
       message: 'Delete class successfully',
       metadata: await this.classService.remove(+id),
-    }
+    };
   }
 }
