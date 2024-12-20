@@ -111,41 +111,65 @@ export class LessonService {
   }
 
   async update(
-    id: number, 
+    id: number,
     updateLessonDto: UpdateLessonDto
   ): Promise<Lesson> {
+    // Tìm lesson hiện có
     const lesson = await this.findOne(id);
     if (!lesson) {
       throw new NotFoundException('Lesson information is not found');
     }
-
-    const teacher= await this.usersService.findUserById(updateLessonDto.teacherId);
-    if (!teacher) {
+  
+    // Xác thực teacher nếu `teacherId` được cung cấp
+    const teacher = updateLessonDto.teacherId
+      ? await this.usersService.findUserById(updateLessonDto.teacherId)
+      : lesson.teacher; // Giữ nguyên teacher hiện tại nếu không cung cấp
+    if (updateLessonDto.teacherId && !teacher) {
       throw new NotFoundException('Teacher information is not found');
     }
-
-    const  classData = await this.classService.findOne(updateLessonDto.classId);
-
-    const course= await this.courseService.findOne(updateLessonDto.courseId);
-    const exam = await this.examService.findOne(updateLessonDto.examId);
-
-    if (!exam && !course && !classData) {
-      throw new  NotFoundException('Class, course or exam information is not found');
+  
+    // Xác thực class nếu `classId` được cung cấp
+    const classData = updateLessonDto.classId
+      ? await this.classService.findOne(updateLessonDto.classId)
+      : lesson.class; // Giữ nguyên class hiện tại nếu không cung cấp
+    if (updateLessonDto.classId && !classData) {
+      throw new NotFoundException('Class information is not found');
     }
+  
+    // Xác thực course nếu `courseId` được cung cấp
+    const course = updateLessonDto.courseId
+      ? await this.courseService.findOne(updateLessonDto.courseId)
+      : lesson.course; // Giữ nguyên course hiện tại nếu không cung cấp
+    if (updateLessonDto.courseId && !course) {
+      throw new NotFoundException('Course information is not found');
+    }
+  
+    // Xác thực exam nếu `examId` được cung cấp
+    const exam = updateLessonDto.examId
+      ? await this.examService.findOne(updateLessonDto.examId)
+      : lesson.exam; // Giữ nguyên exam hiện tại nếu không cung cấp
+    if (updateLessonDto.examId && !exam) {
+      throw new NotFoundException('Exam information is not found');
+    }
+  
+    // Tạo đối tượng lesson mới với dữ liệu cập nhật
     const newLesson = this.lessonRepository.create({
       ...lesson,
       ...updateLessonDto,
       teacher,
       class: classData,
       course,
-      exam
+      exam,
     });
+  
+    // Lưu lesson đã cập nhật
     const result = await this.lessonRepository.save(newLesson);
-    if(!result) {
+    if (!result) {
       throw new NotFoundException('Failed to update lesson information');
     }
+  
     return result;
-  } 
+  }
 
   async remove(id: number): Promise<Lesson> {
     const lesson = await this.findOne(id);

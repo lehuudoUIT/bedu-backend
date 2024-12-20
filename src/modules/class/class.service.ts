@@ -56,7 +56,7 @@ export class ClassService {
     status: string,
   ): Promise<{
     totalRecord: number,
-    answers: Class[]
+    classes: Class[]
   }> {
     try {
       const classes = await this.classRepository
@@ -75,7 +75,7 @@ export class ClassService {
                                 .getCount();
       return {
         totalRecord: totalRecord,
-        answers: classes
+        classes: classes
       }
     } catch(error) {
       throw new InternalServerErrorException(error.message);
@@ -89,7 +89,7 @@ export class ClassService {
     status: string,
   ): Promise<{
     totalRecord: number,
-    answers: Class[]
+    classes: Class[]
   }> {
     const classes = await this.classRepository
                                 .createQueryBuilder('class')
@@ -111,7 +111,7 @@ export class ClassService {
     }
     return {
       totalRecord: totalRecord,
-      answers: classes
+      classes: classes
     };
   } 
 
