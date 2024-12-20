@@ -1,5 +1,10 @@
 import { UsersService } from './../users/users.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreateLessonDto,
   CreateRecurringLessonDto,
@@ -116,6 +121,39 @@ export class LessonService {
       throw new NotFoundException('Failed to create lesson information');
     }
     return listLesson;
+  }
+
+  async getRecordOfLesson(lessonId: number, classId: number) {
+    try {
+      const lessonData = await this.lessonRepository.findOneBy({
+        id: lessonId,
+      });
+      if (!lessonData) throw new NotFoundException('Bài học không tồn tại!');
+
+      if (lessonData.videoUrl)
+        throw new BadRequestException('Bài học đã có record!');
+
+      const classData = await this.classService.findOne(classId);
+      if (!classData) throw new NotFoundException('Lớp học không tồn tại!');
+
+      const event = await this.googleService.getEventDetails(
+        classData.calendarId,
+        lessonData.calendarEventId,
+      );
+      if (!event.attachments[0]?.fileId)
+        throw new NotFoundException('Record chưa hoàn thành tải lên!');
+      const fileId = event.attachments[0]?.fileId;
+      const publicLink = await this.googleService.setFilePublic(fileId);
+
+      //! update lesson record
+      await this.lessonRepository.update(
+        { id: lessonId },
+        { videoUrl: publicLink },
+      );
+      return publicLink;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async findAll(

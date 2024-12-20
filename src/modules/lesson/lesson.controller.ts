@@ -33,6 +33,17 @@ export class LessonController {
     };
   }
 
+  @Post('create-record')
+  async createRecord(@Body() body: { lessonId: number; classId: number }) {
+    return {
+      message: 'Create new lesson successfully',
+      metadata: await this.lessonService.getRecordOfLesson(
+        body.lessonId,
+        body.classId,
+      ),
+    };
+  }
+
   @Post('new-recurring')
   async createRecurring(
     @Body() createRecurringLessonDto: CreateRecurringLessonDto,
