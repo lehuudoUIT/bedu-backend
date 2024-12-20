@@ -24,11 +24,10 @@ export class UserClassController {
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'Find the list of student in class successfully',
-      metadata: await this.userClassService.findAll(page, limit, status),
+      metadata: await this.userClassService.findAll(page, limit),
     }
   }
 
@@ -36,12 +35,11 @@ export class UserClassController {
   async findAllByType(
     @Param('type', ParseIntPipe) idClass: number,
     @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Body('status') status: string = 'active',
+    @Query('limit') limit: number = 10
   ) {
     return {
       message: 'Find the list of student in class by type successfully',
-      metadata: await this.userClassService.findAllByClass(page, limit, idClass, status)
+      metadata: await this.userClassService.findAllByClass(page, limit, idClass)
     }
   }
 

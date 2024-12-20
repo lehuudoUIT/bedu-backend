@@ -17,7 +17,6 @@ export class UsersService {
     page: number = 1,
     limit: number = 10,
     group: string = "student",
-    status: string
   ): Promise<{
     totalRecord: number,
     users: User[]
@@ -37,12 +36,24 @@ export class UsersService {
       default:
         throw new Error("Invalid group");
       }
-
+     // console.log("Group user is: ", groupNumber);
       const users = await this.userRepository
                               .createQueryBuilder('user')
+                              .select([
+                                'user.id',
+                                'user.name',
+                                'user.cid',
+                                'user.email',
+                                'user.phone',
+                                'user.isActive',
+                                'user.createdAt',
+                                'user.updatedAt',
+                                'user.deletedAt',
+                                'user.role',
+                                'user.username'
+                              ])
                               .where('user.deletedAt IS NULL')
-                              .andWhere('user.isActive: isActive', {isActive: status})
-                              .andWhere('user.group.id = :groupId', {groupId: group})
+                              .andWhere('user.role.id = :groupId', {groupId: groupNumber})
                               .orderBy('user.createdAt', 'DESC')
                               .skip((page - 1) * limit)
                               .take(limit)
@@ -50,8 +61,8 @@ export class UsersService {
       const totalRecord = await this.userRepository
                                 .createQueryBuilder('user')
                                 .where('user.deletedAt IS NULL')
-                                .andWhere('user.isActive: isActive', {isActive: status})
-                                .andWhere('user.group.id = :groupId', {groupId: group})
+                               // .andWhere('user.isActive: isActive', {isActive: status})
+                                .andWhere('user.role.id = :groupId', {groupId: group})
                                 .getCount();
       if (users.length === 0) {
       throw new Error("No user found");

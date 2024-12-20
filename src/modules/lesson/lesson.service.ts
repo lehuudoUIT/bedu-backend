@@ -158,8 +158,7 @@ export class LessonService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number;
     lessons: Lesson[];
@@ -172,7 +171,7 @@ export class LessonService {
                                   .leftJoinAndSelect('lesson.course', 'course')
                                   .leftJoinAndSelect('lesson.exam', 'exam')
                                   .where('lesson.deletedAt is NULL')
-                                  .andWhere('lesson.isActive = :isActive', { isActive: status })
+                                 // .andWhere('lesson.isActive = :isActive', { isActive: status })
                                   .orderBy('lesson.id', 'DESC')
                                   .skip((page - 1) * limit)
                                   .take(limit)
@@ -180,7 +179,7 @@ export class LessonService {
     const totalRecord = await this.lessonRepository
                                   .createQueryBuilder('lesson')
                                   .where('lesson.deletedAt is NULL')
-                                  .andWhere('lesson.isActive = :isActive', { isActive: status })
+                                 // .andWhere('lesson.isActive = :isActive', { isActive: status })
                                   .getCount();  
     if(lessons.length === 0) {
 

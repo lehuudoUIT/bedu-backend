@@ -35,12 +35,11 @@ export class AnswerController {
   @Get('all')
   async findAll(
     @Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 10,
-    @Body('status') status: string = 'active'
+    @Query('limit', ParseIntPipe) limit: number = 10
   ) {
     return {
       message: 'Find the list of answers successfully',
-      metadata: await this.answerService.findAll(page, limit, status),
+      metadata: await this.answerService.findAll(page, limit),
     }
   }
 
@@ -50,12 +49,11 @@ export class AnswerController {
     @Param('studentId', ParseIntPipe) studentId: number,
     @Param('examId', ParseIntPipe) examId: number,
     @Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 10,
-    @Body('status') status: string = 'active'
+    @Query('limit', ParseIntPipe) limit: number = 10
   ) {
     return {
       message: 'Find the list of answers by student and exam successfully',
-      metadata: await this.answerService.findAllByStudentAndExam(studentId, examId, page, limit, status),
+      metadata: await this.answerService.findAllByStudentAndExam(studentId, examId, page, limit),
     }
   }
 
@@ -65,11 +63,10 @@ export class AnswerController {
     @Param('examId', ParseIntPipe) examId: number,
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
-    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of answers by exam successfully',
-      metadata: await this.answerService.findAllByExam(examId, page, limit, status)
+      metadata: await this.answerService.findAllByExam(examId, page)
     }
   }
 

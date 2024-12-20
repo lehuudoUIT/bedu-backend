@@ -66,27 +66,23 @@ export class ClassService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-
-    status: string,
-
   ): Promise<{
     totalRecord: number,
     classes: Class[]
   }> {
     try {
       const classes = await this.classRepository
-
                                 .createQueryBuilder('class')
                                 .leftJoinAndSelect('class.program', 'program')
                                 .leftJoinAndSelect('class.lesson', 'lesson')
                                 .andWhere('class.deletedAt is null')
-                                .andWhere('class.isActive = :isActive', { isActive: status })
+                               // .andWhere('class.isActive = :isActive', { isActive: status })
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();   
       const totalRecord = await this.classRepository
                                 .createQueryBuilder('class')
-                                .andWhere('class.isActive = :isActive', { isActive: status })
+                                //.andWhere('class.isActive = :isActive', { isActive: status })
                                 .andWhere('class.deletedAt is null')
                                 .getCount();
 
@@ -103,29 +99,25 @@ export class ClassService {
   async findAllByType(
     page: number = 1,
     limit: number = 10,
-    type: string = 'toeic',
-
-    status: string,
-
+    type: string = 'toeic'
   ): Promise<{
     totalRecord: number,
     classes: Class[]
 
   }> {
     const classes = await this.classRepository
-
                                 .createQueryBuilder('class')
                                 .leftJoinAndSelect('class.lesson', 'lesson')
                                 .where('class.type = :type', { type })
                                 .andWhere('class.deletedAt is null')
-                                .andWhere('class.isActive = :isActive', { isActive: status })
+                               // .andWhere('class.isActive = :isActive', { isActive: status })
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
     const totalRecord = await this.classRepository
                                 .createQueryBuilder('class')
                                 .where('class.type = :type', { type })
-                                .andWhere('class.isActive = :isActive', { isActive: status })
+                                //.andWhere('class.isActive = :isActive', { isActive: status })
                                 .andWhere('class.deletedAt is null')
                                 .getCount();
 

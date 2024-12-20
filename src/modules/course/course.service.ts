@@ -65,8 +65,7 @@ export class CourseService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10,
-    status: string = 'active'
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     courses: Course[]
@@ -76,7 +75,7 @@ export class CourseService {
                               .leftJoinAndSelect('course.program', 'program')
                               .leftJoinAndSelect('course.lesson', 'lesson')
                               .where('course.deletedAt IS NULL')
-                              .andWhere('course.isActive = :isActive', { isActive: status })
+                             // .andWhere('course.isActive = :isActive', { isActive: status })
                               .orderBy('course.id', 'DESC')
                               .skip((page - 1) * limit)
                               .take(limit)
@@ -84,7 +83,7 @@ export class CourseService {
     const totalRecord = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
-                              .andWhere('course.isActive = :isActive', { isActive: status })
+                             // .andWhere('course.isActive = :isActive', { isActive: status })
                               .getCount();
 
     if (course.length === 0) {
@@ -99,8 +98,7 @@ export class CourseService {
   async findAllByType(
     type: string,
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     courses: Course[]
@@ -110,7 +108,7 @@ export class CourseService {
                               .leftJoinAndMapMany('course.program', 'course.program', 'program')
                               .leftJoinAndMapMany('course.lesson', 'course.lesson', 'lesson')
                               .where('course.deletedAt IS NULL')
-                              .andWhere('course.isActive = :isActive', { isActive: status })
+                             // .andWhere('course.isActive = :isActive', { isActive: status })
                               .andWhere('course.courseType = :type', { type })
                               .orderBy('course.id', 'DESC')
                               .skip((page - 1) * limit)
@@ -119,7 +117,7 @@ export class CourseService {
     const totalRecord = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
-                              .andWhere('course.isActive = :isActive', { isActive: status })
+                             // .andWhere('course.isActive = :isActive', { isActive: status })
                               .andWhere('course.courseType = :type', { type })
                               .getCount();
     if (courses.length === 0) {

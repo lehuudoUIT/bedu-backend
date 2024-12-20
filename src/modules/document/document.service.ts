@@ -64,8 +64,7 @@ export class DocumentService {
   async findAllByType(
     page: number = 1,
     limit: number = 10,
-    type: string,
-    status: string
+    type: string
   ): Promise<{
     totalRecord: number,
     documents: Document[]
@@ -74,7 +73,7 @@ export class DocumentService {
                                 .createQueryBuilder('document')
                                 .leftJoinAndSelect('document.question', 'question')
                                 .where('document.deletedAt is null')
-                                .andWhere('document.isActive = :isActive', { isActive: status })
+                               // .andWhere('document.isActive = :isActive', { isActive: status })
                                 .andWhere('document.documentType = :type', { type })
                                 .orderBy('document.id', 'DESC')
                                 .skip((page - 1) * limit)
@@ -83,7 +82,7 @@ export class DocumentService {
     const totalRecord = await this.documentRepository
                                 .createQueryBuilder('document')
                                 .where('document.deletedAt is null')
-                                .andWhere('document.isActive = :isActive', { isActive: status })
+                               // .andWhere('document.isActive = :isActive', { isActive: status })
                                 .andWhere('document.documentType = :type', { type })
                                 .getCount();
     if (documents.length === 0) {
@@ -97,8 +96,7 @@ export class DocumentService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10,
-    status: string
+    limit: number = 10
   ): Promise<{
     totalRecord: number,
     documents: Document[]
@@ -107,7 +105,7 @@ export class DocumentService {
                           .createQueryBuilder('document')
                           .leftJoinAndSelect('document.question', 'question')
                           .where('document.deletedAt  is null')
-                          .andWhere('document.isActive = :isActive', { isActive: status })
+                         // .andWhere('document.isActive = :isActive', { isActive: status })
                           .orderBy('document.id', 'DESC')
                           .skip((page - 1) * limit)
                           .take(limit)
@@ -115,7 +113,7 @@ export class DocumentService {
     const totalRecord = await this.documentRepository
                           .createQueryBuilder('document')
                           .where('document.deletedAt is null')
-                          .andWhere('document.isActive = :isActive', { isActive: status })
+                         // .andWhere('document.isActive = :isActive', { isActive: status })
                           .getCount();
     if (documents.length === 0) {
       throw new NotFoundException('No document found!');
