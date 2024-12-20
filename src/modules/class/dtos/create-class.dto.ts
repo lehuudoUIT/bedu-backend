@@ -4,7 +4,7 @@ export class CreateClassDto {
   studyForm: string;
   startDate: Date;
   description: string;
-  lessonQuality: number;
+  lessonQuantity: number;
   timePerLesson: number;
   type: string;
   price: number;

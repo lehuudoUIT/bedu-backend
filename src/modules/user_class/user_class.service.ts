@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserClassDto } from './dto/create-user_class.dto';
 import { UpdateUserClassDto } from './dto/update-user_class.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,22 +11,25 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ClassService } from '../class/class.service';
 import { zipAll } from 'rxjs';
- 
+import { GoogleService } from '../google/google.service';
+
 @Injectable()
 export class UserClassService {
-
   constructor(
     @InjectRepository(UserClass)
     private userClassRepository: Repository<UserClass>,
     private userService: UsersService,
     private classService: ClassService,
+    private googleService: GoogleService,
   ) {}
 
-  async create(
-    createUserClassDto: CreateUserClassDto
-  ): Promise<UserClass>{ 
-
-    if (await this.checkExistStudentInClass(createUserClassDto.userId, createUserClassDto.classId)) {
+  async create(createUserClassDto: CreateUserClassDto): Promise<UserClass> {
+    if (
+      await this.checkExistStudentInClass(
+        createUserClassDto.userId,
+        createUserClassDto.classId,
+      )
+    ) {
       throw new BadRequestException('Student already exists in the class');
     }
 
@@ -31,70 +38,79 @@ export class UserClassService {
       throw new NotFoundException('User information is not found');
     }
 
-    const classData = await this.classService.findOne(createUserClassDto.classId);  
+    const classData = await this.classService.findOne(
+      createUserClassDto.classId,
+    );
     if (!classData) {
       throw new NotFoundException('Class information is not found');
     }
-  
+
     const userClass = this.userClassRepository.create({
       ...createUserClassDto,
       user: user,
-      class: classData
+      class: classData,
     });
 
     const result = await this.userClassRepository.save(userClass);
+
+    try {
+      await this.googleService.shareCalendar(classData.calendarId, user.email);
+    } catch (error) {
+      throw new BadRequestException('Fail to add user to calendar!');
+    }
+
     if (!result) {
-      throw new NotFoundException('Failed to create class registration information');
-    } 
-    return result
+      throw new NotFoundException(
+        'Failed to create class registration information',
+      );
+    }
+    return result;
   }
 
-  async checkExistStudentInClass(userId: number, classId: number) { 
-    return await this.userClassRepository.createQueryBuilder('user_class')
-                                    .where('user_class.userId = :userId', { userId })
-                                    .andWhere('user_class.classId = :classId', { classId })
-                                    .andWhere('user_class.deletedAt is null') 
-                                    .getOne();
+  async checkExistStudentInClass(userId: number, classId: number) {
+    return await this.userClassRepository
+      .createQueryBuilder('user_class')
+      .where('user_class.userId = :userId', { userId })
+      .andWhere('user_class.classId = :classId', { classId })
+      .andWhere('user_class.deletedAt is null')
+      .getOne();
   }
 
-  async findAll(
-    page: number = 1,
-    limit: number = 10
-  ): Promise<UserClass[]> {
+  async findAll(page: number = 1, limit: number = 10): Promise<UserClass[]> {
     const userClasses = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .leftJoinAndSelect('user_class.user', 'user')
-                          .leftJoinAndSelect('user_class.class', 'class')
-                          .where('user_class.deletedAt is null')
-                          .andWhere('user.isActive = :isActive', { isActive: 1 })
-                          .orderBy('user_class.createdAt', 'DESC')
-                          .skip((page - 1) * limit)
-                          .take(limit)
-                          .getMany();
+      .createQueryBuilder('user_class')
+      .leftJoinAndSelect('user_class.user', 'user')
+      .leftJoinAndSelect('user_class.class', 'class')
+      .where('user_class.deletedAt is null')
+      .andWhere('user.isActive = :isActive', { isActive: 1 })
+      .orderBy('user_class.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
     if (!userClasses) {
-      throw new NotFoundException('Class registration information is not found');
+      throw new NotFoundException(
+        'Class registration information is not found',
+      );
     }
     return userClasses;
   }
 
-  async findAllByClass(
-    page: number = 1,
-    limit: number = 10,
-    idClass: number
-  ) {
+  async findAllByClass(page: number = 1, limit: number = 10, idClass: number) {
     const userClasses = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .leftJoinAndSelect('user_class.user', 'user')
-                          .leftJoinAndSelect('user_class.class', 'class')
-                          .where('user_class.deletedAt is null')
-                          .andWhere('user.isActive = :isActive', { isActive: 1 })
-                          .andWhere('class.id = :idClass', { idClass})
-                          .orderBy('user_class.createdAt', 'DESC')
-                          .skip((page - 1) * limit)
-                          .take(limit)
-                          .getMany();
+      .createQueryBuilder('user_class')
+      .leftJoinAndSelect('user_class.user', 'user')
+      .leftJoinAndSelect('user_class.class', 'class')
+      .where('user_class.deletedAt is null')
+      .andWhere('user.isActive = :isActive', { isActive: 1 })
+      .andWhere('class.id = :idClass', { idClass })
+      .orderBy('user_class.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
     if (userClasses.length === 0) {
-      throw new NotFoundException('Class registration information is not found');
+      throw new NotFoundException(
+        'Class registration information is not found',
+      );
     }
     return userClasses;
   }
@@ -103,45 +119,57 @@ export class UserClassService {
     const userClass = await this.userClassRepository.findOneBy({
       id,
       isActive: true,
-      deletedAt: IsNull()
+      deletedAt: IsNull(),
     });
     if (!userClass) {
-      throw new NotFoundException('Class registration information is not found');
+      throw new NotFoundException(
+        'Class registration information is not found',
+      );
     }
     return userClass;
   }
 
   async update(
-    id: number, 
-    updateUserClassDto: UpdateUserClassDto
+    id: number,
+    updateUserClassDto: UpdateUserClassDto,
   ): Promise<UserClass> {
     const userClass = await this.findOne(id);
     if (!userClass) {
-      throw new NotFoundException('Class registration information is not found');
+      throw new NotFoundException(
+        'Class registration information is not found',
+      );
     }
     const user = await this.userService.findUserById(updateUserClassDto.userId);
     if (!user) {
       throw new NotFoundException('User information is not found');
     }
 
-    const classData = await this.classService.findOne(updateUserClassDto.classId);
+    const classData = await this.classService.findOne(
+      updateUserClassDto.classId,
+    );
     if (!classData) {
       throw new NotFoundException('Class information is not found');
     }
 
-    const updatedUserClass = this.userClassRepository
-                                .create({
-                                  ...userClass,
-                                  ...updateUserClassDto,
-                                  user,
-                                  class: classData
-                                })
-    if (this.checkExistStudentInClass(updatedUserClass.user.id, updatedUserClass.class.id)) { 
+    const updatedUserClass = this.userClassRepository.create({
+      ...userClass,
+      ...updateUserClassDto,
+      user,
+      class: classData,
+    });
+    if (
+      this.checkExistStudentInClass(
+        updatedUserClass.user.id,
+        updatedUserClass.class.id,
+      )
+    ) {
       throw new BadRequestException('Student already exists in the class');
     }
     const result = await this.userClassRepository.save(updatedUserClass);
-    if(!result) {
-      throw new NotFoundException('Failed to update class registration information');
+    if (!result) {
+      throw new NotFoundException(
+        'Failed to update class registration information',
+      );
     }
     return result;
   }
@@ -149,12 +177,14 @@ export class UserClassService {
   async remove(id: number): Promise<UserClass> {
     const deletedUserClass = await this.findOne(id);
     if (!deletedUserClass) {
-      throw new NotFoundException('Class registration information is not found');
+      throw new NotFoundException(
+        'Class registration information is not found',
+      );
     }
     deletedUserClass.deletedAt = new Date();
     deletedUserClass.isActive = false;
     const result = await this.userClassRepository.save(deletedUserClass);
-    
+
     return result;
   }
 }

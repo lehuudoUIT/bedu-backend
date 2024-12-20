@@ -21,7 +21,7 @@ export class Class extends AbstractEntity<Class> {
   @Column()
   description: string;
 
-  @Column()
+  @Column({ nullable: true })
   lessonQuantity: number;
 
   @Column()
@@ -31,13 +31,16 @@ export class Class extends AbstractEntity<Class> {
   type: string;
 
   @Column()
-  price: number; 
+  price: number;
+
+  @Column({ nullable: true })
+  target_start: number;
+
+  @Column({ nullable: true })
+  target_end: number;
 
   @Column()
-  target_start: number ;
-  
-  @Column()
-  target_end: number; 
+  calendarId: string;
 
   @OneToMany(() => UserClass, (userClass) => userClass.class)
   class: Class[];

@@ -5,12 +5,14 @@ import { UserClass } from 'src/entities/user_class.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from '../users/users.module';
 import { ClassModule } from '../class/class.module';
+import { GoogleModule } from '../google/google.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserClass]),
     UsersModule,
-    ClassModule
+    ClassModule,
+    GoogleModule,
   ],
   controllers: [UserClassController],
   providers: [UserClassService],
