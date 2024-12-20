@@ -24,10 +24,11 @@ export class LessonDocumentController {
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'This action returns all lesson document',
-      metadata: await this.lessonDocumentService.findAll(page, limit),
+      metadata: await this.lessonDocumentService.findAll(page, limit, status),
     }
   }
 

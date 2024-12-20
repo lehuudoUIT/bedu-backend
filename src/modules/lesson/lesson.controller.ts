@@ -58,13 +58,15 @@ export class LessonController {
 
   @Get('all')
   async findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+
+    @Query ('page') page: number = 1,
+    @Query ('limit') limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of lessons successfully',
-      metadata: await this.lessonService.findAll(page, limit),
-    };
+      metadata: await this.lessonService.findAll(page, limit, status),
+    }
   }
 
   @Get('item/:id')

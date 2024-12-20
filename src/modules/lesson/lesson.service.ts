@@ -159,28 +159,31 @@ export class LessonService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+    status: string
   ): Promise<{
     totalRecord: number;
     lessons: Lesson[];
   }> {
-    const lessons = await this.lessonRepository
-      .createQueryBuilder('lesson')
-      .leftJoinAndSelect('lesson.teacher', 'teacher')
-      .leftJoinAndSelect('lesson.class', 'class')
-      .leftJoinAndSelect('lesson.course', 'course')
-      .leftJoinAndSelect('lesson.exam', 'exam')
-      .where('lesson.deletedAt is NULL')
-      .andWhere('lesson.isActive = :isActive', { isActive: true })
-      .orderBy('lesson.id', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
+
+    const  lessons = await this.lessonRepository
+                                  .createQueryBuilder('lesson')
+                                  .leftJoinAndSelect('lesson.teacher', 'teacher')
+                                  .leftJoinAndSelect('lesson.class', 'class')
+                                  .leftJoinAndSelect('lesson.course', 'course')
+                                  .leftJoinAndSelect('lesson.exam', 'exam')
+                                  .where('lesson.deletedAt is NULL')
+                                  .andWhere('lesson.isActive = :isActive', { isActive: status })
+                                  .orderBy('lesson.id', 'DESC')
+                                  .skip((page - 1) * limit)
+                                  .take(limit)
+                                  .getMany();
     const totalRecord = await this.lessonRepository
-      .createQueryBuilder('lesson')
-      .where('lesson.deletedAt is NULL')
-      .andWhere('lesson.isActive = :isActive', { isActive: true })
-      .getCount();
-    if (lessons.length === 0) {
+                                  .createQueryBuilder('lesson')
+                                  .where('lesson.deletedAt is NULL')
+                                  .andWhere('lesson.isActive = :isActive', { isActive: status })
+                                  .getCount();  
+    if(lessons.length === 0) {
+
       throw new NotFoundException('No lesson found!');
     }
     return {
@@ -191,44 +194,64 @@ export class LessonService {
 
   async findOne(id: number): Promise<Lesson> {
     const lesson = await this.lessonRepository
-      .createQueryBuilder('lesson')
-      .leftJoinAndSelect('lesson.teacher', 'teacher')
-      .leftJoinAndSelect('lesson.class', 'class')
-      .leftJoinAndSelect('lesson.course', 'course')
-      .leftJoinAndSelect('lesson.exam', 'exam')
-      .where('lesson.id = :id', { id })
-      .andWhere('lesson.isActive = :isActive', { isActive: true })
-      .andWhere('lesson.deletedAt is NULL')
-      .getOne();
+                              .createQueryBuilder('lesson')
+                              .leftJoinAndSelect('lesson.teacher', 'teacher')
+                              .leftJoinAndSelect('lesson.class', 'class')
+                              .leftJoinAndSelect('lesson.course', 'course')
+                              .leftJoinAndSelect('lesson.exam', 'exam')
+                              .where('lesson.id = :id', { id })
+                              .andWhere('lesson.deletedAt is NULL')
+                              .getOne();
+
     if (!lesson) {
       throw new NotFoundException('Lesson information not found');
     }
     return lesson;
   }
 
-  async update(id: number, updateLessonDto: UpdateLessonDto): Promise<Lesson> {
+  async update(
+    id: number,
+    updateLessonDto: UpdateLessonDto
+  ): Promise<Lesson> {
+    // Tìm lesson hiện có
     const lesson = await this.findOne(id);
     if (!lesson) {
       throw new NotFoundException('Lesson information is not found');
     }
-
-    const teacher = await this.usersService.findUserById(
-      updateLessonDto.teacherId,
-    );
-    if (!teacher) {
+  
+    // Xác thực teacher nếu `teacherId` được cung cấp
+    const teacher = updateLessonDto.teacherId
+      ? await this.usersService.findUserById(updateLessonDto.teacherId)
+      : lesson.teacher; // Giữ nguyên teacher hiện tại nếu không cung cấp
+    if (updateLessonDto.teacherId && !teacher) {
       throw new NotFoundException('Teacher information is not found');
     }
-
-    const classData = await this.classService.findOne(updateLessonDto.classId);
-
-    const course = await this.courseService.findOne(updateLessonDto.courseId);
-    const exam = await this.examService.findOne(updateLessonDto.examId);
-
-    if (!exam && !course && !classData) {
-      throw new NotFoundException(
-        'Class, course or exam information is not found',
-      );
+  
+    // Xác thực class nếu `classId` được cung cấp
+    const classData = updateLessonDto.classId
+      ? await this.classService.findOne(updateLessonDto.classId)
+      : lesson.class; // Giữ nguyên class hiện tại nếu không cung cấp
+    if (updateLessonDto.classId && !classData) {
+      throw new NotFoundException('Class information is not found');
     }
+  
+    // Xác thực course nếu `courseId` được cung cấp
+    const course = updateLessonDto.courseId
+      ? await this.courseService.findOne(updateLessonDto.courseId)
+      : lesson.course; // Giữ nguyên course hiện tại nếu không cung cấp
+    if (updateLessonDto.courseId && !course) {
+      throw new NotFoundException('Course information is not found');
+    }
+  
+    // Xác thực exam nếu `examId` được cung cấp
+    const exam = updateLessonDto.examId
+      ? await this.examService.findOne(updateLessonDto.examId)
+      : lesson.exam; // Giữ nguyên exam hiện tại nếu không cung cấp
+    if (updateLessonDto.examId && !exam) {
+      throw new NotFoundException('Exam information is not found');
+    }
+  
+    // Tạo đối tượng lesson mới với dữ liệu cập nhật
     const newLesson = this.lessonRepository.create({
       ...lesson,
       ...updateLessonDto,
@@ -237,10 +260,13 @@ export class LessonService {
       course,
       exam,
     });
+  
+    // Lưu lesson đã cập nhật
     const result = await this.lessonRepository.save(newLesson);
     if (!result) {
       throw new NotFoundException('Failed to update lesson information');
     }
+  
     return result;
   }
 

@@ -39,7 +39,8 @@ export class ReportService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    type: string = 'financial'
+    type: string = 'financial',
+    status: string
   ): Promise<{
     totalRecord: number,
     reports: Report[]
@@ -48,7 +49,7 @@ export class ReportService {
                             .createQueryBuilder('report')
                             .where('report.reportType = :type', { type })
                             .andWhere('report.deletedAt is null')
-                            .andWhere("report.isActive = :isActive", { isActive: 1 })
+                            .andWhere("report.isActive = :isActive", { isActive: status })
                             .skip((page - 1) * limit)
                             .take(limit)
                             .getMany();
@@ -56,7 +57,7 @@ export class ReportService {
                             .createQueryBuilder('report')
                             .where('report.reportType = :type', { type })
                             .andWhere('report.deletedAt is null')
-                            .andWhere("report.isActive = :isActive", { isActive: 1 })
+                            .andWhere("report.isActive = :isActive", { isActive: status})
                             .getCount();
     if (!report) {
       throw new NotFoundException('No report found!');
@@ -72,7 +73,6 @@ export class ReportService {
   ) {
     const report = await this.reportRepository.findOneBy({
       id,
-      isActive: true,
       deletedAt: IsNull(),
     });
     if (!report) {

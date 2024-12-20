@@ -23,11 +23,12 @@ export class UserProgramController {
   @Get("all")
   async findAll(
     @Query ('page', ParseIntPipe) page: number = 1,
-    @Query ('limit', ParseIntPipe) limit: number = 10
+    @Query ('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: "Get all user programs successfully",
-      metadata: this.userProgramService.findAll(page, limit)
+      metadata: this.userProgramService.findAll(page, limit, status)
     }
   }
 
@@ -35,11 +36,12 @@ export class UserProgramController {
   async findAllByProgram(
     @Param('id', ParseIntPipe) id: number,
     @Query ('page', ParseIntPipe) page: number = 1,
-    @Query ('limit', ParseIntPipe) limit: number = 10
+    @Query ('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: "Get all user programs by program successfully",
-      metadata: this.userProgramService.findAllByProgramId(id, page, limit)
+      metadata: this.userProgramService.findAllByProgramId(id, page, limit, status)
     }
   }   
   
@@ -47,11 +49,12 @@ export class UserProgramController {
   async findAllByUser(
     @Param('id', ParseIntPipe) id: number,
     @Query ('page', ParseIntPipe) page: number = 1,
-    @Query ('limit', ParseIntPipe) limit: number = 10
+    @Query ('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: "Get all user enroll the program successfully",
-      metadata: await this.userProgramService.findAllByUserId(id, page, limit)
+      metadata: await this.userProgramService.findAllByUserId(id, page, limit, status)
     }
   }
   

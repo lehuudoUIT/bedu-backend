@@ -36,11 +36,12 @@ export class ReportController {
   async  findAll(
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
-    @Param('type') type: string = 'financial'
+    @Param('type') type: string = 'financial',
+    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'Find the list of reports successfully',
-      metadata: await this.reportService.findAll(page, limit, type),
+      metadata: await this.reportService.findAll(page, limit, type, status),
     }
   }
 

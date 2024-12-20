@@ -119,6 +119,7 @@ export class QuestionService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+    status: string
   ): Promise<{
     totalRecord: number,
     questions: Question[]
@@ -128,7 +129,7 @@ export class QuestionService {
                             .leftJoinAndSelect('question.exam', 'exam')
                             .leftJoinAndSelect('question.document', 'document')
                             .where('question.deletedAt IS NULL')
-                            .andWhere('question.isActive = :isActive', { isActive: true })
+                            .andWhere('question.isActive = :isActive', { isActive: status })
                             .orderBy('question.id', 'ASC')
                             .skip((page - 1) * limit)
                             .take(limit)
@@ -136,7 +137,7 @@ export class QuestionService {
     const total = await this.questionRepository
                             .createQueryBuilder('question')
                             .where('question.deletedAt IS NULL')
-                            .andWhere('question.isActive = :isActive', { isActive: true })
+                            .andWhere('question.isActive = :isActive', { isActive: status })
                             .getCount();
     if (questions.length === 0) {
       throw new NotFoundException('No question found');
@@ -150,8 +151,12 @@ export class QuestionService {
   async findAllByType(
     page: number = 1,
     limit: number = 10,
-    typeReq: string
-  ) {
+    typeReq: string,
+    status: string
+  ): Promise<{
+    totalRecord: number,
+    questions: Question[]
+  }> {
     let type: string = "";
     switch (typeReq) {
       case 'multiple':
@@ -170,16 +175,25 @@ export class QuestionService {
     const questions = await this.questionRepository
                           .createQueryBuilder('question')
                           .where('question.deletedAt is null')
-                          .andWhere('question.isActive = :isActive', { isActive: true })
+                          .andWhere('question.isActive = :isActive', { isActive: status })
                           .andWhere('question.questionType = :type', { type })
                           .orderBy('question.id', 'ASC')
                           .skip((page - 1) * limit)
                           .take(limit)
                           .getMany();
+    const question = await this.questionRepository
+                          .createQueryBuilder('question')
+                          .where('question.deletedAt is null')
+                          .andWhere('question.isActive = :isActive', { isActive: status })
+                          .andWhere('question.questionType = :type', { type })
+                          .getCount();      
     if (questions.length === 0) {
       throw new NotFoundException('No question found');
     }
-    return questions;
+    return {
+      totalRecord: question,
+      questions
+    };
   }
 
   async findOne(
@@ -190,7 +204,6 @@ export class QuestionService {
                               .leftJoinAndSelect('question.exam', 'exam')
                               .leftJoinAndSelect('question.document', 'document')
                               .where('question.deletedAt is null')
-                              .andWhere('question.isActive = :isActive', { isActive: true })
                               .andWhere('question.id = :id', { id })
                               .getOne();
     if (!question) {

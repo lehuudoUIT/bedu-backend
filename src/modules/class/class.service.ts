@@ -17,6 +17,8 @@ export class ClassService {
     private readonly googleService: GoogleService,
   ) {}
 
+  // còn thiếu cái phương thức lấy dư liệu cho các student và teacher
+
   extractNumber(str: string): number {
     const match = str.match(/\d+/);
     return match ? parseInt(match[0], 10) : 0;
@@ -64,30 +66,36 @@ export class ClassService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+
+    status: string,
+
   ): Promise<{
-    totalRecord: number;
-    answers: Class[];
+    totalRecord: number,
+    classes: Class[]
   }> {
     try {
       const classes = await this.classRepository
-        .createQueryBuilder('class')
-        .leftJoinAndSelect('class.program', 'program')
-        .leftJoinAndSelect('class.lesson', 'lesson')
-        .where('class.isActive = true')
-        .andWhere('class.deletedAt is null')
-        .skip((page - 1) * limit)
-        .take(limit)
-        .getMany();
+
+                                .createQueryBuilder('class')
+                                .leftJoinAndSelect('class.program', 'program')
+                                .leftJoinAndSelect('class.lesson', 'lesson')
+                                .andWhere('class.deletedAt is null')
+                                .andWhere('class.isActive = :isActive', { isActive: status })
+                                .skip((page - 1) * limit)
+                                .take(limit)
+                                .getMany();   
       const totalRecord = await this.classRepository
-        .createQueryBuilder('class')
-        .where('class.isActive = true')
-        .andWhere('class.deletedAt is null')
-        .getCount();
+                                .createQueryBuilder('class')
+                                .andWhere('class.isActive = :isActive', { isActive: status })
+                                .andWhere('class.deletedAt is null')
+                                .getCount();
+
       return {
         totalRecord: totalRecord,
-        answers: classes,
-      };
-    } catch (error) {
+        classes: classes
+      }
+    } catch(error) {
+
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -96,43 +104,49 @@ export class ClassService {
     page: number = 1,
     limit: number = 10,
     type: string = 'toeic',
+
+    status: string,
+
   ): Promise<{
-    totalRecord: number;
-    answers: Class[];
+    totalRecord: number,
+    classes: Class[]
+
   }> {
     const classes = await this.classRepository
-      .createQueryBuilder('class')
-      .leftJoinAndSelect('class.program', 'program')
-      .leftJoinAndSelect('class.lesson', 'lesson')
-      .where('class.type = :type', { type })
-      .andWhere('class.isActive = true')
-      .andWhere('class.deletedAt is null')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
+
+                                .createQueryBuilder('class')
+                                .leftJoinAndSelect('class.lesson', 'lesson')
+                                .where('class.type = :type', { type })
+                                .andWhere('class.deletedAt is null')
+                                .andWhere('class.isActive = :isActive', { isActive: status })
+                                .skip((page - 1) * limit)
+                                .take(limit)
+                                .getMany();
     const totalRecord = await this.classRepository
-      .createQueryBuilder('class')
-      .where('class.type = :type', { type })
-      .andWhere('class.isActive = true')
-      .andWhere('class.deletedAt is null')
-      .getCount();
+                                .createQueryBuilder('class')
+                                .where('class.type = :type', { type })
+                                .andWhere('class.isActive = :isActive', { isActive: status })
+                                .andWhere('class.deletedAt is null')
+                                .getCount();
+
     if (classes.length === 0) {
       throw new NotFoundException('Class information is not found');
     }
     return {
       totalRecord: totalRecord,
-      answers: classes,
+      classes: classes
+
     };
   }
 
   async findOne(id: number): Promise<Class> {
     const classItem = await this.classRepository
-      .createQueryBuilder('class')
-      .leftJoinAndSelect('class.lesson', 'lesson')
-      .where('class.id = :id', { id })
-      .andWhere('class.isActive = true')
-      .andWhere('class.deletedAt is null')
-      .getOne();
+                          .createQueryBuilder('class')
+                          .leftJoinAndSelect('class.lesson', 'lesson')
+                          .where('class.id = :id', { id })
+                          .andWhere('class.deletedAt is null')
+                          .getOne();
+
     if (!classItem) {
       throw new NotFoundException('Class is not found');
     }

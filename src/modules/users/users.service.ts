@@ -17,7 +17,11 @@ export class UsersService {
     page: number = 1,
     limit: number = 10,
     group: string = "student",
-  ): Promise<User[]> {
+    status: string
+  ): Promise<{
+    totalRecord: number,
+    users: User[]
+  }> {
     let groupNumber: number;
 
     switch(group) {
@@ -35,20 +39,28 @@ export class UsersService {
       }
 
       const users = await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.deletedAt IS NULL')
-      .andWhere('user.isActive: isActive', {isActive: true})
-      .andWhere('user.group.id = :groupId', {groupId: group})
-      .orderBy('user.createdAt', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
-
+                              .createQueryBuilder('user')
+                              .where('user.deletedAt IS NULL')
+                              .andWhere('user.isActive: isActive', {isActive: status})
+                              .andWhere('user.group.id = :groupId', {groupId: group})
+                              .orderBy('user.createdAt', 'DESC')
+                              .skip((page - 1) * limit)
+                              .take(limit)
+                              .getMany();
+      const totalRecord = await this.userRepository
+                                .createQueryBuilder('user')
+                                .where('user.deletedAt IS NULL')
+                                .andWhere('user.isActive: isActive', {isActive: status})
+                                .andWhere('user.group.id = :groupId', {groupId: group})
+                                .getCount();
       if (users.length === 0) {
       throw new Error("No user found");
       }
 
-      return users
+      return {
+        totalRecord,
+        users
+      }
   }
 
   extractNumber(str: string): number {
@@ -131,7 +143,6 @@ export class UsersService {
     const user = await this.userRepository
                             .findOneBy({
                               id,
-                              isActive: true,
                               deletedAt: IsNull()
                             });
       if (!user) {

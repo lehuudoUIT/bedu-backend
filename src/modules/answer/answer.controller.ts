@@ -36,10 +36,11 @@ export class AnswerController {
   async findAll(
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of answers successfully',
-      metadata: await this.answerService.findAll(page, limit),
+      metadata: await this.answerService.findAll(page, limit, status),
     }
   }
 
@@ -50,10 +51,11 @@ export class AnswerController {
     @Param('examId', ParseIntPipe) examId: number,
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of answers by student and exam successfully',
-      metadata: await this.answerService.findAllByStudentAndExam(studentId, examId, page, limit),
+      metadata: await this.answerService.findAllByStudentAndExam(studentId, examId, page, limit, status),
     }
   }
 
@@ -63,10 +65,11 @@ export class AnswerController {
     @Param('examId', ParseIntPipe) examId: number,
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of answers by exam successfully',
-      metadata: await this.answerService.findAllByExam(examId, page, limit)
+      metadata: await this.answerService.findAllByExam(examId, page, limit, status)
     }
   }
 
