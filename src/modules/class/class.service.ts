@@ -11,6 +11,8 @@ export class ClassService {
     private readonly classRepository: Repository<Class>,
   ) {}
 
+  // còn thiếu cái phương thức lấy dư liệu cho các student và teacher
+
   extractNumber(str: string): number {
     const match = str.match(/\d+/); 
     return match ? parseInt(match[0], 10) : 0;
@@ -50,7 +52,8 @@ export class ClassService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    status: string,
   ): Promise<{
     totalRecord: number,
     answers: Class[]
@@ -60,14 +63,14 @@ export class ClassService {
                                 .createQueryBuilder('class')
                                 .leftJoinAndSelect('class.program', 'program')
                                 .leftJoinAndSelect('class.lesson', 'lesson')
-                                .where('class.isActive = true')
                                 .andWhere('class.deletedAt is null')
+                                .andWhere('class.isActive = :isActive', { isActive: status })
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();   
       const totalRecord = await this.classRepository
                                 .createQueryBuilder('class')
-                                .where('class.isActive = true')
+                                .andWhere('class.isActive = :isActive', { isActive: status })
                                 .andWhere('class.deletedAt is null')
                                 .getCount();
       return {
@@ -82,25 +85,25 @@ export class ClassService {
   async findAllByType(
     page: number = 1,
     limit: number = 10,
-    type: string = 'toeic'
+    type: string = 'toeic',
+    status: string,
   ): Promise<{
     totalRecord: number,
     answers: Class[]
   }> {
     const classes = await this.classRepository
                                 .createQueryBuilder('class')
-                                .leftJoinAndSelect('class.program', 'program')
                                 .leftJoinAndSelect('class.lesson', 'lesson')
                                 .where('class.type = :type', { type })
-                                .andWhere('class.isActive = true')
                                 .andWhere('class.deletedAt is null')
+                                .andWhere('class.isActive = :isActive', { isActive: status })
                                 .skip((page - 1) * limit)
                                 .take(limit)
                                 .getMany();
     const totalRecord = await this.classRepository
                                 .createQueryBuilder('class')
                                 .where('class.type = :type', { type })
-                                .andWhere('class.isActive = true')
+                                .andWhere('class.isActive = :isActive', { isActive: status })
                                 .andWhere('class.deletedAt is null')
                                 .getCount();
     if (classes.length === 0) {
@@ -119,7 +122,6 @@ export class ClassService {
                           .createQueryBuilder('class')
                           .leftJoinAndSelect('class.lesson', 'lesson')
                           .where('class.id = :id', { id })
-                          .andWhere('class.isActive = true')
                           .andWhere('class.deletedAt is null')
                           .getOne();
     if (!classItem) {

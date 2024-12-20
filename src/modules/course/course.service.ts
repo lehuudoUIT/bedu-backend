@@ -16,6 +16,8 @@ export class CourseService {
     private readonly programService: ProgramService
   ) {}
 
+  // thiếu các phương thức lấy dữ liệu cho các student và teacher
+
   extractNumber(str: string): number {
     const match = str.match(/\d+/); 
     return match ? parseInt(match[0], 10) : 0;
@@ -64,6 +66,7 @@ export class CourseService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+    status: string = 'active'
   ): Promise<{
     totalRecord: number,
     courses: Course[]
@@ -73,7 +76,7 @@ export class CourseService {
                               .leftJoinAndSelect('course.program', 'program')
                               .leftJoinAndSelect('course.lesson', 'lesson')
                               .where('course.deletedAt IS NULL')
-                              .where('course.isActive = :isActive', { isActive: true })
+                              .andWhere('course.isActive = :isActive', { isActive: status })
                               .orderBy('course.id', 'DESC')
                               .skip((page - 1) * limit)
                               .take(limit)
@@ -81,7 +84,7 @@ export class CourseService {
     const totalRecord = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
-                              .andWhere('course.isActive = :isActive', { isActive: true })
+                              .andWhere('course.isActive = :isActive', { isActive: status })
                               .getCount();
 
     if (course.length === 0) {
@@ -97,6 +100,7 @@ export class CourseService {
     type: string,
     page: number = 1,
     limit: number = 10,
+    status: string
   ): Promise<{
     totalRecord: number,
     courses: Course[]
@@ -106,7 +110,7 @@ export class CourseService {
                               .leftJoinAndMapMany('course.program', 'course.program', 'program')
                               .leftJoinAndMapMany('course.lesson', 'course.lesson', 'lesson')
                               .where('course.deletedAt IS NULL')
-                              .andWhere('course.isActive = :isActive', { isActive: true })
+                              .andWhere('course.isActive = :isActive', { isActive: status })
                               .andWhere('course.courseType = :type', { type })
                               .orderBy('course.id', 'DESC')
                               .skip((page - 1) * limit)
@@ -115,7 +119,7 @@ export class CourseService {
     const totalRecord = await this.courseRepository
                               .createQueryBuilder('course')
                               .where('course.deletedAt IS NULL')
-                              .andWhere('course.isActive = :isActive', { isActive: true })
+                              .andWhere('course.isActive = :isActive', { isActive: status })
                               .andWhere('course.courseType = :type', { type })
                               .getCount();
     if (courses.length === 0) {
@@ -136,7 +140,6 @@ export class CourseService {
                                 .leftJoinAndSelect('course.lesson', 'lesson')
                                 .where('course.id = :id', { id })
                                 .andWhere('course.deletedAt IS NULL')
-                                .andWhere('course.isActive = :isActive', { isActive: true })
                                 .getOne();
     if (!course) {
       throw new NotFoundException('Course not found');
@@ -197,4 +200,6 @@ export class CourseService {
     }
     return result;
   }
+
+  
 }

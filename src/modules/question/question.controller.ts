@@ -35,10 +35,11 @@ export class QuestionController {
   async findAll(
     @Query('page') page: number,
     @Query('limit') limit: number,
+    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'This action returns all question',
-      metadata: await this.questionService.findAll(page, limit),
+      metadata: await this.questionService.findAll(page, limit, status),
     }
   }
 
@@ -48,10 +49,11 @@ export class QuestionController {
     @Param('type') type: string,
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', ParseIntPipe) limit: number,
+    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'This action returns all question by type',
-      metadata: await this.questionService.findAllByType(page, limit, type),
+      metadata: await this.questionService.findAllByType(page, limit, type, status),
     }
   } 
 

@@ -59,7 +59,8 @@ export class UserClassService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    status: string
   ): Promise<{
     totalRecord: number,
     userClasses: UserClass[]
@@ -69,7 +70,7 @@ export class UserClassService {
                           .leftJoinAndSelect('user_class.user', 'user')
                           .leftJoinAndSelect('user_class.class', 'class')
                           .where('user_class.deletedAt is null')
-                          .andWhere('user.isActive = :isActive', { isActive: 1 })
+                          .andWhere('user.isActive = :isActive', { isActive: status })
                           .orderBy('user_class.createdAt', 'DESC')
                           .skip((page - 1) * limit)
                           .take(limit)
@@ -77,7 +78,7 @@ export class UserClassService {
     const total = await this.userClassRepository
                           .createQueryBuilder('user_class')
                           .where('user_class.deletedAt is null')
-                          .andWhere('user.isActive = :isActive', { isActive: 1 }) 
+                          .andWhere('user.isActive = :isActive', { isActive: status }) 
                           .getCount();
     if (!userClasses) {
       throw new NotFoundException('Class registration information is not found');
@@ -91,7 +92,8 @@ export class UserClassService {
   async findAllByClass(
     page: number = 1,
     limit: number = 10,
-    idClass: number
+    idClass: number,
+    status: string
   ): Promise<{
     totalRecord: number,
     userClasses: UserClass[]
@@ -101,7 +103,7 @@ export class UserClassService {
                           .leftJoinAndSelect('user_class.user', 'user')
                           .leftJoinAndSelect('user_class.class', 'class')
                           .where('user_class.deletedAt is null')
-                          .andWhere('user.isActive = :isActive', { isActive: 1 })
+                          .andWhere('user.isActive = :isActive', { isActive: status })
                           .andWhere('class.id = :idClass', { idClass})
                           .orderBy('user_class.createdAt', 'DESC')
                           .skip((page - 1) * limit)
@@ -110,7 +112,7 @@ export class UserClassService {
     const total = await this.userClassRepository
                           .createQueryBuilder('user_class')
                           .where('user_class.deletedAt is null')
-                          .andWhere('user.isActive = :isActive', { isActive: 1 })
+                          .andWhere('user.isActive = :isActive', { isActive: status })
                           .andWhere('class.id = :idClass', { idClass})
                           .getCount();
     if (userClasses.length === 0) {
@@ -125,7 +127,6 @@ export class UserClassService {
   async findOne(id: number): Promise<UserClass> {
     const userClass = await this.userClassRepository.findOneBy({
       id,
-      isActive: true,
       deletedAt: IsNull()
     });
     if (!userClass) {

@@ -1,4 +1,4 @@
-import {
+ import {
   Controller,
   Get,
   Post,
@@ -35,20 +35,24 @@ export class ProgramController {
   async findAllByType(
     @Query ('page', ParseIntPipe) page: number,
     @Query ('limit', ParseIntPipe) limit: number,
-    @Param('type') type: string) {
+    @Param('type') type: string,
+    @Body('status') status: string = 'active'
+  ) {
     return {
       message: "Get all programs successfully",
-      metadata: await this.programService.findAllByType(page, limit, type)
+      metadata: await this.programService.findAllByType(page, limit, type, status)
     };
   }
 
   @Get('all')
   async findAll(
     @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number) {
+    @Query('limit', ParseIntPipe) limit: number,
+    @Body('status') status: string = 'active'
+  ) {
     return {
       message: "Get all programs successfully",
-      metadata: await this.programService.findAll(page, limit)
+      metadata: await this.programService.findAll(page, limit, status)
     };
   }
 
@@ -75,6 +79,25 @@ export class ProgramController {
     return {
       message: "Delete program successfully",
       metadata: await this.programService.remove(+id)
+    }
+  }
+
+  @Post('addNewCourse')
+  async addCourseToProgram(
+    @Body('programId') programId: number,
+    @Body('courseId') courseId: number
+  ) {
+    const result = await this.programService.addCourseToProgram(programId, courseId);
+    if (result.program && result.course) {
+      return {
+        message: "Add course to program successfully",
+        metadata: result
+      }
+    } else {
+      return {
+        message: "Add course to program failed",
+        metadata: null
+      }
     }
   }
 }

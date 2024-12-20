@@ -35,11 +35,24 @@ export class ClassController {
   async findAllByType(
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Param('type') type: string
+    @Param('type') type: string,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Get all classes successfully',
-      metadata: await this.classService.findAllByType(page, limit, type),
+      metadata: await this.classService.findAllByType(page, limit, type, status),
+    }
+  }
+
+  @Get("all")
+  async findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Body('status') status: string = 'active'
+  ) {
+    return {
+      message: 'Get all classes successfully',
+      metadata: await this.classService.findAll(page, limit, status),
     }
   }
 

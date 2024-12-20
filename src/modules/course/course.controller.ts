@@ -36,10 +36,11 @@ export class CourseController {
   async findAll(
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'Find the list of courses successfully',
-      metadata: await this.courseService.findAll(page, limit),
+      metadata: await this.courseService.findAll(page, limit, status),
     }
   }
 
@@ -48,10 +49,11 @@ export class CourseController {
     @Param('type') type: string,
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active',
   ) {
     return {
       message: 'Find the list of courses by type successfully',
-      metadata: await this.courseService.findAllByType(type, page, limit),
+      metadata: await this.courseService.findAllByType(type, page, limit, status),
     }
   }
 

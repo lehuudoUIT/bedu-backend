@@ -55,6 +55,7 @@ export class NotificationService {
   async findAll_Base(
     page: number = 1,
     limit: number = 10,
+    status: string,
   ): Promise<{
     totalRecord: number,
     notifications: Notification[]
@@ -64,6 +65,7 @@ export class NotificationService {
                                       .leftJoinAndSelect('notification.sender', 'sender')
                                       .leftJoinAndSelect('notification.receiver', 'receiver')
                                       .where('notification.deletedAt IS NULL')
+                                      .andWhere('notification.isActive = :isActive', { isActive: status })
                                       .orderBy('notification.createdAt', 'DESC')
                                       .skip((page - 1) * limit)
                                       .take(limit)
@@ -71,6 +73,7 @@ export class NotificationService {
     const total = await this.notificationRepository
                           .createQueryBuilder('notification')
                           .where('notification.deletedAt IS NULL')
+                          .andWhere('notification.isActive = :isActive', { isActive: status })
                           .getCount();
     if (notifications.length === 0) {
       throw new NotFoundException('Notification not found');
@@ -86,7 +89,6 @@ export class NotificationService {
                                     .findOneBy({
                                       id, 
                                       deletedAt: IsNull(),
-                                      isActive: true
                                     })
       
     if (!notification) {
@@ -98,7 +100,7 @@ export class NotificationService {
   async update(
     id: number, 
     updateNotificationDto: UpdateNotificationDto
-  ): Promise<ResponseDto> {
+  ): Promise<Notification> {
     const notification = await this.findOne(id);
     if (!notification) {
       throw new NotFoundException('Notification not found');
@@ -111,11 +113,7 @@ export class NotificationService {
 
     const receiver = await this.userService.findUserById(updateNotificationDto.receiverId);
     if (!receiver) {
-      return {
-        statusCode: 404,
-        message: "Failed to update notification because receiver information is not found",
-        data: null
-      }
+      return null
     }
     
     try {
@@ -126,21 +124,13 @@ export class NotificationService {
         receiver
       });
       const result = await this.notificationRepository.save(updatedNotification);
-      return {
-        statusCode: 200,
-        message: "Notification updated successfully",
-        data: result
-      }
+      return result;
     } catch (error) {
-      return {
-        statusCode: 500,
-        message: "Internal server error",
-        data: null
-      }
+      return null;
     }
   }
 
-  async remove(id: number): Promise<ResponseDto> {
+  async remove(id: number): Promise<Notification> {
     try {
       const notification = await this.findOne(id);
       if (!notification) {
@@ -150,17 +140,9 @@ export class NotificationService {
       notification.deletedAt = new Date();
       notification.isActive = false;
       const result = await this.notificationRepository.save(notification);
-      return {
-        statusCode: 200,
-        message: "Notification deleted successfully",
-        data: result
-      }
+      return result;
     } catch (error) {
-      return {
-        statusCode: 500,
-        message: "Internal server error",
-        data: null
-      }
+      return null
     }
   }
 
@@ -233,7 +215,8 @@ export class NotificationService {
   async findAll(
     userId: number,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    status: string = 'active'
   ): Promise<{
     totalRecord: number,
     notifications: Notification[]
@@ -243,14 +226,14 @@ export class NotificationService {
                                     .leftJoinAndSelect('notification.sender', 'sender')
                                     .leftJoinAndSelect('notification.receiver', 'receiver')
                                     .where('notification.deletedAt IS NULL')
-                                    .andWhere('notification.isActive = :isActive', { isActive: true })
+                                    .andWhere('notification.isActive = :isActive', { isActive: status })
                                     .andWhere('notification.receiverId = :userId', { userId })
                                     .orderBy('notification.createdAt', 'DESC')
                                     .getMany();
     const total = await this.notificationRepository
                           .createQueryBuilder('notification')
                           .where('notification.deletedAt IS NULL')
-                          .andWhere('notification.isActive = :isActive', { isActive: true })
+                          .andWhere('notification.isActive = :isActive', { isActive: status })
                           .andWhere('notification.receiverId = :userId', { userId })
                           .getCount();
 

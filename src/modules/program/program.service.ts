@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateProgramDto } from './dtos/create-program.dto';
 import { UpdateProgramDto } from './dtos/update-program.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -71,7 +71,8 @@ export class ProgramService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    status: string
   ): Promise<{
     totalRecord: number,
     programs: Program[]
@@ -80,14 +81,14 @@ export class ProgramService {
       const programs = await this.programRepository
                               .createQueryBuilder('program')
                               .leftJoinAndSelect('program.course', 'course')
-                              .where('program.isActive = true')
+                              .where('program.isActive = :isActive', { isActive: status})
                               .andWhere('program.deletedAt IS NULL')
                               .skip((page - 1) * limit)
                               .take(limit)
                               .getMany();
       const total = await this.programRepository
                               .createQueryBuilder('program')
-                              .where('program.isActive = true')
+                              .where('program.isActive = :isActive', { isActive: status})
                               .andWhere('program.deletedAt IS NULL')
                               .getCount();
       return {
@@ -102,7 +103,8 @@ export class ProgramService {
   async findAllByType(
     page: number = 1,
     limit: number = 10,
-    type: string = 'toeic'
+    type: string = 'toeic',
+    status: string
   ): Promise<{
     totalRecord: number,
     programs: Program[]
@@ -112,7 +114,7 @@ export class ProgramService {
                               .createQueryBuilder('program')
                               .leftJoinAndSelect('program.course', 'course')
                               .where('program.type = :type', { type })
-                              .andWhere('program.isActive = true')
+                              .andWhere('program.isActive = :isActive', { isActive: status })
                               .andWhere('program.deletedAt IS NULL')
                               .skip((page - 1) * limit)
                               .take(limit)
@@ -120,7 +122,7 @@ export class ProgramService {
       const total = await this.programRepository
                               .createQueryBuilder('program')
                               .where('program.type = :type', { type })
-                              .andWhere('program.isActive = true')
+                              .andWhere('program.isActive = :isActive', { isActive: status })
                               .andWhere('program.deletedAt IS NULL')
                               .getCount();
       if (programs.length === 0) {
@@ -140,7 +142,6 @@ export class ProgramService {
     try {
       const program = await this.programRepository.findOneBy({
         id,
-        isActive: true,
         deletedAt: null
       });
 
@@ -209,6 +210,48 @@ export class ProgramService {
       return result;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async addCourseToProgram(
+    idProgram: number,
+    idCourse: number,
+  ): Promise<{
+    course: Course,
+    program: Program
+  }> {
+    try {
+      const course = await this.courseService.findOne(idCourse);
+      if (!course) { 
+        throw new NotFoundException('Course not found');
+      }
+      const program = await this.findOne(idProgram);
+      if (!program) {
+        throw new NotFoundException('Program not found');
+      }
+      const compare =  program.course.some((existingCourse) => {
+        existingCourse.id === course.id
+      })
+      console.log("Compare", compare);
+      for (let i = 0; i < program.course.length; i++) {
+        if (program.course[i].id === course.id) {
+          throw new BadRequestException('Course already exists in the program');
+        }
+      }
+      console.log("Save program");
+      program.course.push(course);
+      const result = await this.programRepository.save(program);
+
+      return {
+        course,
+        program: result
+      }
+
+    } catch(error) {
+      return {
+        course: null,
+        program: null
+      } 
     }
   }
 }
