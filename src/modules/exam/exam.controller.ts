@@ -35,11 +35,12 @@ export class ExamController {
   @Get('all')
   async findAll(
     @Query('page', ParseIntPipe) page: number = 1,  
-    @Query('limit', ParseIntPipe) limit: number = 10
+    @Query('limit', ParseIntPipe) limit: number = 10,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of exams successfully',
-      metadata: await this.examService.findAll(page, limit),
+      metadata: await this.examService.findAll(page, limit, status),
     }
   }
 
@@ -47,11 +48,12 @@ export class ExamController {
   async findAllByType(
     @Query('page', ParseIntPipe) page: number = 1,  
     @Query('limit', ParseIntPipe) limit: number = 10,
-    @Param('type') type: string
+    @Param('type') type: string,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'Find the list of exams by type successfully',
-      metadata: await this.examService.findAllByType(page, limit, type),
+      metadata: await this.examService.findAllByType(page, limit, type, status),
     }
   }
 

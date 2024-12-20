@@ -35,11 +35,12 @@ export class DocumentController {
   @Get('all')
   async findAll(
     @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number
+    @Query('limit', ParseIntPipe) limit: number,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'This action returns all document',
-      metadata: await this.documentService.findAll(page, limit),
+      metadata: await this.documentService.findAll(page, limit, status),
     }
   }
 
@@ -47,11 +48,12 @@ export class DocumentController {
   async findAllByType(
     @Param('type') type: string,
     @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number
+    @Query('limit', ParseIntPipe) limit: number,
+    @Body('status') status: string = 'active'
   ) {
     return {
       message: 'This action returns all document by type',
-      metadata: await this.documentService.findAllByType(page, limit, type),
+      metadata: await this.documentService.findAllByType(page, limit, type, status),
     }
   }
 

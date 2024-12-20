@@ -21,10 +21,11 @@ export class UsersController {
     @Query('limit', ParseIntPipe) limit: number,
     // group is in [student, teacher, admin]
     @Param('groupId') group: string,
+    @Body('status') status: string = 'active',
   ) {
     return {
       message: `Find the list of ${group} successfully`,
-      metadata: await this.usersService.findAllUserByGroup(page, limit, group),
+      metadata: await this.usersService.findAllUserByGroup(page, limit, group, status),
     }
   }
 

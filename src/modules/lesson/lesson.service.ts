@@ -121,28 +121,31 @@ export class LessonService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+    status: string
   ): Promise<{
     totalRecord: number;
     lessons: Lesson[];
   }> {
-    const lessons = await this.lessonRepository
-      .createQueryBuilder('lesson')
-      .leftJoinAndSelect('lesson.teacher', 'teacher')
-      .leftJoinAndSelect('lesson.class', 'class')
-      .leftJoinAndSelect('lesson.course', 'course')
-      .leftJoinAndSelect('lesson.exam', 'exam')
-      .where('lesson.deletedAt is NULL')
-      .andWhere('lesson.isActive = :isActive', { isActive: true })
-      .orderBy('lesson.id', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
+
+    const  lessons = await this.lessonRepository
+                                  .createQueryBuilder('lesson')
+                                  .leftJoinAndSelect('lesson.teacher', 'teacher')
+                                  .leftJoinAndSelect('lesson.class', 'class')
+                                  .leftJoinAndSelect('lesson.course', 'course')
+                                  .leftJoinAndSelect('lesson.exam', 'exam')
+                                  .where('lesson.deletedAt is NULL')
+                                  .andWhere('lesson.isActive = :isActive', { isActive: status })
+                                  .orderBy('lesson.id', 'DESC')
+                                  .skip((page - 1) * limit)
+                                  .take(limit)
+                                  .getMany();
     const totalRecord = await this.lessonRepository
-      .createQueryBuilder('lesson')
-      .where('lesson.deletedAt is NULL')
-      .andWhere('lesson.isActive = :isActive', { isActive: true })
-      .getCount();
-    if (lessons.length === 0) {
+                                  .createQueryBuilder('lesson')
+                                  .where('lesson.deletedAt is NULL')
+                                  .andWhere('lesson.isActive = :isActive', { isActive: status })
+                                  .getCount();  
+    if(lessons.length === 0) {
+
       throw new NotFoundException('No lesson found!');
     }
     return {
@@ -153,15 +156,15 @@ export class LessonService {
 
   async findOne(id: number): Promise<Lesson> {
     const lesson = await this.lessonRepository
-      .createQueryBuilder('lesson')
-      .leftJoinAndSelect('lesson.teacher', 'teacher')
-      .leftJoinAndSelect('lesson.class', 'class')
-      .leftJoinAndSelect('lesson.course', 'course')
-      .leftJoinAndSelect('lesson.exam', 'exam')
-      .where('lesson.id = :id', { id })
-      .andWhere('lesson.isActive = :isActive', { isActive: true })
-      .andWhere('lesson.deletedAt is NULL')
-      .getOne();
+                              .createQueryBuilder('lesson')
+                              .leftJoinAndSelect('lesson.teacher', 'teacher')
+                              .leftJoinAndSelect('lesson.class', 'class')
+                              .leftJoinAndSelect('lesson.course', 'course')
+                              .leftJoinAndSelect('lesson.exam', 'exam')
+                              .where('lesson.id = :id', { id })
+                              .andWhere('lesson.deletedAt is NULL')
+                              .getOne();
+
     if (!lesson) {
       throw new NotFoundException('Lesson information not found');
     }

@@ -42,6 +42,7 @@ export class ExamService {
   async findAll(
     page: number,
     limit: number,
+    status: string
   ): Promise<{
     totalRecord: number,
     exams: Exam[]
@@ -50,7 +51,7 @@ export class ExamService {
                           .createQueryBuilder('exam')
                           .leftJoinAndSelect('exam.questions', 'question')
                           .where('exam.deletedAt IS NULL')
-                          .andWhere('exam.isActive = :isActive', { isActive: true })
+                          .andWhere('exam.isActive = :isActive', { isActive: status })
                           .orderBy('exam.id', 'ASC')
                           .skip((page - 1) * limit)
                           .take(limit)
@@ -58,7 +59,7 @@ export class ExamService {
     const total = await this.examRepository
                           .createQueryBuilder('exam')
                           .where('exam.deletedAt IS NULL')
-                          .andWhere('exam.isActive = :isActive', { isActive: true })
+                          .andWhere('exam.isActive = :isActive', { isActive: status })
                           .getCount();
     if (exams.length === 0) {
       throw new NotFoundException('No exam found');
@@ -73,6 +74,7 @@ export class ExamService {
     page: number,
     limit: number,
     type: string,
+    status: string,
   ): Promise<{
     totalRecord: number, 
     exams: Exam[]
@@ -81,7 +83,7 @@ export class ExamService {
                           .createQueryBuilder('exam')
                           .leftJoinAndSelect('exam.questions', 'question')
                           .where('exam.deletedAt IS NULL')
-                          .andWhere('exam.isActive = :isActive', { isActive: true })
+                          .andWhere('exam.isActive = :isActive', { isActive: status })
                           .andWhere('exam.examType = :type', { type })
                           .orderBy('exam.id', 'ASC')
                           .skip((page - 1) * limit)
@@ -90,7 +92,7 @@ export class ExamService {
     const total = await this.examRepository
                           .createQueryBuilder('exam')
                           .where('exam.deletedAt IS NULL')
-                          .andWhere('exam.isActive = :isActive', { isActive: true })
+                          .andWhere('exam.isActive = :isActive', { isActive: status })
                           .andWhere('exam.examType = :type', { type })
                           .getCount();
     if (exams.length === 0) {
@@ -107,7 +109,6 @@ export class ExamService {
                               .createQueryBuilder('exam')
                               .leftJoinAndSelect('exam.questions', 'question')
                               .where('exam.deletedAt IS NULL')
-                              .andWhere('exam.isActive = :isActive', { isActive: true })
                               .andWhere('exam.id = :id', { id })
                               .getOne();
     if (!exam) {

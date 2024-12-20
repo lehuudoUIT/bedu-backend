@@ -52,18 +52,20 @@ export class UserProgramService {
                                     .where('user_program.userId = :userId', { userId })
                                     .andWhere('user_program.programId = :programId', { programId })
                                     .andWhere('user_program.deletedAt is null')
-                                    .getOne();
+                                    .getOne(); 
   }
 
   async findAll(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    status: string
   ): Promise<UserProgram[]> {
     const enrollments = await this.userProgramRepository
                                 .createQueryBuilder('user_program')
                                 .leftJoinAndSelect('user_program.user', 'user')
                                 .leftJoinAndSelect('user_program.program', 'program')
                                 .where('user_program.deletedAt is null')
+                                .where('user_program.isActive = :isActive', { isActive: status })
                                 .orderBy('user_program.createdAt', 'DESC')
                                 .skip((page - 1) * limit)
                                 .take(limit)
@@ -71,7 +73,7 @@ export class UserProgramService {
     const total = await this.userProgramRepository
                           .createQueryBuilder('user_program')
                           .where('user_program.deletedAt is null')
-                          .andWhere('user_program.isActive = 1')
+                          .where('user_program.isActive = :isActive', { isActive: status })
                           .getCount();    
     if (enrollments.length === 0) {
       throw new NotFoundException('No program registration information found');
@@ -82,7 +84,8 @@ export class UserProgramService {
   async findAllByProgramId(
     programId: number,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    status: string
   ): Promise<{
     totalRecord: number,
     enrollments: UserProgram[]
@@ -92,7 +95,7 @@ export class UserProgramService {
                                 .leftJoinAndSelect('user_program.user', 'user')
                                 .leftJoinAndSelect('user_program.program', 'program')
                                 .where('user_program.programId = :programId', { programId })
-                                .andWhere('user_program.isActive = 1')
+                                .andWhere('user_program.isActive = :isActive', { isActive: status })
                                 .andWhere('user_program.deletedAt is null')
                                 .orderBy('user_program.createdAt', 'DESC')
                                 .skip((page - 1) * limit)
@@ -101,7 +104,7 @@ export class UserProgramService {
     const totalRecord = await this.userProgramRepository
                                 .createQueryBuilder('user_program')
                                 .where('user_program.programId = :programId', { programId })
-                                .andWhere('user_program.isActive = 1')
+                                .andWhere('user_program.isActive = :isActive', { isActive: status })
                                 .andWhere('user_program.deletedAt is null')
                                 .getCount(); 
     if (enrollments.length === 0) {
@@ -116,7 +119,8 @@ export class UserProgramService {
   async findAllByUserId(
     userId: number,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    status: string
   ): Promise<{
     total: number,
     enrollments: UserProgram[]
@@ -126,7 +130,7 @@ export class UserProgramService {
                                   .leftJoinAndSelect('user_program.user', 'user')
                                   .leftJoinAndSelect('user_program.program', 'program')
                                   .where('user_program.userId = :userId', { userId })
-                                  .andWhere('user_program.isActive = 1')
+                                  .andWhere('user_program.isActive = :isActive', { isActive: status })
                                   .andWhere('user_program.deletedAt is null')
                                   .orderBy('user_program.createdAt', 'DESC')
                                   .skip((page - 1) * limit)
@@ -135,7 +139,7 @@ export class UserProgramService {
     const total = await this.userProgramRepository
                           .createQueryBuilder('user_program')
                           .where('user_program.userId = :userId', { userId })
-                          .andWhere('user_program.isActive = 1')
+                          .andWhere('user_program.isActive = :isActive', { isActive: status })
                           .andWhere('user_program.deletedAt is null')
                           .getCount();
     if (enrollment.length === 0) {
@@ -153,7 +157,6 @@ export class UserProgramService {
     const enrollment = await this.userProgramRepository
                                     .findOneBy({
                                       id,
-                                      isActive: true,
                                       deletedAt: IsNull()
                                     });
     if (!enrollment) {
