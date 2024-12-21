@@ -18,8 +18,12 @@ export class Question extends AbstractEntity<Question> {
   totalPoints: number;
 
   @Column()
-  // format for correct answer is 0.75 0.25 0.5
+  // format for correct answer is 0.75/0.25/0.5
   pointDivision: string; 
+
+  // lList of possible answers to the question
+  @Column()
+  possibleAnswer: string;
 
   @Column()
   content: string;
@@ -33,10 +37,10 @@ export class Question extends AbstractEntity<Question> {
   questionType: string;
 
   @Column()
-  // format for answer is "A C D B"
+  // format for answer is "A/C/D/B"
   // If you do not answer any question, 
   // put the @ symbol in place of the answer.
-  // Example: "A @ D B"
+  // Example: "A @/D/B"
   answer: string;
 
   @ManyToMany(
