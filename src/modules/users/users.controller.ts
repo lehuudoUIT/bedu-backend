@@ -54,4 +54,12 @@ export class UsersController {
       metadata: await this.usersService.grantPermission(idUser, role),
     }
   }
+
+  @Get('cid/:cid')
+  async findByCid(@Param('cid') cid: string) {
+    return {
+      message: 'Find a user by CID successfully',
+      metadata: await this.usersService.findUserByCid(cid),
+    }
+  }
 }
