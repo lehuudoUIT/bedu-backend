@@ -39,7 +39,7 @@ export class UserProgramController {
   ) {
     return {
       message: "Get all user programs by program successfully",
-      metadata: this.userProgramService.findAllByProgramId(id, page, limit)
+      metadata: await this.userProgramService.findAllByProgramId(id, page, limit)
     }
   }   
   

@@ -88,30 +88,38 @@ export class UserProgramService {
     totalRecord: number,
     enrollments: UserProgram[]
   }> {
-    const enrollments = await this.userProgramRepository
-                                .createQueryBuilder('user_program')
-                                .leftJoinAndSelect('user_program.user', 'user')
-                                .leftJoinAndSelect('user_program.program', 'program')
-                                .where('user_program.programId = :programId', { programId })
-                               // .andWhere('user_program.isActive = :isActive', { isActive: status })
-                                .andWhere('user_program.deletedAt is null')
-                                .orderBy('user_program.createdAt', 'DESC')
-                                .skip((page - 1) * limit)
-                                .take(limit)
-                                .getMany();
-    const totalRecord = await this.userProgramRepository
-                                .createQueryBuilder('user_program')
-                                .where('user_program.programId = :programId', { programId })
-                               // .andWhere('user_program.isActive = :isActive', { isActive: status })
-                                .andWhere('user_program.deletedAt is null')
-                                .getCount(); 
-    if (enrollments.length === 0) {
-      throw new NotFoundException('Program registration information not found');
+    try {
+      const enrollments = await this.userProgramRepository
+                                    .createQueryBuilder('user_program')
+                                    .leftJoinAndSelect('user_program.user', 'user')
+                                    .leftJoinAndSelect('user_program.program', 'program')
+                                    .where('user_program.programId = :programId', { programId })
+                                  // .andWhere('user_program.isActive = :isActive', { isActive: status })
+                                    .andWhere('user_program.deletedAt is null')
+                                    .orderBy('user_program.createdAt', 'DESC')
+                                    .skip((page - 1) * limit)
+                                    .take(limit)
+                                    .getMany();
+
+      const total = await this.userProgramRepository
+                            .createQueryBuilder('user_program')
+                            .leftJoinAndSelect('user_program.program', 'program')
+                            .where('user_program.programId = :programId', { programId })
+                            //.andWhere('user_program.isActive = :isActive', { isActive: status })
+                            .andWhere('user_program.deletedAt is null')
+                            .getCount();
+      console.log(total);
+      // if (enrollments.length === 0) {
+      //   throw new NotFoundException('Program registration information not found');
+      // }
+
+      return {
+        totalRecord: total,
+        enrollments: enrollments
+      };
+    } catch(error) {
+      throw new Error(error);
     }
-    return {
-      totalRecord: totalRecord,
-      enrollments: enrollments
-    };
   }
 
   async findAllByUserId(
