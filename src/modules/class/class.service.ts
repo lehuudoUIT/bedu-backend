@@ -73,7 +73,7 @@ export class ClassService {
     try {
       const classes = await this.classRepository
                                 .createQueryBuilder('class')
-                                .leftJoinAndSelect('class.program', 'program')
+                                //.leftJoinAndSelect('class.program', 'program')
                                 .leftJoinAndSelect('class.lesson', 'lesson')
                                 .andWhere('class.deletedAt is null')
                                // .andWhere('class.isActive = :isActive', { isActive: status })

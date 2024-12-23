@@ -13,13 +13,13 @@ export class UserProgram extends AbstractEntity<UserProgram> {
         (user) => user.UserProgram,
         { eager: true }
     )
-    user: UserProgram;
+    user: User;
 
     @ManyToOne(
         () => Program, 
         (program) => program.userProgram,
         { eager: true }
     )
-    program: UserProgram;    
+    program: Program;    
 
 }

@@ -218,4 +218,39 @@ export class UserClassService {
 
     return result;
   }
+
+  async findAllByUserId(
+    id: number,
+    page: number,
+    limit: number,
+  ): Promise<{
+    totalRecord: number;
+    userClasses: UserClass[];
+  }> {
+    const userClasses = await this.userClassRepository
+                          .createQueryBuilder('user_class')
+                          .leftJoinAndSelect('user_class.class', 'class')
+                          .leftJoinAndSelect('user_class.user', 'user')
+                          .where('user_class.deletedAt is null')
+                          .andWhere('user_class.userId = :id', { id })
+                          .orderBy('user_class.createdAt', 'DESC')
+                          // .skip((page - 1) * limit)
+                          // .take(limit)
+                          .getMany();
+    const total = await this.userClassRepository
+                          .createQueryBuilder('user_class')
+                          .where('user_class.deletedAt is null')
+                          .andWhere('user_class.userId = :id', { id })
+                          .getCount();
+
+    if (!userClasses) {
+      throw new NotFoundException(
+        'Class registration information is not found',
+      );
+    }
+    return {
+      totalRecord: total,
+      userClasses: userClasses
+    }
+  }
 }

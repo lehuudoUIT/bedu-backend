@@ -66,4 +66,16 @@ export class UserClassController {
       metadata: await this.userClassService.remove(+id),
     }
   }
+
+  @Get('all/student/:id')
+  async findAllByStudent(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10
+  ) {
+    return {
+      message: 'Find the list of student in class by student successfully',
+      metadata: await this.userClassService.findAllByUserId(page, limit, id),
+    }
+  }
 }
