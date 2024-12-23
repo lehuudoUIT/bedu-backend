@@ -183,4 +183,20 @@ export class UsersService {
       throw new Error(error);
     }
   }
+
+  async findUserByCid(
+    cid: string
+  ): Promise<User> {
+    try {
+      const user = await this.userRepository
+                              .createQueryBuilder('user')
+                              .leftJoinAndSelect('user.role', 'role')
+                              .where('user.cid = :cid', {cid})
+                              .andWhere('user.deletedAt IS NULL')
+                              .getOne();
+      return user;
+    } catch(error) {
+      throw new Error(error);
+    }
+  }
 }
