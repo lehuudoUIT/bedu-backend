@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,6 +10,8 @@ import { UsersService } from '../users/users.service';
 import { AuthInput, AuthResult, SignInData } from '../../utils';
 import * as bcrypt from 'bcryptjs';
 import { RoleService } from '../role/role.service';
+import { SignUpDto } from './dtos/auth.dto';
+import { CreateUserDto } from '../users/dtos/create.user.dto';
 var salt = bcrypt.genSaltSync(10);
 @Injectable()
 export class AuthService {
@@ -55,5 +59,14 @@ export class AuthService {
       user,
       accessToken,
     };
+  }
+
+  async signUp(user: SignUpDto): Promise<any> {
+    const isExist = await this.usersService.checkExistByUserName(user.username);
+
+    if (isExist) throw new BadRequestException('Username exists!');
+    const loginDto: CreateUserDto = Object.assign({ ...user, roleId: 3 });
+    const newUser = this.usersService.createUser(loginDto);
+    return newUser;
   }
 }

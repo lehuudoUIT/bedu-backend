@@ -96,13 +96,13 @@ export class UsersService {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     try {
       const maxCID = await this.findMaxCID();
+
       let cid = null;
-      createUserDto.roleId = 1;
-      if (createUserDto.roleId == 1) {
+      if (createUserDto.roleId == 3) {
         cid = `STU${maxCID + 1}`;
       } else if (createUserDto.roleId == 2) {
         cid = `TEA${maxCID + 1}`;
-      } else if (createUserDto.roleId == 3) {
+      } else if (createUserDto.roleId == 1) {
         cid = `ADM${maxCID + 1}`;
       } else {
         throw new Error('Invalid group');
@@ -111,12 +111,16 @@ export class UsersService {
       //const cid = `CID${maxCID + 1}`;
       const hashPassword = await bcrypt.hashSync(createUserDto.password, salt);
 
+      //find role
+      const roleId: number = createUserDto.roleId || 3;
+      const role = await this.roleService.findOne(roleId);
+
       const user = this.userRepository.create({
         ...createUserDto,
         password: hashPassword,
         cid,
+        role,
       });
-      console.log(user);
 
       const newUser = await this.userRepository.save(user);
       if (!newUser) {
@@ -188,5 +192,18 @@ export class UsersService {
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  async checkExistByUserName(username: string): Promise<Boolean | User> {
+    const user = await this.userRepository.findOne({
+      where: {
+        username: username,
+        isActive: true,
+        deletedAt: IsNull(),
+      },
+      relations: ['role'],
+    });
+
+    return user ? user : false;
   }
 }
