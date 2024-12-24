@@ -1,34 +1,123 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { RoleService } from './role.service';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreateRoleDto, GrantDto } from './dto/create-role.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { UseRoles } from 'nest-access-control';
 
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'read',
+    resource: 'role',
+    possession: 'any',
+  })
+  @Get()
+  async getAllRole() {
+    return {
+      message: 'Get role list successfully!',
+      metadata: await this.roleService.getAllRole(),
+    };
+  }
+
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'read',
+    resource: 'role',
+    possession: 'any',
+  })
+  @Get('grant-all')
+  async getAllGrantRole() {
+    return {
+      message: 'Get grant list successfully!',
+      metadata: await this.roleService.getApplicationGrantList(),
+    };
+  }
+
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'read',
+    resource: 'role',
+    possession: 'any',
+  })
+  @Get('grant/:id')
+  async getListGrantOfRole(@Param('id') id: number) {
+    return {
+      message: 'Get role list successfully!',
+      metadata: await this.roleService.roleList(id),
+    };
+  }
+
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'create',
+    resource: 'role',
+    possession: 'any',
+  })
   @Post()
-  create(@Body() createRoleDto: CreateRoleDto) {
-    return this.roleService.create(createRoleDto);
+  async createRole(@Body() body: { name: string; description: string }) {
+    return {
+      message: 'Create role list successfully!',
+      metadata: await this.roleService.createRole(body.name, body.description),
+    };
   }
 
-  @Get('all')
-  findAll() {
-    return this.roleService.findAll();
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'read',
+    resource: 'role',
+    possession: 'any',
+  })
+  @Get('resource')
+  async getAllResource() {
+    return {
+      message: 'Get resource list successfully!',
+      metadata: await this.roleService.resourceList(),
+    };
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.roleService.findOne(+id);
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'create',
+    resource: 'role',
+    possession: 'any',
+  })
+  @Post('resource')
+  async createResource(@Body() body: { name: string; description: string }) {
+    return {
+      message: 'Create resource list successfully!',
+      metadata: await this.roleService.createResource(
+        body.name,
+        body.description,
+      ),
+    };
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.roleService.update(+id, updateRoleDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.roleService.remove(+id);
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'create',
+    resource: 'role',
+    possession: 'any',
+  })
+  @Post('grant')
+  async grantRoleResouce(@Body() body: { roleId: number; grants: GrantDto[] }) {
+    return {
+      message: 'grant resource to role successfully!',
+      metadata: await this.roleService.grantRoleResoure(
+        body.roleId,
+        body.grants,
+      ),
+    };
   }
 }

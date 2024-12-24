@@ -21,6 +21,9 @@ export class Lesson extends AbstractEntity<Lesson> {
   @Column({ type: 'timestamp' })
   endDate: Date;
 
+  @Column()
+  title: string;
+
   @Column({
     type: 'enum',
     enum: LessonType,
