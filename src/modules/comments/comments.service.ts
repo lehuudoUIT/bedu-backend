@@ -67,7 +67,7 @@ export class CommentsService {
     rightValue += 1;
 
     const new_comment = await this.commentRepository.insert({
-     // lessonId,
+      // lessonId,
       //userId,
       content,
       left: leftValue,
@@ -78,18 +78,17 @@ export class CommentsService {
     return new_comment;
   }
 
-  async getCommentsByParentId({
-    parentCommentId = null,
-    lessonId,
-    limit = 50,
-    offset = 0, //skip
-  }) {
+  async getCommentsByParentId(
+    parentCommentId: number = null,
+    lessonId: number,
+    limit: number = 50,
+    offset: number = 0, //skip
+  ) {
     if (parentCommentId) {
       const parent = await this.commentRepository.findOneBy({
         id: parentCommentId,
       });
-      if (!parent)
-        throw new NotFoundException('Not found comment for product!');
+      if (!parent) throw new NotFoundException('Not found comment for lesson!');
       const comments = await this.commentRepository
         .createQueryBuilder('comment')
         .select([
@@ -120,13 +119,13 @@ export class CommentsService {
     }
   }
 
-  async deleteComments({ commentId, lessonId }) {
-    //1. Check product exists in database
-    const foundProduct = await this.lessonRepository.findOneBy({
+  async deleteComments(commentId: number, lessonId: number) {
+    //1. Check lesson exists in database
+    const foundLesson = await this.lessonRepository.findOneBy({
       id: lessonId,
     });
 
-    if (!foundProduct) throw new NotFoundException('Product not found!');
+    if (!foundLesson) throw new NotFoundException('Lesson not found!');
     //1. Xac dinh gia tri left, right cua comment
     const parentComment = await this.commentRepository.findOneBy({
       id: commentId,

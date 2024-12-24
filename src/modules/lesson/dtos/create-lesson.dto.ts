@@ -1,4 +1,5 @@
 export class CreateLessonDto {
+  title: string;
   startDate: Date;
   endDate: Date;
   type: string;
