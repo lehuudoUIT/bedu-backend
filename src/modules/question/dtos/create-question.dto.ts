@@ -1,6 +1,6 @@
 export class CreateQuestionDto {
   question: string;
-  totalPoint: number;
+  totalPoints: number;
   pointDivision: string;
   content: string;
   attach: string;
@@ -8,4 +8,5 @@ export class CreateQuestionDto {
   answer: string;
   examId?: number[];
   documentId?: number[];
+  possibleAnswer: string;
 }
