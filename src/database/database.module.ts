@@ -12,6 +12,7 @@ import { Lesson } from 'src/entities/lesson.entity';
 import { LessonDocument } from 'src/entities/lesson_document.entity';
 import { Notification } from 'src/entities/notification.entity';
 import { Payment } from 'src/entities/payment.entity';
+import { PaymentMethod } from 'src/entities/payment.method.entity';
 import { Program } from 'src/entities/program.entity';
 import { Question } from 'src/entities/question.entity';
 import { Report } from 'src/entities/report.entity';
@@ -68,6 +69,7 @@ import { UserProgram } from 'src/entities/user_program.entity';
           Role,
           Resource,
           RoleResource,
+          PaymentMethod,
         ],
         synchronize: configservice.getOrThrow('TYPEORM_MYSQL_SYNCHRONIZE'),
       }),

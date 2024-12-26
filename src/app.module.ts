@@ -27,6 +27,7 @@ import { GoogleModule } from './modules/google/google.module';
 import { AuthorizationMiddleware } from './common/middlewares/authorization.middleware';
 import { AccessControlModule, RolesBuilder } from 'nest-access-control';
 import { RoleService } from './modules/role/role.service';
+import { PaymentMethodModule } from './modules/payment-method/payment-method.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -61,6 +62,7 @@ import { RoleService } from './modules/role/role.service';
         return new RolesBuilder(await roleService.getApplicationGrantList());
       },
     }),
+    PaymentMethodModule,
   ],
   controllers: [],
   providers: [],

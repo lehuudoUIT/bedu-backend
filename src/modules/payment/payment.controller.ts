@@ -10,6 +10,7 @@ import {
   UseFilters,
   UseInterceptors,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dtos/create-payment.dto';
@@ -24,6 +25,26 @@ import { UseRoles } from 'nest-access-control';
 @UseInterceptors(ResponseFormatInterceptor)
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
+
+  @Post('process')
+  async processPayment(@Body() body: { method: string; amount: number }) {
+    const { method, amount } = body;
+
+    return {
+      messsage: 'Process payment successfully!',
+      metadata: await this.paymentService.processPayment(method, amount),
+    };
+  }
+
+  @Post('callback')
+  async callback(@Body() body: { data: string; mac: string }) {
+    const { data, mac } = body;
+
+    return {
+      messsage: 'Process payment successfully!',
+      metadata: {},
+    };
+  }
 
   @UseGuards(RolesGuard)
   @UseRoles({
