@@ -27,7 +27,7 @@ export class QuestionService {
     createQuestionDto: CreateQuestionDto
   ) {
     let exam: Exam[] = [];
-      if (createQuestionDto.examId) {
+      if (typeof createQuestionDto.examId !== 'undefined') {
         for(let i = 0; i < createQuestionDto.examId.length; i++) {
           const examItem  = await this.examService.findOne(createQuestionDto.examId[i]);
           if (!examItem) {
@@ -38,7 +38,7 @@ export class QuestionService {
       }
 
       let documents: Document[] = [];
-      if (createQuestionDto.documentId) {
+      if (typeof createQuestionDto.documentId !== 'undefined') {
         for (let i = 0; i < createQuestionDto.documentId.length; i++) {
           const documentItem = await this.documentService.findOne(createQuestionDto.documentId[i]);
           if (!documentItem) {
