@@ -18,7 +18,7 @@ export class AuthorizationMiddleware implements NestMiddleware {
       return next(); // Bỏ qua middleware cho các route được loại trừ
     }
 
-    const token = req.cookies?.jwt;
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies.jwt;
 
     if (!token) throw new UnauthorizedException('User is not authorized! [M]');
     try {
