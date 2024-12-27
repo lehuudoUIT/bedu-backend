@@ -49,10 +49,9 @@ export class AuthService {
   }
 
   async signIn(user: SignInData): Promise<AuthResult> {
-    const listUserGrant = await this.roleService.roleList(user.role.id);
     const accessToken = await this.jwtService.signAsync({
-      ...user,
-      grants: listUserGrant,
+      userId: user.id,
+      userRole: user.role.name,
     });
 
     return {
