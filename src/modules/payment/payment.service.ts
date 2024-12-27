@@ -41,6 +41,11 @@ export class PaymentService {
     return await strategy.processPayment(amount, content);
   }
 
+  async confirmPayment(body: any): Promise<any> {
+    const strategy = this.paymentFactory.getPaymentMethod('zalopay');
+    return await strategy.confirmPayment(body);
+  }
+
   async create(createPaymentDto: CreatePaymentDto) {
     const user = await this.userService.findUserById(createPaymentDto.userId);
     if (!user) {

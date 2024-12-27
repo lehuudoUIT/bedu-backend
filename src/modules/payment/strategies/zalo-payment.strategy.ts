@@ -77,7 +77,9 @@ export class ZaloPaymentStrategy implements PaymentStrategy {
     }
   }
 
-  async callback(dataStr: string, reqMac: string) {
+  async confirmPayment(payload: any) {
+    const dataStr: string = payload.data;
+    const reqMac: string = payload.mac;
     let result: { returncode: number; returnmessage: string };
 
     try {
@@ -105,5 +107,7 @@ export class ZaloPaymentStrategy implements PaymentStrategy {
       result.returncode = 0; // ZaloPay server sẽ callback lại (tối đa 3 lần)
       result.returnmessage = ex.message;
     }
+
+    return result;
   }
 }

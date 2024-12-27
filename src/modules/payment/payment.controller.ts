@@ -36,14 +36,18 @@ export class PaymentController {
     };
   }
 
-  @Post('callback')
-  async callback(@Body() body: { data: string; mac: string }) {
+  @Post('confirm-zalo')
+  async confirmPaymentZalo(
+    @Body() body: { data: string; mac: string },
+    @Res() res: Response,
+  ) {
     const { data, mac } = body;
-
-    return {
-      messsage: 'Process payment successfully!',
-      metadata: {},
-    };
+    const response = await this.paymentService.confirmPayment(body);
+   res.json();
+    // return {
+    //   messsage: 'Process payment successfully!',
+    //   metadata: {},
+    // };
   }
 
   @UseGuards(RolesGuard)
