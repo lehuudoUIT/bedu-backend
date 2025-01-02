@@ -77,6 +77,6 @@ export class User extends AbstractEntity<User> {
   @OneToMany(() => Report, (report) => report.user)
   report: Report[];
 
-  @ManyToOne(() => Role, (role) => role.user)
+  @ManyToOne(() => Role, (role) => role.users)
   role: Role;
 }

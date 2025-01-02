@@ -8,10 +8,12 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from 'src/common/strategies/jwt.strategy';
 import { PassportJwtGuard } from 'src/common/guards/passport.jwt.guard';
 import { PassportLocalGuard } from 'src/common/guards/passport.local.guard';
+import { RoleModule } from '../role/role.module';
 
 @Module({
   imports: [
     UsersModule,
+    RoleModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

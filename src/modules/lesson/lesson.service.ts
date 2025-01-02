@@ -1,5 +1,10 @@
 import { UsersService } from './../users/users.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreateLessonDto,
   CreateRecurringLessonDto,
@@ -81,6 +86,9 @@ export class LessonService {
       createRecurringLessonDto.classId,
     );
 
+    if (!classData.calendarId)
+      throw new NotFoundException('CalendarId not found!');
+
     const listEvents = await this.googleService
       .createRecurringEvent({
         calendarId: classData.calendarId,
@@ -105,6 +113,7 @@ export class LessonService {
           type: LessonType.LIVE,
           class: classData,
           calendarEventId: event.id,
+          title: createRecurringLessonDto.summary,
           teacher,
         });
         const result = this.lessonRepository.save(newLesson);
@@ -118,33 +127,63 @@ export class LessonService {
     return listLesson;
   }
 
+  async getRecordOfLesson(lessonId: number, classId: number) {
+    try {
+      const lessonData = await this.lessonRepository.findOneBy({
+        id: lessonId,
+      });
+      if (!lessonData) throw new NotFoundException('Bài học không tồn tại!');
+
+      if (lessonData.videoUrl) return lessonData.videoUrl;
+
+      const classData = await this.classService.findOne(classId);
+      if (!classData) throw new NotFoundException('Lớp học không tồn tại!');
+
+      const event = await this.googleService.getEventDetails(
+        classData.calendarId,
+        lessonData.calendarEventId,
+      );
+      if (!event.attachments[0]?.fileId)
+        throw new NotFoundException('Record chưa hoàn thành tải lên!');
+      const fileId = event.attachments[0]?.fileId;
+      const publicLink = await this.googleService.setFilePublic(fileId);
+
+      //! update lesson record
+      await this.lessonRepository.update(
+        { id: lessonId },
+        { videoUrl: publicLink },
+      );
+      return publicLink;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async findAll(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<{
     totalRecord: number;
     lessons: Lesson[];
   }> {
-
-    const  lessons = await this.lessonRepository
-                                  .createQueryBuilder('lesson')
-                                  .leftJoinAndSelect('lesson.teacher', 'teacher')
-                                  .leftJoinAndSelect('lesson.class', 'class')
-                                  .leftJoinAndSelect('lesson.course', 'course')
-                                  .leftJoinAndSelect('lesson.exam', 'exam')
-                                  .where('lesson.deletedAt is NULL')
-                                 // .andWhere('lesson.isActive = :isActive', { isActive: status })
-                                  .orderBy('lesson.id', 'DESC')
-                                  .skip((page - 1) * limit)
-                                  .take(limit)
-                                  .getMany();
+    const lessons = await this.lessonRepository
+      .createQueryBuilder('lesson')
+      .leftJoinAndSelect('lesson.teacher', 'teacher')
+      .leftJoinAndSelect('lesson.class', 'class')
+      .leftJoinAndSelect('lesson.course', 'course')
+      .leftJoinAndSelect('lesson.exam', 'exam')
+      .where('lesson.deletedAt is NULL')
+      // .andWhere('lesson.isActive = :isActive', { isActive: status })
+      .orderBy('lesson.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
     const totalRecord = await this.lessonRepository
-                                  .createQueryBuilder('lesson')
-                                  .where('lesson.deletedAt is NULL')
-                                 // .andWhere('lesson.isActive = :isActive', { isActive: status })
-                                  .getCount();  
-    if(lessons.length === 0) {
-
+      .createQueryBuilder('lesson')
+      .where('lesson.deletedAt is NULL')
+      // .andWhere('lesson.isActive = :isActive', { isActive: status })
+      .getCount();
+    if (lessons.length === 0) {
       throw new NotFoundException('No lesson found!');
     }
     return {
@@ -155,14 +194,14 @@ export class LessonService {
 
   async findOne(id: number): Promise<Lesson> {
     const lesson = await this.lessonRepository
-                              .createQueryBuilder('lesson')
-                              .leftJoinAndSelect('lesson.teacher', 'teacher')
-                              .leftJoinAndSelect('lesson.class', 'class')
-                              .leftJoinAndSelect('lesson.course', 'course')
-                              .leftJoinAndSelect('lesson.exam', 'exam')
-                              .where('lesson.id = :id', { id })
-                              .andWhere('lesson.deletedAt is NULL')
-                              .getOne();
+      .createQueryBuilder('lesson')
+      .leftJoinAndSelect('lesson.teacher', 'teacher')
+      .leftJoinAndSelect('lesson.class', 'class')
+      .leftJoinAndSelect('lesson.course', 'course')
+      .leftJoinAndSelect('lesson.exam', 'exam')
+      .where('lesson.id = :id', { id })
+      .andWhere('lesson.deletedAt is NULL')
+      .getOne();
 
     if (!lesson) {
       throw new NotFoundException('Lesson information not found');
@@ -170,16 +209,13 @@ export class LessonService {
     return lesson;
   }
 
-  async update(
-    id: number,
-    updateLessonDto: UpdateLessonDto
-  ): Promise<Lesson> {
+  async update(id: number, updateLessonDto: UpdateLessonDto): Promise<Lesson> {
     // Tìm lesson hiện có
     const lesson = await this.findOne(id);
     if (!lesson) {
       throw new NotFoundException('Lesson information is not found');
     }
-  
+
     // Xác thực teacher nếu `teacherId` được cung cấp
     const teacher = updateLessonDto.teacherId
       ? await this.usersService.findUserById(updateLessonDto.teacherId)
@@ -187,7 +223,7 @@ export class LessonService {
     if (updateLessonDto.teacherId && !teacher) {
       throw new NotFoundException('Teacher information is not found');
     }
-  
+
     // Xác thực class nếu `classId` được cung cấp
     const classData = updateLessonDto.classId
       ? await this.classService.findOne(updateLessonDto.classId)
@@ -195,7 +231,7 @@ export class LessonService {
     if (updateLessonDto.classId && !classData) {
       throw new NotFoundException('Class information is not found');
     }
-  
+
     // Xác thực course nếu `courseId` được cung cấp
     const course = updateLessonDto.courseId
       ? await this.courseService.findOne(updateLessonDto.courseId)
@@ -203,7 +239,7 @@ export class LessonService {
     if (updateLessonDto.courseId && !course) {
       throw new NotFoundException('Course information is not found');
     }
-  
+
     // Xác thực exam nếu `examId` được cung cấp
     const exam = updateLessonDto.examId
       ? await this.examService.findOne(updateLessonDto.examId)
@@ -211,7 +247,7 @@ export class LessonService {
     if (updateLessonDto.examId && !exam) {
       throw new NotFoundException('Exam information is not found');
     }
-  
+
     // Tạo đối tượng lesson mới với dữ liệu cập nhật
     const newLesson = this.lessonRepository.create({
       ...lesson,
@@ -221,13 +257,13 @@ export class LessonService {
       course,
       exam,
     });
-  
+
     // Lưu lesson đã cập nhật
     const result = await this.lessonRepository.save(newLesson);
     if (!result) {
       throw new NotFoundException('Failed to update lesson information');
     }
-  
+
     return result;
   }
 

@@ -1,12 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JWT } from 'google-auth-library';
-import { google, calendar_v3 } from 'googleapis';
+import { google, calendar_v3, drive_v3 } from 'googleapis';
 import * as moment from 'moment';
 
 @Injectable()
 export class GoogleService {
   private calendar: calendar_v3.Calendar;
+  private drive: drive_v3.Drive;
 
   constructor(private readonly configService: ConfigService) {
     //* Lấy key cần thiết
@@ -26,12 +27,14 @@ export class GoogleService {
       [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/drive',
       ],
       impersonateEmail, // The user to impersonate (this is required for domain-wide delegation)
     );
 
     //* Tạo calendar client
     this.calendar = google.calendar({ version: 'v3', auth });
+    this.drive = google.drive({ version: 'v3', auth });
   }
 
   async createCalendar(
@@ -217,6 +220,41 @@ export class GoogleService {
       });
     } catch (error) {
       throw new Error(`Lỗi khi lấy danh sách sự kiện: ${error.message}`);
+    }
+  }
+
+  async getEventDetails(calendarId: string, eventId: string): Promise<any> {
+    try {
+      const response = await this.calendar.events.get({
+        calendarId,
+        eventId,
+      });
+      return response.data; // Trả về thông tin chi tiết của sự kiện
+    } catch (error) {
+      throw new Error(`Lỗi khi lấy thông tin sự kiện: ${error.message}`);
+    }
+  }
+
+  async setFilePublic(fileId: string): Promise<any> {
+    try {
+      // Tạo quyền truy cập cho "anyone" với quyền "reader"
+      await this.drive.permissions.create({
+        fileId,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone', // Bất kỳ ai có link đều có thể xem
+        },
+      });
+
+      // Lấy thông tin file sau khi thay đổi quyền
+      const file = await this.drive.files.get({
+        fileId,
+        fields: 'id, name, webViewLink, webContentLink',
+      });
+
+      return file.data.webViewLink;
+    } catch (error) {
+      throw new Error(`Failed to update file permission: ${error.message}`);
     }
   }
 }

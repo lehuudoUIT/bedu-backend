@@ -155,6 +155,26 @@ export class ProgramService {
     }
   }
 
+  async findOneByCode(code: string): Promise<Program> {
+    try {
+      const program = await this.programRepository
+                          .createQueryBuilder('program')
+                          .where('program.code = :code', { code })
+                          .andWhere('program.deletedAt IS NULL')
+                          .getOne();
+ 
+      if (!program) {
+        throw new NotFoundException('Program not found');
+      }
+
+      console.log("Program", program);
+
+      return program;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async update(
     id: number, 
     updateProgramDto: UpdateProgramDto

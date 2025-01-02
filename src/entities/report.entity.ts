@@ -17,4 +17,7 @@ export class Report extends AbstractEntity<Report> {
     { eager: true }
   )
   user: User;
+
+  @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
+  time: Date;
 }

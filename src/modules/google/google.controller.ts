@@ -105,4 +105,36 @@ export class GoogleController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Get('detail/:calendarId/:eventId')
+  async getEventDetails(
+    @Param('calendarId') calendarId: string,
+    @Param('eventId') eventId: string,
+  ) {
+    try {
+      const eventDetails = await this.googleService.getEventDetails(
+        calendarId,
+        eventId,
+      );
+      return {
+        message: 'Event details fetched successfully',
+        metadata: eventDetails,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Post('publish-record')
+  async shareFile(@Body('fileId') fileId: string) {
+    try {
+      const result = await this.googleService.setFilePublic(fileId);
+      return {
+        message: 'Publish file successfully!',
+        metadata: result,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }

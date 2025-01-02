@@ -4,6 +4,7 @@ import { HttpExceptionFilter } from './common/exception-filter/http-exception.fi
 import { ResponseFormatInterceptor } from './common/intercepters/response.interceptor';
 import { logger } from './common/middlewares/logger.middleware';
 import * as express from 'express';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,11 +13,12 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+  app.use(cookieParser());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseFormatInterceptor());
   //body parsing
   app.use(express.json());
   app.use(logger);
-  await app.listen(process.env.PORT ?? 3004);
+  await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

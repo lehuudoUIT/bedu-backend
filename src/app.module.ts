@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
@@ -24,13 +24,16 @@ import { LessonDocumentModule } from './modules/lesson_document/lesson_document.
 import { RoleModule } from './modules/role/role.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { GoogleModule } from './modules/google/google.module';
+import { AuthorizationMiddleware } from './common/middlewares/authorization.middleware';
+import { AccessControlModule, RolesBuilder } from 'nest-access-control';
+import { RoleService } from './modules/role/role.service';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     UsersModule,
     AuthModule,
-    User,
+    UsersModule,
     CommentsModule,
     NotificationModule,
     ProgramModule,
@@ -50,10 +53,20 @@ import { GoogleModule } from './modules/google/google.module';
     LessonDocumentModule,
     RoleModule,
     UploadModule,
-
     GoogleModule,
+    AccessControlModule.forRootAsync({
+      imports: [RoleModule],
+      inject: [RoleService],
+      useFactory: async (roleService: RoleService): Promise<RolesBuilder> => {
+        return new RolesBuilder(await roleService.getApplicationGrantList());
+      },
+    }),
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthorizationMiddleware).forRoutes('/'); // Áp dụng middleware cho tất cả các route còn lại
+  }
+}
