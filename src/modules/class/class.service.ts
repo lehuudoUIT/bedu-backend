@@ -145,6 +145,19 @@ export class ClassService {
     return classItem;
   }
 
+  async findOneByCode(code: string): Promise<Class> {
+    const classItem = await this.classRepository
+                          .createQueryBuilder('class')
+                          .where('class.code = :code', { code })
+                          .andWhere('class.deletedAt is null')
+                          .getOne();
+
+    if (!classItem) {
+      throw new NotFoundException('Class is not found');
+    }
+    return classItem;
+  }
+
   async update(id: number, updateAnswerDto: UpdateClassDto) {
     const classItem = await this.findOne(id);
     if (!classItem) {

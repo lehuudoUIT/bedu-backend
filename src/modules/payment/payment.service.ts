@@ -26,12 +26,12 @@ export class PaymentService {
       throw new NotFoundException('User information is not found');
     }
 
-    const program = await this.programService.findOne(createPaymentDto.programId);
+    const program = await this.programService.findOneByCode(createPaymentDto.programCode);
     if (!program) {
       throw new NotFoundException('Program information is not found');
     }
 
-    const classData = await this.classService.findOne(createPaymentDto.classId);
+    const classData = await this.classService.findOneByCode(createPaymentDto.classCode);
 
     if (!classData && !program) {
       throw new NotFoundException('Program or class information is not found');
@@ -101,16 +101,16 @@ export class PaymentService {
       throw new NotFoundException('Payment information not found');
     }
     
-    const { userId, programId, classId } = updatePaymentDto;
+    const { userId, programCode, classCode } = updatePaymentDto;
 
     const user = await this.userService.findUserById(userId);
     if (!user) {
       throw new  NotFoundException('User information is not found');
     }
     
-    const program = await this.programService.findOne(programId);
+    const program = await this.programService.findOneByCode(programCode);
     
-    const classData = await this.classService.findOne(classId);
+    const classData = await this.classService.findOneByCode(classCode);
     if (!classData && !program) {
       throw new  NotFoundException('Program or class information');
     }

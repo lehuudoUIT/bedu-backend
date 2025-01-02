@@ -1,22 +1,15 @@
 import { Payment } from './payment.entity';
 import { AbstractEntity } from '../database/abstract.entity';
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { UserProgram } from './user_program.entity';
 import { UserClass } from './user_class.entity';
 import { Score } from './score.entity';
 import { Attendance } from './attendence.entity';
-import { Comment } from './comment.entity';
+import {Comment} from './comment.entity';
 import { Lesson } from './lesson.entity';
 import { Answer } from './answer.entity';
 import { Notification } from './notification.entity';
-import { Report } from './report.entity';
+import {Report} from './report.entity';
 import { Role } from './role.entity';
 
 @Entity({ name: 'users' })
@@ -28,7 +21,7 @@ export class User extends AbstractEntity<User> {
   gender: string;
 
   @Column()
-  birthday: Date;
+  birthday: string;
 
   @Column()
   address: string;
@@ -54,7 +47,7 @@ export class User extends AbstractEntity<User> {
   @OneToMany(() => UserProgram, (userProgram) => userProgram.user)
   UserProgram: UserProgram[];
 
-  @OneToMany(() => UserClass, (userClass) => userClass.user)
+  @OneToMany(() => UserClass, (userClass) => userClass.user)  
   userClass: UserClass[];
 
   @OneToMany(() => Score, (score) => score.user)
@@ -76,7 +69,7 @@ export class User extends AbstractEntity<User> {
   payment: Payment[];
 
   @OneToMany(() => Notification, (notification) => notification.receiver)
-  notificationReceiver: Notification[];
+  notificationReceiver : Notification[];
 
   @OneToMany(() => Notification, (notification) => notification.sender)
   notificationSender: Notification[];

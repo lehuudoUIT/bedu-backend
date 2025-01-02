@@ -19,6 +19,6 @@ async function bootstrap() {
   //body parsing
   app.use(express.json());
   app.use(logger);
-  await app.listen(process.env.PORT ?? 3004);
+  await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

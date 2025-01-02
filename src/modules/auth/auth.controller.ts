@@ -36,6 +36,7 @@ export class AuthController {
   @Post('signup')
   async signUp(@Body() signUpDto: SignUpDto) {
     try {
+      console.log("Here")
       const result = await this.authservice.signUp(signUpDto);
       return {
         metadata: result,

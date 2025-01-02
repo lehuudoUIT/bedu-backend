@@ -9,7 +9,6 @@ import {ProgramService} from "../program/program.service"
 
 @Injectable()
 export class UserProgramService {
-
   constructor(
     @InjectRepository(UserProgram)
     private userProgramRepository: Repository<UserProgram>,

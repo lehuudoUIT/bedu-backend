@@ -33,7 +33,7 @@ import { RoleService } from './modules/role/role.service';
     DatabaseModule,
     UsersModule,
     AuthModule,
-    User,
+    UsersModule,
     CommentsModule,
     NotificationModule,
     ProgramModule,
