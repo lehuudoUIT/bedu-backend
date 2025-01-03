@@ -2,9 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -14,6 +16,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create.user.dto';
 import { UseRoles } from 'nest-access-control';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { UpdateUserDto } from './dtos/update.user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -74,6 +77,25 @@ export class UsersController {
     return {
       message: 'Find a user by CID successfully',
       metadata: await this.usersService.findUserByCid(cid),
+    };
+  }
+
+  @Patch('item/:id')
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return {
+      message: 'Update user successfully',
+      metadata: await this.usersService.update(id, updateUserDto),
+    };
+  }
+
+  @Delete('item/:id')
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return {
+      message: 'Remove user successfully',
+      metadata: await this.usersService.remove(id),
     };
   }
 }
