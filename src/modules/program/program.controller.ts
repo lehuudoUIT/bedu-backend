@@ -142,4 +142,12 @@ export class ProgramController {
       };
     }
   }
+
+  @Get('findAllThingInOne/:id')
+  async findOneV2(@Param('id') id: number) {
+    return {
+      message: 'Get program detail successfully',
+      metadata: await this.programService.findOneV2(id),
+    };
+  }
 }
