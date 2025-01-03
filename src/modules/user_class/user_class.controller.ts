@@ -57,15 +57,15 @@ export class UserClassController {
     };
   }
 
-  @UseGuards(RolesGuard)
-  @UseRoles({
-    action: 'read',
-    resource: 'user-class',
-    possession: 'any',
-  })
-  @Get('all/type/:idClass')
+  // @UseGuards(RolesGuard)
+  // @UseRoles({
+  //   action: 'read',
+  //   resource: 'user-class',
+  //   possession: 'any',
+  // })
+  @Get('all/:idClass')
   async findAllByType(
-    @Param('type', ParseIntPipe) idClass: number,
+    @Param('idClass', ParseIntPipe) idClass: number,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
   ) {

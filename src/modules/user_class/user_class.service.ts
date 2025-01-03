@@ -119,21 +119,22 @@ export class UserClassService {
     userClasses: UserClass[];
   }> {
     const userClasses = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .leftJoinAndSelect('user_class.user', 'user')
-                          .leftJoinAndSelect('user_class.class', 'class')
-                          .where('user_class.deletedAt is null')
-                          //.andWhere('user.isActive = :isActive', { isActive: status })
-                          .andWhere('class.id = :idClass', { idClass})
-                          .orderBy('user_class.createdAt', 'DESC')
-                          .skip((page - 1) * limit)
-                          .take(limit)
-                          .getMany();
+                                    .createQueryBuilder('user_class')
+                                    .leftJoinAndSelect('user_class.user', 'user')
+                                    .leftJoinAndSelect('user_class.class', 'class')
+                                    .where('user_class.deletedAt is null')
+                                    //.andWhere('user.isActive = :isActive', { isActive: status })
+                                    .andWhere('user_class.classId = :idClass', { idClass }) // Sửa lại thành '='
+                                    .orderBy('user_class.createdAt', 'DESC')
+                                    .skip((page - 1) * limit)
+                                    .take(limit)
+                                    .getMany();
+
     const total = await this.userClassRepository
                           .createQueryBuilder('user_class')
                           .where('user_class.deletedAt is null')
                           //.andWhere('user.isActive = :isActive', { isActive: status })
-                          .andWhere('class.id = :idClass', { idClass})
+                          .andWhere('user_class.classId = :idClass', { idClass })
                           .getCount();
 
     if (userClasses.length === 0) {

@@ -155,6 +155,28 @@ export class ProgramService {
     }
   }
 
+  async findOneV2(id: number) {
+    try {
+      const program = await this.programRepository
+                          .createQueryBuilder('program')
+                          .leftJoinAndSelect('program.course', 'course')
+                          .leftJoinAndSelect('course.lesson', 'lesson')
+                          .where('program.id = :id', { id })
+                          .andWhere('program.deletedAt IS NULL')
+                          .getOne();    
+
+      if (!program) {
+        throw new NotFoundException('Program not found');
+      }
+
+      console.log("Program", program);
+
+      return program;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async findOneByCode(code: string): Promise<Program> {
     try {
       const program = await this.programRepository
