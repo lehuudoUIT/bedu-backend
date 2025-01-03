@@ -1,7 +1,7 @@
 export class CreatePaymentDto {
   userId: number;
-  programCode: string;
-  classCode: string;          
+  programId: number;
+  classId: number;          
   amount: number;
   method: string;
   transactionId: string;
