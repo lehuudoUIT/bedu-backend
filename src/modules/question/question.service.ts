@@ -51,10 +51,6 @@ export class QuestionService {
 
       console.log(exam, documents);
 
-      if (exam.length === 0 && documents.length === 0) {
-        throw new NotFoundException('Invalid information: Document and Exam is not found');
-      }
-
       if (createQuestionDto.questionType === "FillInTheBlankChoice"
         && createQuestionDto.answer === null  
       ) {
@@ -240,10 +236,6 @@ export class QuestionService {
         }
         documents[i] = documentItem;
       }
-    }
-
-    if (exam.length === 0 && documents.length === 0) {
-      throw new NotFoundException('Invalid information: Document and Exam is not found');
     }
 
     if (updateQuestionDto.questionType === "FillInTheBlankChoice"
