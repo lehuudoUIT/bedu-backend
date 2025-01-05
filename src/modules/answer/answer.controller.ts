@@ -145,4 +145,12 @@ export class AnswerController {
       metadata: await this.answerService.remove(+id),
     };
   }
+
+  @Post('newArray')
+  async submitAnswer(@Body() createAnswerDto: CreateAnswerDto[]) {
+    return {
+      message: 'Submit answer successfully',
+      metadata: await this.answerService.createByAnswerArray(createAnswerDto),
+    };
+  }
 }

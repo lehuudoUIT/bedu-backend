@@ -58,6 +58,21 @@ export class AnswerService {
     return result;
   }
 
+  async createByAnswerArray(
+    createAnswerDto: CreateAnswerDto[]
+  ): Promise<Answer[]> {
+    try {
+      const answersArray: Answer[] = [];
+      for (let i = 0; i < createAnswerDto.length; i++) {
+        let answer:Answer = await this.create(createAnswerDto[i]);
+        answersArray.push(answer);
+      }
+      return answersArray;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async findAll(
     page: number = 1,
     limit: number = 10
