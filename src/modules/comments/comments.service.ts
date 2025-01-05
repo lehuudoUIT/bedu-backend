@@ -5,23 +5,27 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from '../../entities/comment.entity';
 import { Lesson } from '../../entities/lesson.entity';
 import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
     @InjectRepository(Lesson) private lessonRepository: Repository<Lesson>,
+    @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
   async create(createCommentDto: CreateCommentDto) {
     const { lessonId, userId, content, parentCommentId } = createCommentDto;
 
-    let rightValue = 1;
+    let rightValue: number = 1;
+
+    let parentComment: Comment;
 
     if (parentCommentId) {
       //! Reply comment
       //! Find parent comment
-      const parentComment = await this.commentRepository.findOneBy({
+      parentComment = await this.commentRepository.findOneBy({
         id: parentCommentId,
       });
       if (!parentComment)
@@ -55,24 +59,24 @@ export class CommentsService {
         .orderBy('comment.right', 'DESC')
         .getOne();
 
-      console.log('Max right value:');
-      console.log(maxRightValue);
-
       if (maxRightValue) {
         rightValue = maxRightValue.right + 1;
       }
     }
 
-    let leftValue = rightValue;
+    let leftValue: number = rightValue;
     rightValue += 1;
 
+    const lesson = await this.lessonRepository.findOneBy({ id: lessonId });
+    const user = await this.userRepository.findOneBy({ id: userId });
+
     const new_comment = await this.commentRepository.insert({
-      // lessonId,
-      //userId,
+      lesson,
+      user,
       content,
       left: leftValue,
       right: rightValue,
-      //parentId: parentCommentId,
+      parent: parentComment,
     });
 
     return new_comment;
