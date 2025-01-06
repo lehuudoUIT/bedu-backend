@@ -153,4 +153,18 @@ export class AnswerController {
       metadata: await this.answerService.createByAnswerArray(createAnswerDto),
     };
   }
+
+  @Get('totalPoint/student/:studentId/exam/:examId')
+  async getTotalPointByStudentAndExam(
+    @Param('studentId', ParseIntPipe) studentId: number,
+    @Param('examId', ParseIntPipe) examId: number,
+  ) {
+    return {
+      message: 'Get total point by student and exam successfully',
+      metadata: await this.answerService.totalPointInExam(
+        studentId,
+        examId,
+      ),
+    };
+  }
 }

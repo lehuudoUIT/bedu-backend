@@ -38,7 +38,7 @@ export class Exam extends AbstractEntity<Exam> {
   score: Score;
 
   @OneToMany(() => Lesson, (lesson) => lesson.exam)
-  lesson: Lesson;
+  lesson: Lesson[];
 
   @OneToMany(() => Answer, (answer) => answer.exam)
   answer: Answer[];

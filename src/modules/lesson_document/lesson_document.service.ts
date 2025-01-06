@@ -13,31 +13,30 @@ export class LessonDocumentService {
   constructor(
     @InjectRepository(LessonDocument)
     private readonly lessonDocumentRepository: Repository<LessonDocument>,
-    private readonly lessonService: LessonService,
-    private readonly documentService: DocumentService,
+
   ) {}
 
-  async create(
-    createLessonDocumentDto: CreateLessonDocumentDto
-  ): Promise<LessonDocument> {
-    const lesson = await this.lessonService.findOne(createLessonDocumentDto.lessonId)
-    if (lesson) {
-      throw new NotFoundException('Lesson not found');
-    }
+  // async create(
+  //   createLessonDocumentDto: CreateLessonDocumentDto
+  // ): Promise<LessonDocument> {
+  //   const lesson = await this.lessonService.findOne(createLessonDocumentDto.lessonId)
+  //   if (lesson) {
+  //     throw new NotFoundException('Lesson not found');
+  //   }
 
-    const document = await this.documentService.findOne(createLessonDocumentDto.documentId);
-    if (!document) {
-      throw new NotFoundException('Document not found');
-    }
+  //   const document = await this.documentService.findOne(createLessonDocumentDto.documentId);
+  //   if (!document) {
+  //     throw new NotFoundException('Document not found');
+  //   }
 
-    const newLessonDocument = this.lessonDocumentRepository.create({
-      ...createLessonDocumentDto,
-      lesson,
-      document,
-    });
-    const result = await this.lessonDocumentRepository.save(newLessonDocument);
-    return result;
-  }
+  //   const newLessonDocument = this.lessonDocumentRepository.create({
+  //     ...createLessonDocumentDto,
+  //     lesson,
+  //     document,
+  //   });
+  //   const result = await this.lessonDocumentRepository.save(newLessonDocument);
+  //   return result;
+  // }
 
   async findAll(
     page: number = 1,
@@ -83,35 +82,35 @@ export class LessonDocumentService {
     return lessonDocumentResponse;
   }
 
-  async update(
-    id: number, 
-    updateLessonDocumentDto: UpdateLessonDocumentDto
-  ): Promise<LessonDocument> {
-    const lesson = await this.lessonService.findOne(updateLessonDocumentDto.lessonId)
-      if (!lesson) {
-        throw new NotFoundException('Lesson not found');
-      }
+  // async update(
+  //   id: number, 
+  //   updateLessonDocumentDto: UpdateLessonDocumentDto
+  // ): Promise<LessonDocument> {
+  //   const lesson = await this.lessonService.findOne(updateLessonDocumentDto.lessonId)
+  //     if (!lesson) {
+  //       throw new NotFoundException('Lesson not found');
+  //     }
  
-      const document = await this.documentService.findOne(updateLessonDocumentDto.documentId);
-      if (!document) {
-        throw new NotFoundException('Document not found');
-      }
-      const lessonDocument = await this.findOne(id);
-      if (!lessonDocument) {
-        throw new NotFoundException('Lesson document not found');
-      }
+  //     const document = await this.documentService.findOne(updateLessonDocumentDto.documentId);
+  //     if (!document) {
+  //       throw new NotFoundException('Document not found');
+  //     }
+  //     const lessonDocument = await this.findOne(id);
+  //     if (!lessonDocument) {
+  //       throw new NotFoundException('Lesson document not found');
+  //     }
 
-      const updatedLessonDocument = this.lessonDocumentRepository.merge(lessonDocument, {
-        ...updateLessonDocumentDto,
-        lesson,
-        document,
-      });
-      const result = await this.lessonDocumentRepository.save(updatedLessonDocument);
-      if(!result) {
-        throw new NotFoundException('Lesson document not found');
-      }
-      return result;
-  }
+  //     const updatedLessonDocument = this.lessonDocumentRepository.merge(lessonDocument, {
+  //       ...updateLessonDocumentDto,
+  //       lesson,
+  //       document,
+  //     });
+  //     const result = await this.lessonDocumentRepository.save(updatedLessonDocument);
+  //     if(!result) {
+  //       throw new NotFoundException('Lesson document not found');
+  //     }
+  //     return result;
+  // }
 
   async remove(id: number): Promise<LessonDocument> {
     const lessonDocument = await this.findOne(id);

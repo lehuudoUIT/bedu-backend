@@ -266,4 +266,37 @@ export class AnswerService {
       }
       return result;
   }
+
+  async totalPointInExam(
+    examId: number,
+    userId: number
+  ): Promise<number> {
+    const totalPoint = await this.answerRepository
+                              .createQueryBuilder('answer')
+                              .select('SUM(answer.points)', 'total')
+                              .where('answer.examId = :examId', { examId })
+                              .andWhere('answer.userId = :userId', { userId })
+                              .getRawOne();
+    return totalPoint.total;
+  }
+
+  async examScoreTableOfClass(classId: number) {
+    try {
+      const examScoreTable = await this.answerRepository
+                                      .createQueryBuilder('answer')
+                                      .select('answer.examId', 'examId')
+                                      .addSelect('answer.userId', 'userId')
+                                      .addSelect('SUM(answer.points)', 'total')
+                                      .leftJoin('answer.exam', 'exam')
+                                      .leftJoin('exam.class', 'class')
+                                      .where('class.id = :classId', { classId })
+                                      .andWhere('answer.deletedAt is NULL')
+                                      .groupBy('answer.examId, answer.userId')
+                                      .getRawMany();
+      return examScoreTable;
+    } catch(error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
 }

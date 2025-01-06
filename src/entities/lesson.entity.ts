@@ -7,6 +7,7 @@ import { Course } from './course.entity';
 import { Comment } from './comment.entity';
 import { Attendance } from './attendence.entity';
 import { Exam } from './exam.entity';
+import { Document } from './document.entity';
 
 export enum LessonType {
   ONLINE = 'online',
@@ -36,8 +37,8 @@ export class Lesson extends AbstractEntity<Lesson> {
   @Column({ nullable: true })
   calendarEventId: string;
 
-  @OneToMany(() => LessonDocument, (lessonDocument) => lessonDocument.lesson)
-  lessonDocument: LessonDocument[];
+  @OneToMany(() => Document, (document) => document.lesson)
+  document: Document[];
 
   @ManyToOne(() => User, (teacher) => teacher.lesson, { eager: true })
   teacher: User;
@@ -64,4 +65,6 @@ export class Lesson extends AbstractEntity<Lesson> {
 
   @ManyToOne(() => Exam, (exam) => exam.lesson, { eager: true, nullable: true })
   exam: Exam;
+
+
 }

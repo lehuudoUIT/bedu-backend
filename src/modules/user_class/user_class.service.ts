@@ -12,6 +12,7 @@ import { UsersService } from '../users/users.service';
 import { ClassService } from '../class/class.service';
 import { zipAll } from 'rxjs';
 import { GoogleService } from '../google/google.service';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class UserClassService {
@@ -146,6 +147,27 @@ export class UserClassService {
       totalRecord: total,
       userClasses: userClasses,
     };
+  }
+
+  async findAllByClassNotPaginate(
+    idClass: number
+  ): Promise<User[]> {
+    const userClasses = await this.userClassRepository
+                                    .createQueryBuilder('user_class')
+                                    .leftJoinAndSelect('user_class.user', 'user')
+                                    .leftJoinAndSelect('user_class.class', 'class')
+                                    .where('user_class.deletedAt is null')
+                                    //.andWhere('user.isActive = :isActive', { isActive: status })
+                                    .andWhere('user_class.classId = :idClass', { idClass }) // Sửa lại thành '='
+                                    .orderBy('user_class.createdAt', 'DESC')
+                                    .getMany();
+
+    if (userClasses.length === 0) {
+      throw new NotFoundException(
+        'Class registration information is not found',
+      );
+    }
+    return userClasses.map(userClass => userClass.user);
   }
 
   async findOne(id: number): Promise<UserClass> {

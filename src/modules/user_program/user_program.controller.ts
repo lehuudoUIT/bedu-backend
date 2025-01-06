@@ -137,4 +137,14 @@ export class UserProgramController {
       metadata: await this.userProgramService.remove(+id),
     };
   }
+
+  @Get('all/programs/:programId')
+  async findAllByProgramId(
+    @Param('programId', ParseIntPipe) id: number,
+  ) {
+    return {
+      message: 'Get all user programs by program successfully',
+      metadata: await this.userProgramService.findAllByProgramIdNotPaginate(id),
+    };
+  }
 }

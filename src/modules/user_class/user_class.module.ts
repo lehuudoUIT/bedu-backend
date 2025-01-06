@@ -16,5 +16,6 @@ import { GoogleModule } from '../google/google.module';
   ],
   controllers: [UserClassController],
   providers: [UserClassService],
+  exports: [UserClassService],
 })
 export class UserClassModule {}

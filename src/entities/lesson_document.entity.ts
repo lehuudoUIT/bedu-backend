@@ -10,16 +10,16 @@ export class LessonDocument extends AbstractEntity<LessonDocument> {
     @Column()
     time: Date;
 
-    @ManyToOne(
-        () => Lesson, 
-        (lesson) => lesson.lessonDocument,
-        { eager: true }) 
-    lesson: Lesson;
+    // @ManyToOne(
+    //     () => Lesson, 
+    //     (lesson) => lesson.lessonDocument,
+    //     { eager: true }) 
+    // lesson: Lesson;
 
-    @ManyToOne(
-        () => Document, 
-        (document) => document.lessonDocument,
-        { eager: true }) 
-    document: Document;
+    // @ManyToOne(
+    //     () => Document, 
+    //     (document) => document.lessonDocument,
+    //     { eager: true }) 
+    // document: Document;
 
 }

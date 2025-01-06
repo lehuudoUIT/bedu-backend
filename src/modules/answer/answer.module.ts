@@ -16,5 +16,6 @@ import { ExamModule } from '../exam/exam.module';
 ],
   controllers: [AnswerController],
   providers: [AnswerService],
+  exports: [AnswerService]
 })
 export class AnswerModule {}
