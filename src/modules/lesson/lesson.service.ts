@@ -335,20 +335,17 @@ export class LessonService {
                         .andWhere('exam.id = :examId', { examId }) 
                         .getOne();
 
-    let numberOfStudent: number = 0;
+    let listStudent: User[] = [];
     if (lesson.class !== null) {
-      const listStudent = await this.userClassService.findAllByClassNotPaginate(lesson.class.id);
+      listStudent = await this.userClassService.findAllByClassNotPaginate(lesson.class.id);
      // console.log("listStudent", listStudent)
-      numberOfStudent = listStudent.length;
 
     }
 
     if (lesson.course !== null) {
-      console.log("numberOfStudent", numberOfStudent)
-      const  listStudent = await this.UserProgramService.findAllByProgramIdNotPaginate(lesson.course.id);
-      numberOfStudent = listStudent.length;
+      listStudent = await this.UserProgramService.findAllByProgramIdNotPaginate(lesson.course.id);
     }
 
-    return numberOfStudent;
+    return listStudent;
   }
 } 
