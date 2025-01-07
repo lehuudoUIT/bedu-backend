@@ -257,4 +257,41 @@ export class GoogleService {
       throw new Error(`Failed to update file permission: ${error.message}`);
     }
   }
+
+  async addEventToCalendar(body: {
+    calendarId: string;
+    summary: string;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<string> {
+    try {
+      const event = {
+        summary: body.summary,
+        location: 'Google Calendar',
+        description: 'This is lesson of class ' + body.summary,
+        start: {
+          dateTime: body.startDate.toISOString(),
+          timeZone: 'Asia/Ho_Chi_Minh', // Thay đổi theo múi giờ của bạn
+        },
+        end: {
+          dateTime: body.endDate.toISOString(),
+          timeZone: 'Asia/Ho_Chi_Minh', // Thay đổi theo múi giờ của bạn
+        },
+        attendees: [
+          {
+            email: process.env.GOOGLE_IMPERSONATED_EMAIL,
+          },
+        ],
+      };
+
+      const response = await this.calendar.events.insert({
+        calendarId: body.calendarId,
+        requestBody: event,
+      });
+
+      return response.data.id;
+    } catch (error) {
+      throw new Error(`Lỗi khi xóa sự kiện: ${error.message}`);
+    }
+  }
 }

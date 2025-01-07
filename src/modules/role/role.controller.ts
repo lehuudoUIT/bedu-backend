@@ -45,12 +45,12 @@ export class RoleController {
     };
   }
 
-  @UseGuards(RolesGuard)
-  @UseRoles({
-    action: 'read',
-    resource: 'role',
-    possession: 'any',
-  })
+  // @UseGuards(RolesGuard)
+  // @UseRoles({
+  //   action: 'read',
+  //   resource: 'role',
+  //   possession: 'any',
+  // })
   @Get('grant/:id')
   async getListGrantOfRole(@Param('id') id: number) {
     return {

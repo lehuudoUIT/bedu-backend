@@ -8,7 +8,13 @@ import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthorizationMiddleware implements NestMiddleware {
-  private excludedRoutes = ['/auth/login', '/auth/signup']; // Các route cần bỏ qua
+  private excludedRoutes = [
+    '/auth/login',
+    '/auth/signup',
+    '/payments/confirm-zalo',
+    '/payments/process',
+    '/payments/confirm-paypal',
+  ]; // Các route cần bỏ qua
   use(req: Request, res: Response, next: NextFunction) {
     console.log(req.path);
 
@@ -18,7 +24,7 @@ export class AuthorizationMiddleware implements NestMiddleware {
       return next(); // Bỏ qua middleware cho các route được loại trừ
     }
 
-    const token = req.headers.authorization?.split(' ')[1] || req.cookies.jwt;
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.jwt;
 
     if (!token) throw new UnauthorizedException('User is not authorized! [M]');
     try {

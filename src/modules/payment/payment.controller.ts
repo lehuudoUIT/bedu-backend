@@ -10,6 +10,10 @@ import {
   UseFilters,
   UseInterceptors,
   UseGuards,
+  Res,
+  Req,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dtos/create-payment.dto';
@@ -18,12 +22,99 @@ import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.
 import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UseRoles } from 'nest-access-control';
+import { Request, Response } from 'express';
+import { UserProgramService } from '../user_program/user_program.service';
+import { UserClassService } from '../user_class/user_class.service';
 
 @Controller('payments')
 @UseFilters(HttpExceptionFilter)
 @UseInterceptors(ResponseFormatInterceptor)
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly userProgramService: UserProgramService,
+    private readonly userClassService: UserClassService,
+  ) {}
+
+  @Post('process')
+  async processPayment(
+    @Body() body: { method: string; amount: number; content: string },
+  ) {
+    const { method, amount, content } = body;
+
+    return {
+      messsage: 'Process payment successfully!',
+      metadata: await this.paymentService.processPayment(
+        method,
+        amount,
+        content,
+      ),
+    };
+  }
+
+  @Post('confirm-zalo')
+  async confirmPaymentZalo(
+    @Body() body: { data: string; mac: string },
+    @Res() res: Response,
+  ) {
+    console.log('Zalo gọi callback r nè brou');
+
+    const response = await this.paymentService.confirmPayment('zalopay', body);
+
+    return {
+      skipFormatResponse: true,
+      ...response,
+    };
+  }
+
+  @Get('confirm-paypal')
+  async confirmPaymentPaypal(@Req() req: Request, @Res() res: Response) {
+    const token = req.query.token;
+    console.log('req.token: ', token);
+
+    const response = await this.paymentService.confirmPayment('paypal', token);
+
+    if (response.status === 'COMPLETED') {
+      const [userId, keyword, id] =
+        response.purchase_units[0]?.items[0]?.name?.split('-');
+
+      console.log({ userId, keyword, id });
+      const amount = response.purchase_units[0]?.amount?.value || 0;
+
+      //* Add course or class to student
+      if (keyword === 'CLASS') {
+        //* Add user to class
+      } else if (keyword === 'PROGRAM') {
+        //* Add user to program
+        // await this.userProgramService.create({
+        //   programId: id,
+        //   userId,
+        //   time: new Date(),
+        // });
+
+        await this.paymentService.create({
+          programId: id,
+          userId: id,
+          transactionId: response.id,
+          amount,
+          method: 'paypal',
+        });
+
+        await this.paymentService.create({
+          programId: id,
+          userId,
+          transactionId: response.id,
+          amount,
+          method: 'paypal',
+        });
+      } else {
+        throw new NotFoundException('Not found class/program');
+      }
+    } else {
+      throw new InternalServerErrorException('Add course/class failed!');
+    }
+    return res.send({ message: 'Purchase payment successfully', response });
+  }
 
   @UseGuards(RolesGuard)
   @UseRoles({

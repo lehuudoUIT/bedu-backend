@@ -43,8 +43,8 @@ export class CommentsController {
     return {
       message: 'Get comments by parentId',
       metadata: await this.commentsService.getCommentsByParentId(
-        lessonId,
         id,
+        lessonId,
         limit,
         offset,
       ),
