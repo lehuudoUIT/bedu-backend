@@ -186,6 +186,24 @@ export class AnswerController {
     };
   }
 
+
+  // Câu hỏi 
+  // question: question,
+  // Tổng số học sinh tham gia
+  // totalStudent: totalStudent.length,
+  // Tổng số học sinh đã làm bài
+  // totalAttempt: totalAttempt.length,
+  // Tổng số học sinh chưa làm bài
+  // totalNotAttempt: totalStudent.length - totalAttempt.length,
+  // Tổng số học sinh trả lời đúng
+  // rightStudent: totalStudent.length - totalAttemptToGetWrongStudent.length,
+  // Tổng số học sinh trả lời sai
+  // wrongStudent: totalAttemptToGetWrongStudent.length,
+  // Danh sách học sinh chưa làm bài
+  // listOfStudentsHaveNotDone,
+  // Danh sách học sinh trả lời sai
+  // wrongStudentList
+
   // Lấy bảng tỷ lệ đúng/sai... theo từng  câu hỏi
   @Get('rate/exam/:examId/question/:questionId')
   async GetTableOfCorrectAndIncorrectRate(
