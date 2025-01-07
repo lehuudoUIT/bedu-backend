@@ -3,6 +3,8 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { User } from './user.entity';
 import { Exam } from './exam.entity';
 import { Question } from './question.entity';
+import { Class } from './class.entity';
+import {Course} from './course.entity'
 
 @Entity({ name: 'answer' })
 export class Answer extends AbstractEntity<Answer> {
@@ -41,4 +43,7 @@ export class Answer extends AbstractEntity<Answer> {
   //   () => Question, 
   //   (question) => question.question)
   // correctAnswer: Question;
+
+  @Column({default: 1})
+  testAttempts: number;
 } 

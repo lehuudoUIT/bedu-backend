@@ -154,17 +154,44 @@ export class AnswerController {
     };
   }
 
-  @Get('totalPoint/student/:studentId/exam/:examId')
-  async getTotalPointByStudentAndExam(
-    @Param('studentId', ParseIntPipe) studentId: number,
-    @Param('examId', ParseIntPipe) examId: number,
+    // Bảng điểm của kỳ thi/bài kiểm tra/bài tập
+  @Get('result/:examId')
+  async getExamResult(@Param('examId', ParseIntPipe) examId: number) {
+    return {
+      message: 'Get exam result successfully',
+      metadata: await this.answerService.getExamResultByExamId(examId),
+    };
+  }
+
+  // Lấy các thông tin cơ bản của thống kê như số lần làm bài ,
+  // số lượng học viên dưới 1đ,.....
+  @Get('basicsStatistical/:examId')
+  async getBasicsStatistical(
+    @Param('examId', ParseIntPipe) examId: number
   ) {
     return {
-      message: 'Get total point by student and exam successfully',
-      metadata: await this.answerService.totalPointInExam(
-        studentId,
-        examId,
-      ),
+      message: 'Get basics statistical successfully',
+      metadata: await this.answerService.getStatisticalResultByExamId(examId),
+    };
+  }
+
+  @Get('scoreDistributor/:examId')
+  async getScoreDistributor(
+    @Param('examId', ParseIntPipe) examId: number
+  ) {
+    return {
+      message: 'Get score distributor successfully',
+      metadata: await this.answerService.getScoreDistribution(examId),
+    };
+  }
+
+  @Get('rate/:examId')
+  async GetTableOfCorrectAndIncorrectRate(
+    @Param('examId', ParseIntPipe) examId: number
+  ) {
+    return {
+      message: 'Get table of correct and incorrect rate successfully',
+      metadata: await this.answerService.tableOfCorrectAndIncorrectRate(examId),
     };
   }
 }

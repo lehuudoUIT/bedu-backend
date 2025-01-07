@@ -3,6 +3,7 @@ import { Column, Entity, OneToMany } from 'typeorm';
 import { UserClass } from './user_class.entity';
 import { Payment } from './payment.entity';
 import { Lesson } from './lesson.entity';
+import { Answer } from './answer.entity';
 
 @Entity({ name: 'classes' })
 export class Class extends AbstractEntity<Class> {
@@ -53,4 +54,5 @@ export class Class extends AbstractEntity<Class> {
 
   @Column({ nullable: true })
   avatar: string;
+
 }
