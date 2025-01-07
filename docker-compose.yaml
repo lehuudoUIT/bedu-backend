@@ -3,7 +3,7 @@ version: '3'
 services:
   mysql-master:
     image: mysql:8.0
-    container_name: mysql-master
+    container_name: mysql-master-dev
     command: --server-id=1 --log-bin=mysql-bin --binlog-format=row
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
@@ -19,7 +19,7 @@ services:
 
   mysql-slave:
     image: mysql:8.0
-    container_name: mysql-slave
+    container_name: mysql-slave-dev
     depends_on:
       - mysql-master
     command: --server-id=2 --log-bin=mysql-bin --binlog-format=row
@@ -34,7 +34,6 @@ services:
       - mysql_network
     volumes:
       - mysql_slave_data:/var/lib/mysql
-
 networks:
   mysql_network:
     driver: bridge

@@ -1,9 +1,9 @@
 import { AbstractEntity } from '../database/abstract.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, Unique } from 'typeorm';
 import { Role } from './role.entity';
 import { Resource } from './resource.entity';
-
 @Entity({ name: 'role_resource' })
+@Unique(['role', 'resource', 'attribute', 'action'])
 export class RoleResource extends AbstractEntity<RoleResource> {
   @Column()
   action: string;

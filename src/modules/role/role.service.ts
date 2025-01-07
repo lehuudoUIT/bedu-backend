@@ -72,8 +72,6 @@ export class RoleService {
 
       const roleData = await this.roleRepository.findOneBy({ id: roleId });
 
-      console.log(roleData);
-
       if (!roleData) throw new NotFoundException('Role không tồn tại!');
 
       const grantList: Promise<RoleResource>[] = [];

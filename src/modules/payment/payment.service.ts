@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { CreatePaymentDto } from './dtos/create-payment.dto';
 import { UpdatePaymentDto } from './dtos/update-payment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,22 +7,50 @@ import { Not, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ProgramService } from '../program/program.service';
 import { ClassService } from '../class/class.service';
+import { PaymentFactory } from './payment.factory';
+import { ZaloPaymentStrategy } from './strategies/zalo-payment.strategy';
+import { PaymentMethodService } from '../payment-method/payment-method.service';
+import { strategyType } from './strategies/payment.strategy';
+import { CacheService } from '../cache/cache.service';
+import { PaypalPaymentStrategy } from './strategies/paypal-payment.strategy';
 
 @Injectable()
 export class PaymentService {
   constructor(
+    private readonly paymentFactory: PaymentFactory,
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
     private readonly userService: UsersService,
     private readonly programService: ProgramService,
     private readonly classService: ClassService,
+    private readonly paymentMethodService: PaymentMethodService,
   ) {}
 
-  async create(
-    createPaymentDto: CreatePaymentDto
-  ) {
+  async onModuleInit() {
+    const listPaymentMethod = await this.paymentMethodService.findAll();
+    listPaymentMethod.map((paymentMethod) => {
+      const name = paymentMethod.name;
+      this.paymentFactory.registerPaymentMethod(name, new strategyType[name]());
+    });
+  }
+
+  async processPayment(
+    method: string,
+    amount: number,
+    content?: string,
+  ): Promise<any> {
+    const strategy = this.paymentFactory.getPaymentMethod(method);
+    return await strategy.processPayment(amount, content);
+  }
+
+  async confirmPayment(method: string, body: any): Promise<any> {
+    const strategy = this.paymentFactory.getPaymentMethod(method);
+    return await strategy.confirmPayment(body);
+  }
+
+  async create(createPaymentDto: CreatePaymentDto) {
     const user = await this.userService.findUserById(createPaymentDto.userId);
-    if(!user) {
+    if (!user) {
       throw new NotFoundException('User information is not found');
     }
 
@@ -51,7 +79,7 @@ export class PaymentService {
       ...createPaymentDto,
       user: user,
       program: program,
-      class: classData
+      class: classData,
     });
 
     const result = await this.paymentRepository.save(payment);
@@ -61,63 +89,58 @@ export class PaymentService {
     page: number = 1,
     limit: number = 10,
   ): Promise<{
-    totalRecord: number,
-    payments: Payment[]
+    totalRecord: number;
+    payments: Payment[];
   }> {
     const payments = await this.paymentRepository
-                        .createQueryBuilder('payment')
-                        .leftJoinAndSelect('payment.user', 'user')
-                        .leftJoinAndSelect('payment.program', 'program')
-                        .leftJoinAndSelect('payment.class', 'class')
-                        .where('payment.deletedAt IS NULL')
-                       // .where('payment.isActive := isActive', { isActive: status })  
-                        .orderBy('payment.createdAt', 'DESC')
-                        .skip((page - 1) * limit)
-                        .take(limit)
-                        .getMany();
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.user', 'user')
+      .leftJoinAndSelect('payment.program', 'program')
+      .leftJoinAndSelect('payment.class', 'class')
+      .where('payment.deletedAt IS NULL')
+      // .where('payment.isActive := isActive', { isActive: status })
+      .orderBy('payment.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
     const total = await this.paymentRepository
-                        .createQueryBuilder('payment')
-                        .where('payment.deletedAt IS NULL')
-                        //.where('payment.isActive := isActive', { isActive: status })
-                        .getCount();
+      .createQueryBuilder('payment')
+      .where('payment.deletedAt IS NULL')
+      //.where('payment.isActive := isActive', { isActive: status })
+      .getCount();
     if (payments.length === 0) {
       throw new NotFoundException('No payment found!');
     }
     return {
       totalRecord: total,
-      payments: payments
+      payments: payments,
     };
   }
 
-  async findOne(
-    id: number
-  ) {
+  async findOne(id: number) {
     const payment = await this.paymentRepository.findOneBy({
       id,
-      deletedAt: null, 
-    })
+      deletedAt: null,
+    });
     if (!payment) {
       throw new NotFoundException('Payment information not found');
     }
     return payment;
   }
 
-  async update(
-    id: number, 
-    updatePaymentDto: UpdatePaymentDto
-  ) {
+  async update(id: number, updatePaymentDto: UpdatePaymentDto) {
     const payment = await this.findOne(id);
     if (!payment) {
       throw new NotFoundException('Payment information not found');
     }
-    
+
     const { userId, programId, classId } = updatePaymentDto;
 
     const user = await this.userService.findUserById(userId);
     if (!user) {
-      throw new  NotFoundException('User information is not found');
+      throw new NotFoundException('User information is not found');
     }
-    
+
     let program = null;
     let classData = null;
 
@@ -136,7 +159,7 @@ export class PaymentService {
     }
 
     if (!classData && !program) {
-      throw new  NotFoundException('Program or class information');
+      throw new NotFoundException('Program or class information');
     }
 
     const newPayment = this.paymentRepository.create({
@@ -144,15 +167,13 @@ export class PaymentService {
       ...updatePaymentDto,
       user: user,
       program: program,
-      class: classData
+      class: classData,
     });
     const result = await this.paymentRepository.save(newPayment);
     return result;
   }
 
-  async remove(
-    id: number
-  ) {
+  async remove(id: number) {
     const payment = await this.findOne(id);
     if (!payment) {
       throw new NotFoundException('Payment information not found');
@@ -161,6 +182,6 @@ export class PaymentService {
     payment.isActive = false;
     payment.deletedAt = new Date();
     const result = await this.paymentRepository.save(payment);
-    return result
+    return result;
   }
 }
