@@ -5,23 +5,27 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from '../../entities/comment.entity';
 import { Lesson } from '../../entities/lesson.entity';
 import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
     @InjectRepository(Lesson) private lessonRepository: Repository<Lesson>,
+    @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
   async create(createCommentDto: CreateCommentDto) {
     const { lessonId, userId, content, parentCommentId } = createCommentDto;
 
-    let rightValue = 1;
+    let rightValue: number = 1;
+
+    let parentComment: Comment;
 
     if (parentCommentId) {
       //! Reply comment
       //! Find parent comment
-      const parentComment = await this.commentRepository.findOneBy({
+      parentComment = await this.commentRepository.findOneBy({
         id: parentCommentId,
       });
       if (!parentComment)
@@ -55,24 +59,24 @@ export class CommentsService {
         .orderBy('comment.right', 'DESC')
         .getOne();
 
-      console.log('Max right value:');
-      console.log(maxRightValue);
-
       if (maxRightValue) {
         rightValue = maxRightValue.right + 1;
       }
     }
 
-    let leftValue = rightValue;
+    let leftValue: number = rightValue;
     rightValue += 1;
 
+    const lesson = await this.lessonRepository.findOneBy({ id: lessonId });
+    const user = await this.userRepository.findOneBy({ id: userId });
+
     const new_comment = await this.commentRepository.insert({
-      // lessonId,
-      //userId,
+      lesson,
+      user,
       content,
       left: leftValue,
       right: rightValue,
-      //parentId: parentCommentId,
+      parent: parentComment,
     });
 
     return new_comment;
@@ -84,7 +88,7 @@ export class CommentsService {
     limit: number = 50,
     offset: number = 0, //skip
   ) {
-    if (parentCommentId) {
+    if (Number(parentCommentId)) {
       const parent = await this.commentRepository.findOneBy({
         id: parentCommentId,
       });
@@ -93,29 +97,61 @@ export class CommentsService {
         .createQueryBuilder('comment')
         .select([
           'comment.left',
+          'comment.id',
           'comment.right',
           'comment.content',
           'comment.lessonId',
+          'comment.createdAt',
         ])
         .where('comment.lessonId = :lessonId', { lessonId })
         .andWhere('comment.parentId = :parentCommentId', { parentCommentId })
+        .leftJoinAndSelect('comment.user', 'user')
+        .leftJoinAndSelect('comment.children', 'children')
         .orderBy('comment.left', 'ASC')
         .getMany();
-      return comments;
+
+      const response = comments.map((comment) => {
+        return {
+          commentId: comment.id,
+          username: comment.user.name,
+          content: comment.content,
+          commentTime: comment.createdAt,
+          hasChildren: comment.children?.length > 0 ? true : false,
+        };
+      });
+
+      return response;
     } else {
+      parentCommentId = null;
+
       //! root comment
       const comments = await this.commentRepository
         .createQueryBuilder('comment')
         .select([
           'comment.left',
+          'comment.id',
           'comment.right',
           'comment.content',
-          'comment.parentId',
+          'comment.lessonId',
+          'comment.createdAt',
         ])
+        .where('comment.lessonId = :lessonId', { lessonId })
+        .andWhere('comment.parentId IS NULL')
+        .leftJoinAndSelect('comment.user', 'user')
+        .leftJoinAndSelect('comment.children', 'children')
         .orderBy('comment.left', 'ASC')
         .getMany();
 
-      return comments;
+      const response = comments.map((comment) => {
+        return {
+          commentId: comment.id,
+          username: comment.user?.name || 'Anonymous',
+          content: comment.content,
+          commentTime: comment.createdAt,
+          hasChildren: comment.children?.length > 0 ? true : false,
+        };
+      });
+      return response;
     }
   }
 
