@@ -33,3 +33,13 @@ export function identifyAction(action: string, type: 'own' | 'any'): string {
 export function filterByProperty<T>(array: T[], propertyName: keyof T): T[] {
   return array.filter((item) => item[propertyName] != null);
 }
+
+export type formData = {
+  No: number,
+  ProgramName: string,
+  Payer: string,
+  Amount: number,
+  Method: string,
+  TransactionId: string,
+  Status: string
+}
