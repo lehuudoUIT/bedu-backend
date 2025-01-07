@@ -6,6 +6,8 @@ import { UserProgram } from '../../entities/user_program.entity';
 import { IsNull, Repository } from 'typeorm';
 import {UsersService} from "../users/users.service"
 import {ProgramService} from "../program/program.service"
+import { User } from 'src/entities/user.entity';
+import { Program } from 'src/entities/program.entity';
 
 @Injectable()
 export class UserProgramService {
@@ -222,4 +224,32 @@ export class UserProgramService {
     }
     return result;
   }
+
+  async findAllByProgramIdNotPaginate(
+    courseId: number,
+  ): Promise<User[]> {
+    try {
+      const user: User[] = [];
+      const program: Program[] = await this.programService.getProgramByCourseId(courseId);
+      console.log(program); 
+      for(let i = 0; i < program.length; i++) {
+        let programId: number = program[i].id;
+        const enrollments = await this.userProgramRepository
+                                    .createQueryBuilder('user_program')
+                                    .leftJoinAndSelect('user_program.user', 'user')
+                                    .leftJoinAndSelect('user_program.program', 'program')
+                                    .where('user_program.programId = :programId', { programId })
+                                  // .andWhere('user_program.isActive = :isActive', { isActive: status })
+                                    .andWhere('user_program.deletedAt is null')
+                                    .orderBy('user_program.createdAt', 'DESC')
+                                    .getMany();
+
+        user.push(...enrollments.map((enrollment) => enrollment.user));
+      }
+      return user;
+    } catch(error) {
+      throw new Error(error);
+    }
+  }
+
 }

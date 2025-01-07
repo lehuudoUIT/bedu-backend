@@ -6,6 +6,8 @@ import { Document } from '../../entities/document.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { QuestionService } from '../question/question.service';
 import { Question } from '../../entities/question.entity';
+import { Lesson } from 'src/entities/lesson.entity';
+import { LessonService } from '../lesson/lesson.service';
 
 @Injectable()
 export class DocumentService {
@@ -13,7 +15,9 @@ export class DocumentService {
     @InjectRepository(Document)
     private readonly documentRepository: Repository<Document>,
     @Inject(forwardRef(() => QuestionService))
-    private readonly questionService: QuestionService
+    private readonly questionService: QuestionService,
+    @Inject(forwardRef(() => LessonService))
+    private readonly lessonService: LessonService
   ) {}
 
   extractNumber(str: string): number {
@@ -37,8 +41,8 @@ export class DocumentService {
   ): Promise<Document> {
     const maxCode = await this.findMaxCode();
     const code = `DOC${maxCode + 1}`;
-    let questions: Question[] = [];
-      if (createDocumentDto.questionId) {
+    let questions: Question[] = [], lesson: Lesson = null;
+      if (typeof createDocumentDto.questionId !== 'undefined') {
         for(let i = 0; i < createDocumentDto.questionId.length; i++) { 
           const question = await this.questionService.findOne(createDocumentDto.questionId[i]);
           if (!question) {
@@ -49,9 +53,17 @@ export class DocumentService {
         }
       }
 
+      if (typeof createDocumentDto.lessonId !== 'undefined') {
+        lesson = await this.lessonService.findOne(createDocumentDto.lessonId);
+        if (!lesson) {
+          throw new NotFoundException('Lesson ' + createDocumentDto.lessonId + ' is not found!');
+        }
+      }
+
       const document = await this.documentRepository.create({
         ...createDocumentDto,
         question: questions,
+        lesson: lesson,
         code
       });
       const result = await this.documentRepository.save(document);
@@ -72,6 +84,7 @@ export class DocumentService {
     const documents = await this.documentRepository
                                 .createQueryBuilder('document')
                                 .leftJoinAndSelect('document.question', 'question')
+                                .leftJoinAndSelect('document.lesson', 'lesson')
                                 .where('document.deletedAt is null')
                                // .andWhere('document.isActive = :isActive', { isActive: status })
                                 .andWhere('document.documentType = :type', { type })
@@ -104,6 +117,7 @@ export class DocumentService {
     const documents = await this.documentRepository
                           .createQueryBuilder('document')
                           .leftJoinAndSelect('document.question', 'question')
+                          .leftJoinAndSelect('document.lesson', 'lesson')
                           .where('document.deletedAt  is null')
                          // .andWhere('document.isActive = :isActive', { isActive: status })
                           .orderBy('document.id', 'DESC')
@@ -128,6 +142,7 @@ export class DocumentService {
     const document = await this.documentRepository
                           .createQueryBuilder('document')
                           .leftJoinAndSelect('document.question', 'question')
+                          .leftJoinAndSelect('document.lesson', 'lesson')
                           .where('document.id = :id', { id })
                           .andWhere('document.deletedAt IS NULL')
                           .getOne();
@@ -155,12 +170,21 @@ export class DocumentService {
         }
         questions.push(question);
       }
-    }                 
+    }   
+    
+    let lesson: Lesson = null;
+    if (typeof updateDocumentDto.lessonId !== 'undefined') {
+      lesson = await this.lessonService.findOne(updateDocumentDto.lessonId);
+      if (!lesson) {
+        throw new NotFoundException('Lesson ' + updateDocumentDto.lessonId + ' is not found!');
+      }
+    }
 
     const updateDocument = this.documentRepository.create({
       ...document,
       ...updateDocumentDto,
       question: questions,
+      lesson: lesson
     });
     const result = await this.documentRepository.save(updateDocument);
     if(!result) {

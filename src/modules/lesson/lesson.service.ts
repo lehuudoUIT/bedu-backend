@@ -1,3 +1,4 @@
+import { UserProgram } from 'src/entities/user_program.entity';
 import { UsersService } from './../users/users.service';
 import {
   BadRequestException,
@@ -17,6 +18,11 @@ import { ClassService } from '../class/class.service';
 import { CourseService } from '../course/course.service';
 import { ExamService } from '../exam/exam.service';
 import { GoogleService } from '../google/google.service';
+import { UserClassService } from '../user_class/user_class.service';
+import { UserClass } from 'src/entities/user_class.entity';
+import { User } from 'src/entities/user.entity';
+import { UserProgramService } from '../user_program/user_program.service';
+import { AnswerService } from '../answer/answer.service';
 
 @Injectable()
 export class LessonService {
@@ -28,6 +34,9 @@ export class LessonService {
     private readonly courseService: CourseService,
     private readonly examService: ExamService,
     private readonly googleService: GoogleService,
+    private readonly userClassService: UserClassService,
+    private readonly UserProgramService: UserProgramService,
+    private readonly answerService: AnswerService
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
@@ -285,4 +294,21 @@ export class LessonService {
     }
     return result;
   }
-}
+
+  async getScoreTableOfClassOrCourseInExam(
+    classId: number,
+    courseId: number,
+  ) {
+    if (typeof classId !== 'undefined' && typeof courseId !== 'undefined') {
+      throw new BadRequestException("Can't get score table of class and course at the same time");
+    }
+    let listStudent: User[] = [];
+    if (typeof classId !== 'undefined') {
+      listStudent = await this.userClassService.findAllByClassNotPaginate(classId);
+    }
+    if (typeof courseId !== 'undefined') {
+      listStudent = await this.UserProgramService.findAllByProgramIdNotPaginate(courseId);
+    }
+    
+  }
+} 

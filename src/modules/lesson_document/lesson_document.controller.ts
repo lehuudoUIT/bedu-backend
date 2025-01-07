@@ -12,13 +12,13 @@ import { ResponseFormatInterceptor } from 'src/common/intercepters/response.inte
 export class LessonDocumentController {
   constructor(private readonly lessonDocumentService: LessonDocumentService) {}
 
-  @Post('new')
-  async create(@Body() createLessonDocumentDto: CreateLessonDocumentDto) {
-    return {
-      message: 'This action adds a new lesson document',
-      metadata: await this.lessonDocumentService.create(createLessonDocumentDto),
-    }
-  }
+  // @Post('new')
+  // async create(@Body() createLessonDocumentDto: CreateLessonDocumentDto) {
+  //   return {
+  //     message: 'This action adds a new lesson document',
+  //     metadata: await this.lessonDocumentService.create(createLessonDocumentDto),
+  //   }
+  // }
 
   @Get('all')
   async findAll(
@@ -39,13 +39,13 @@ export class LessonDocumentController {
     }
   }
 
-  @Patch('item/:id')
-  async update(@Param('id') id: string, @Body() updateLessonDocumentDto: UpdateLessonDocumentDto) {
-    return {
-      message: 'This action updates a #${id} lesson document',
-      metadata: await this.lessonDocumentService.update(+id, updateLessonDocumentDto),
-    }
-  }
+  // @Patch('item/:id')
+  // async update(@Param('id') id: string, @Body() updateLessonDocumentDto: UpdateLessonDocumentDto) {
+  //   return {
+  //     message: 'This action updates a #${id} lesson document',
+  //     metadata: await this.lessonDocumentService.update(+id, updateLessonDocumentDto),
+  //   }
+  // }
 
   @Delete('item/:id')
   async remove(@Param('id') id: string) {

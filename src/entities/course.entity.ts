@@ -2,6 +2,7 @@ import { AbstractEntity } from '../database/abstract.entity';
 import { Column, Entity, ManyToMany, OneToMany } from 'typeorm';
 import { Program } from './program.entity';
 import { Lesson } from './lesson.entity';
+import { Answer } from './answer.entity';
 
 @Entity({ name: 'courses' })
 export class Course extends AbstractEntity<Course> {
@@ -41,4 +42,5 @@ export class Course extends AbstractEntity<Course> {
 
   @OneToMany(() => Lesson, (lesson) => lesson.course)
   lesson: Lesson[];
+
 }

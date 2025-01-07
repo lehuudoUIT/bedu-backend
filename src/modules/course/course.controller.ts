@@ -124,4 +124,5 @@ export class CourseController {
       metadata: await this.courseService.remove(+id),
     };
   }
+
 }

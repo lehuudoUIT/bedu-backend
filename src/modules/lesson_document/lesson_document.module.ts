@@ -9,8 +9,6 @@ import { DocumentModule } from '../document/document.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([LessonDocument]),
-    LessonModule,
-    DocumentModule
   ],
   controllers: [LessonDocumentController],
   providers: [LessonDocumentService],
