@@ -23,6 +23,7 @@ import { UserClass } from 'src/entities/user_class.entity';
 import { User } from 'src/entities/user.entity';
 import { UserProgramService } from '../user_program/user_program.service';
 import { AnswerService } from '../answer/answer.service';
+import { Exam } from 'src/entities/exam.entity';
 
 @Injectable()
 export class LessonService {
@@ -249,12 +250,13 @@ export class LessonService {
       throw new NotFoundException('Course information is not found');
     }
 
-    // Xác thực exam nếu `examId` được cung cấp
-    const exam = updateLessonDto.examId
-      ? await this.examService.findOne(updateLessonDto.examId)
-      : lesson.exam; // Giữ nguyên exam hiện tại nếu không cung cấp
-    if (updateLessonDto.examId && !exam) {
-      throw new NotFoundException('Exam information is not found');
+    let exam: Exam = lesson.exam;
+    if (typeof updateLessonDto.examId !== 'undefined') {
+      exam = await this.examService.findOne(updateLessonDto.examId);
+      // console.log(exam);
+      if (!exam) {
+        throw new NotFoundException('Exam information is not found');
+      }
     }
 
     // Tạo đối tượng lesson mới với dữ liệu cập nhật

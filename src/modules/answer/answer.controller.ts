@@ -175,6 +175,7 @@ export class AnswerController {
     };
   }
 
+  // Score contributor
   @Get('scoreDistributor/:examId')
   async getScoreDistributor(
     @Param('examId', ParseIntPipe) examId: number
