@@ -458,7 +458,7 @@ export class AnswerService {
   ) {
     try {
       const totalStudent = await this.lessonService.findCourseClassByExamId(examId);
-      console.log("numberOfStudent", totalStudent);
+      //console.log("numberOfStudent", totalStudent);
       const question = await this.questionService.findOne(questionId);
       const totalAttempt = await this.answerRepository
                                   .createQueryBuilder('answer')
@@ -470,8 +470,8 @@ export class AnswerService {
                                   .getRawMany();
 
       const removeElements = (A: { userId: number }[], B: { userId: number }[]) => {
-        const BIds = new Set(B.map((item) => item.userId)); // Tạo tập hợp userId từ B
-        return A.filter((item) => !BIds.has(item.userId)); // Lọc các phần tử không tồn tại trong B
+        const BIds = new Set(B.map((item) => item.userId)); 
+        return A.filter((item) => !BIds.has(item.userId)); 
       };
       const totalStudentV2 = totalStudent.map((student) => {
         return {
@@ -485,27 +485,35 @@ export class AnswerService {
         let user = await this.userService.findUserById(removeUser[i].userId);
         listOfStudentsHaveNotDone.push(user.name);
       }
-      console.log("totalStudentV2", listOfStudentsHaveNotDone);
+      //console.log("totalStudentV2", listOfStudentsHaveNotDone);
      // console.log("totalStudentV2", removeUser);
-     const rightStudent: number =  0;
-     const wrongStudent: number = 0;
      console.log("totalAttempt", totalAttempt);
-     const totalAttemptToGetRightStudent = await this.answerRepository
+     const totalAttemptToGetWrongStudent = await this.answerRepository
                                   .createQueryBuilder('answer')
-                                  .select('answer.userId', 'userId')
-                                  //.addSelect('answer.testAttempts', 'totalAttempt')
+                                  .leftJoinAndSelect('answer.question', 'question')
+                                  .select('DISTINCT answer.userId', 'userId')
                                   .where('answer.examId = :examId', { examId })
                                   .andWhere('answer.questionId = :questionId', { questionId })
+                                  .andWhere('answer.points != :points', { points: question.totalPoints })
                                   .groupBy('answer.questionId, answer.userId')
                                   .getRawMany();
-      console.log("totalAttemptToGet", totalAttemptToGetRightStudent);
+      
+      console.log("totalAttemptToGet", totalAttemptToGetWrongStudent);
+      const wrongStudentList : String[] = []
+      for (let i = 0; i < totalAttemptToGetWrongStudent.length; i++) {
+        let user = await this.userService.findUserById(totalAttemptToGetWrongStudent[i].userId);
+        wrongStudentList.push(user.name);
+      }
       return {
         question: question,
         totalStudent: totalStudent.length,
         totalAttempt: totalAttempt.length,
         totalNotAttempt: totalStudent.length - totalAttempt.length,
+        rightStudent: totalStudent.length - totalAttemptToGetWrongStudent.length,
+        wrongStudent: totalAttemptToGetWrongStudent.length,
         listOfStudentsHaveNotDone,
-      } ;
+        wrongStudentList
+      } ; 
     } catch(error) {
       throw new InternalServerErrorException(error.message);
     }
