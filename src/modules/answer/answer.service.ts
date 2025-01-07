@@ -458,27 +458,42 @@ export class AnswerService {
   ) {
     try {
       const totalStudent = await this.lessonService.findCourseClassByExamId(examId);
-       console.log("numberOfStudent", totalStudent);
+      console.log("numberOfStudent", totalStudent);
       const question = await this.questionService.findOne(questionId);
       const totalAttempt = await this.answerRepository
                                   .createQueryBuilder('answer')
                                   .select('answer.userId', 'userId')
+                                  
                                   //.addSelect('answer.testAttempts', 'totalAttempt')
                                   .where('answer.examId = :examId', { examId })
                                   .andWhere('answer.questionId = :questionId', { questionId })
                                   .groupBy('answer.userId')
                                   .getRawMany();
-      
-
+     // console.log("totalAttempt", totalAttempt);
+      const removeElements = (A: { userId: number }[], B: { userId: number }[]) => {
+        const BIds = new Set(B.map((item) => item.userId)); // Tạo tập hợp userId từ B
+        return A.filter((item) => !BIds.has(item.userId)); // Lọc các phần tử không tồn tại trong B
+      };
+      const totalStudentV2 = totalStudent.map((student) => {
+        return {
+          userId: student.id,
+        };
+      });
+     // console.log("totalStudentV2", totalStudentV2);
+      const removeUser = removeElements(totalStudentV2, totalAttempt);
+      const listOfStudentsHaveNotDone : String[] = []
+      for (let i = 0; i < removeUser.length; i++) {
+        let user = await this.userService.findUserById(removeUser[i].userId);
+        listOfStudentsHaveNotDone.push(user.name);
+      }
+      console.log("totalStudentV2", listOfStudentsHaveNotDone);
+     // console.log("totalStudentV2", removeUser);
       return {
-        question: {
-          id: question.id,
-          content: question.content,
-          question: question.question
-        },
-        totalStudent: totalStudent,
+        question: question,
+        totalStudent: totalStudent.length,
         totalAttempt: totalAttempt.length,
-        totalNotAttempt: totalStudent - totalAttempt.length,
+        totalNotAttempt: totalStudent.length - totalAttempt.length,
+        listOfStudentsHaveNotDone,
       } ;
     } catch(error) {
       throw new InternalServerErrorException(error.message);

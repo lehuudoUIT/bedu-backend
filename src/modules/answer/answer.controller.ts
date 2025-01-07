@@ -186,6 +186,7 @@ export class AnswerController {
     };
   }
 
+  // Lấy bảng tỷ lệ đúng/sai... theo từng  câu hỏi
   @Get('rate/exam/:examId/question/:questionId')
   async GetTableOfCorrectAndIncorrectRate(
     @Param('examId', ParseIntPipe) examId: number,
