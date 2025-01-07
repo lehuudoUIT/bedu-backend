@@ -4,4 +4,5 @@ export class CreateAnswerDto {
   questionId: number;
   points?: number;
   content: string;
+  testAttempts?: number;
 }
