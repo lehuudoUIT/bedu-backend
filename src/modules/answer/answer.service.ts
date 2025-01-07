@@ -32,6 +32,7 @@ export class AnswerService {
   async create(
     createAnswerDto: CreateAnswerDto
   ): Promise<Answer> {
+
     const user = await this.userService.findUserById(createAnswerDto.userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -45,6 +46,18 @@ export class AnswerService {
     if (!question) {
       throw new NotFoundException('Question not found');
     }
+    let testAttemptTime: number = 0;
+    const testAttempt = await this.answerRepository
+                                  .createQueryBuilder('answer')
+                                  .select('MAX(answer.testAttempts)', 'maxAttempts')
+                                  .where('answer.userId = :userId', { userId: createAnswerDto.userId })
+                                  .andWhere('answer.examId = :examId', { examId: createAnswerDto.examId })
+                                  .andWhere('answer.questionId = :questionId', { questionId: createAnswerDto.questionId })  
+                                  .getRawOne();
+    if (testAttempt === null) 
+      testAttemptTime = 1;
+    else testAttemptTime = testAttempt.maxAttempts + 1;
+
     const scoring = await this.questionService
                                 .calculateScore(question.id, createAnswerDto.content);
     // if (!scoring) {
@@ -56,7 +69,8 @@ export class AnswerService {
       ...createAnswerDto,
       user,
       exam,
-      question
+      question,
+      testAttempts: testAttemptTime
     });
 
     const result = await this.answerRepository.save(answer);
