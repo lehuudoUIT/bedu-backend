@@ -419,33 +419,33 @@ export class AnswerService {
     };
   }
   
-  async getScoreDistribution(examId: number): Promise<
-  { range: string; count: number }[]
-> {
-  const ranges = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Các khoảng điểm (<1, <2, ..., <10)
-  const caseStatements = ranges
-    .map(
-      (value, index) =>
-        `COUNT(CASE WHEN SUM(answer.points) < ${value} THEN 1 END) AS range${value}`
-    )
-    .join(', ');
-
-  const result = await this.answerRepository
-    .createQueryBuilder('answer')
-    .select(caseStatements)
-    .where('answer.examId = :examId', { examId })
-    .andWhere('answer.deletedAt IS NULL')
-    .groupBy('answer.examId') // Chỉ cần nhóm theo kỳ thi
-    .getRawOne();
-
-  // Chuyển đổi kết quả thành định dạng { range, count }
-  const distribution = ranges.map((range) => ({
-    range: `< ${range}`,
-    count: Number(result[`range${range}`] || 0),
-  }));
-
-  return distribution;
-}
+  async getScoreDistribution(
+    examId: number
+  ): Promise<number[]> {
+    try {
+      let ranges: number[] = [];
+      for(let i = 1; i <= 10; i++) {
+        const contribute = await this.answerRepository
+                                  .createQueryBuilder('answer')
+                                  .leftJoinAndSelect('answer.user', 'user')
+                                  .select([
+                                    'answer.userId AS userId',
+                                    'user.name AS name',
+                                    'answer.testAttempts as attempts',
+                                    'SUM(answer.points) AS total',
+                                  ])
+                                  .where('answer.examId = :examId', { examId })
+                                  .andWhere('answer.deletedAt is NULL')
+                                  .groupBy('answer.userId, answer.testAttempts')
+                                  .having(`SUM(answer.points) < ${i} `)
+                                  .getRawMany() 
+        ranges.push(contribute.length);
+      }
+      return ranges;
+    } catch(error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 
   
   async tableOfCorrectAndIncorrectRate(
