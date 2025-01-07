@@ -80,6 +80,8 @@ export class PaymentController {
 
       const amount = response.purchase_units[0]?.amount?.value || 0;
       console.log({ userId, keyword, id });
+      const amount = response.purchase_units[0]?.amount?.value || 0;
+
       //* Add course or class to student
       if (keyword === 'CLASS') {
         //* Add user to class
@@ -94,6 +96,14 @@ export class PaymentController {
         await this.paymentService.create({
           programId: id,
           userId: id,
+          transactionId: response.id,
+          amount,
+          method: 'paypal',
+        });
+
+        await this.paymentService.create({
+          programId: id,
+          userId,
           transactionId: response.id,
           amount,
           method: 'paypal',
