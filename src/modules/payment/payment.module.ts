@@ -8,6 +8,9 @@ import { ProgramModule } from '../program/program.module';
 import { ClassModule } from '../class/class.module';
 import { PaymentFactory } from './payment.factory';
 import { PaymentMethodModule } from '../payment-method/payment-method.module';
+import { CacheModule } from '../cache/cache.module';
+import { UserProgramModule } from '../user_program/user_program.module';
+import { UserClassModule } from '../user_class/user_class.module';
 
 @Module({
   imports: [
@@ -16,6 +19,8 @@ import { PaymentMethodModule } from '../payment-method/payment-method.module';
     ProgramModule,
     ClassModule,
     PaymentMethodModule,
+    UserProgramModule,
+    UserClassModule,
   ],
   controllers: [PaymentController],
   providers: [PaymentService, PaymentFactory],

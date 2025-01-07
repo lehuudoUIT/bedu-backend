@@ -33,6 +33,10 @@ export class ZaloPaymentStrategy implements PaymentStrategy {
       },
     ];
 
+    const callback_url = process.env.ZALO_CONFIRM_URL;
+
+    console.log('callback_url: ' + callback_url);
+
     const order = {
       appid: this.config.appid,
       apptransid: `${moment().format('YYMMDD')}_${uuidv4()}`, // mã giao dich có định dạng yyMMdd_xxxx
@@ -43,6 +47,7 @@ export class ZaloPaymentStrategy implements PaymentStrategy {
       amount,
       description: content || 'ZaloPay Integration Demo',
       bankcode: 'zalopayapp',
+      callback_url,
     };
 
     // appid|apptransid|appuser|amount|apptime|embeddata|item

@@ -11,6 +11,8 @@ import { PaymentFactory } from './payment.factory';
 import { ZaloPaymentStrategy } from './strategies/zalo-payment.strategy';
 import { PaymentMethodService } from '../payment-method/payment-method.service';
 import { strategyType } from './strategies/payment.strategy';
+import { CacheService } from '../cache/cache.service';
+import { PaypalPaymentStrategy } from './strategies/paypal-payment.strategy';
 
 @Injectable()
 export class PaymentService {
@@ -41,8 +43,8 @@ export class PaymentService {
     return await strategy.processPayment(amount, content);
   }
 
-  async confirmPayment(body: any): Promise<any> {
-    const strategy = this.paymentFactory.getPaymentMethod('zalopay');
+  async confirmPayment(method: string, body: any): Promise<any> {
+    const strategy = this.paymentFactory.getPaymentMethod(method);
     return await strategy.confirmPayment(body);
   }
 

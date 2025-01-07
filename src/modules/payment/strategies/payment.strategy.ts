@@ -1,5 +1,5 @@
 import { MomoPaymentStrategy } from './momo-payment.strategy';
-import { StripePaymentStrategy } from './stripe-payment.strategy';
+import { PaypalPaymentStrategy } from './paypal-payment.strategy';
 import { ZaloPaymentStrategy } from './zalo-payment.strategy';
 
 // payment/strategies/payment.strategy.ts
@@ -12,5 +12,5 @@ export interface PaymentStrategy {
 export const strategyType = {
   zalopay: ZaloPaymentStrategy,
   momo: MomoPaymentStrategy,
-  stripe: StripePaymentStrategy,
+  paypal: PaypalPaymentStrategy,
 };

@@ -8,7 +8,13 @@ import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthorizationMiddleware implements NestMiddleware {
-  private excludedRoutes = ['/auth/login', '/auth/signup']; // Các route cần bỏ qua
+  private excludedRoutes = [
+    '/auth/login',
+    '/auth/signup',
+    '/payments/confirm-zalo',
+    '/payments/process',
+    '/payments/confirm-paypal',
+  ]; // Các route cần bỏ qua
   use(req: Request, res: Response, next: NextFunction) {
     console.log(req.path);
 

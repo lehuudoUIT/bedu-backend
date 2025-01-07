@@ -28,6 +28,7 @@ import { AuthorizationMiddleware } from './common/middlewares/authorization.midd
 import { AccessControlModule, RolesBuilder } from 'nest-access-control';
 import { RoleService } from './modules/role/role.service';
 import { PaymentMethodModule } from './modules/payment-method/payment-method.module';
+import { CacheModule } from './modules/cache/cache.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -63,6 +64,7 @@ import { PaymentMethodModule } from './modules/payment-method/payment-method.mod
       },
     }),
     PaymentMethodModule,
+    CacheModule,
   ],
   controllers: [],
   providers: [],
