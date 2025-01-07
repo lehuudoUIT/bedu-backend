@@ -69,6 +69,7 @@ export class PaymentService {
     const payment = this.paymentRepository.create({
       ...createPaymentDto,
       user: user,
+      status: 'success',
       program: program,
       class: classData,
     });

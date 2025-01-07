@@ -78,6 +78,8 @@ export class PaymentController {
       const [userId, keyword, id] =
         response.purchase_units[0]?.items[0]?.name?.split('-');
       console.log({ userId, keyword, id });
+      const amount = response.purchase_units[0]?.amount?.value || 0;
+
       //* Add course or class to student
       if (keyword === 'CLASS') {
         //* Add user to class
@@ -87,6 +89,14 @@ export class PaymentController {
           programId: id,
           userId,
           time: new Date(),
+        });
+
+        await this.paymentService.create({
+          programId: id,
+          userId,
+          transactionId: response.id,
+          amount,
+          method: 'paypal',
         });
       } else {
         throw new NotFoundException('Not found class/program');
