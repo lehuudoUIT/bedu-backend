@@ -163,4 +163,80 @@ export class PaymentService {
     const result = await this.paymentRepository.save(payment);
     return result
   }
+
+  async searchPayment(
+    startTime: Date,
+    endTime: Date,
+    type: string // type of program,
+  ) {
+    console.log("Start time: ", startTime);
+    console.log("End time: ", endTime);
+    console.log("Type: ", type);
+    let payments_program=[], payments_class=[];
+    if (type == 'all') {
+      payments_program = await this.paymentRepository
+                        .createQueryBuilder('payment')
+                        .leftJoinAndSelect('payment.user', 'user')
+                        .leftJoinAndSelect('payment.program', 'program')
+                        .leftJoinAndSelect('payment.class', 'class')
+                        .where('payment.createdAt >= :startTime', { startTime })
+                        .andWhere('payment.createdAt <= :endTime', { endTime })
+                        .andWhere('payment.deletedAt IS NULL')
+                        .getMany();
+    } else {
+      payments_program = await this.paymentRepository
+                        .createQueryBuilder('payment')
+                        .leftJoinAndSelect('payment.user', 'user')
+                        .leftJoinAndSelect('payment.program', 'program')
+                        .leftJoinAndSelect('payment.class', 'class')
+                        .where('payment.createdAt >= :startTime', { startTime })
+                        .andWhere('payment.createdAt <= :endTime', { endTime })
+                        .andWhere('payment.deletedAt IS NULL')
+                        .andWhere('payment.classId IS NULL')
+                        .andWhere('program.type = :type', { type })
+                        .getMany();
+      payments_class = await this.paymentRepository
+                        .createQueryBuilder('payment')
+                        .leftJoinAndSelect('payment.user', 'user')
+                        .leftJoinAndSelect('payment.program', 'program')
+                        .leftJoinAndSelect('payment.class', 'class')
+                        .where('payment.createdAt >= :startTime', { startTime })
+                        .andWhere('payment.createdAt <= :endTime', { endTime })
+                        .andWhere('payment.deletedAt IS NULL')
+                        .andWhere('payment.programId IS NULL')
+                        .andWhere('class.type = :type', { type })
+                        .getMany();
+    }
+    const payments = [...payments_program, ...payments_class];
+    if (payments.length === 0) {
+      throw new NotFoundException('No payment found!');
+    }
+    return payments
+  }
+
+  async totalRevenue(
+    startTime: Date,
+    endTime: Date,
+    type: string
+  ) {
+    const monthlyRevenue = {};
+    const payments = await this.searchPayment(startTime, endTime, type);
+
+    payments.forEach((payment) => {
+      // Extract year and month from createdAt
+      const createdAt = new Date(payment.createdAt);
+      const year = createdAt.getFullYear();
+      const month = createdAt.getMonth() + 1; // Months are 0-indexed
+  
+      const key = `${year}-${month}`; // Format: YYYY-MM
+  
+      // Accumulate revenue in VND
+      if (!monthlyRevenue[key]) {
+        monthlyRevenue[key] = 0;
+      }
+  
+      monthlyRevenue[key] += payment.amount;
+    });
+    return monthlyRevenue;
+  }
 }
