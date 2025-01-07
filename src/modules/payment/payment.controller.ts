@@ -187,4 +187,16 @@ export class PaymentController {
       metadata: await this.paymentService.remove(+id),
     };
   }
+
+  @Get('search/:startTime/:endTime/:type')
+  async SearchPayment(
+    @Param('startTime') startTime: Date,
+    @Param('endTime') endTime: Date,
+    @Param('type') type: string,
+  ) {
+    return {
+      message: 'Search payment successfully',
+      metadata: await this.paymentService.totalRevenue(startTime, endTime, type),
+    };
+  }
 }
