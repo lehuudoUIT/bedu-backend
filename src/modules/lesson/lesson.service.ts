@@ -257,7 +257,7 @@ export class LessonService {
       exam = null; 
     }
      else if (typeof updateLessonDto.examId !== 'undefined' 
-      && typeof updateLessonDto.examId === 'string'
+      && typeof updateLessonDto.examId === 'number'
     ) {
       exam = await this.examService.findOne(updateLessonDto.examId);
       console.log(exam);
@@ -265,6 +265,8 @@ export class LessonService {
         throw new NotFoundException('Exam information is not found');
       }
     }
+
+
 
     // Tạo đối tượng lesson mới với dữ liệu cập nhật
     const newLesson = this.lessonRepository.create({
@@ -319,5 +321,34 @@ export class LessonService {
       listStudent = await this.UserProgramService.findAllByProgramIdNotPaginate(courseId);
     }
     
+  }
+
+  async findCourseClassByExamId(
+    examId: number
+  ) {
+    const lesson = await this.lessonRepository
+                        .createQueryBuilder('lesson')
+                        .leftJoinAndSelect('lesson.exam', 'exam') 
+                        .leftJoinAndSelect('lesson.class', 'class')
+                        .leftJoinAndSelect('lesson.course', 'course')
+                        .where('lesson.deletedAt IS NULL')
+                        .andWhere('exam.id = :examId', { examId }) 
+                        .getOne();
+
+    let numberOfStudent: number = 0;
+    if (lesson.class !== null) {
+      const listStudent = await this.userClassService.findAllByClassNotPaginate(lesson.class.id);
+     // console.log("listStudent", listStudent)
+      numberOfStudent = listStudent.length;
+
+    }
+
+    if (lesson.course !== null) {
+      console.log("numberOfStudent", numberOfStudent)
+      const  listStudent = await this.UserProgramService.findAllByProgramIdNotPaginate(lesson.course.id);
+      numberOfStudent = listStudent.length;
+    }
+
+    return numberOfStudent;
   }
 } 

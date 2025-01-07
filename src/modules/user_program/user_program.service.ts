@@ -229,6 +229,7 @@ export class UserProgramService {
     courseId: number,
   ): Promise<User[]> {
     try {
+      console.log("Hehe")
       const user: User[] = [];
       const program: Program[] = await this.programService.getProgramByCourseId(courseId);
       console.log(program); 
@@ -246,9 +247,10 @@ export class UserProgramService {
 
         user.push(...enrollments.map((enrollment) => enrollment.user));
       }
+      console.log("User ", user);
       return user;
     } catch(error) {
-      throw new Error(error);
+      throw new Error(error.message);
     }
   }
 

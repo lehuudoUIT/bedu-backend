@@ -186,13 +186,14 @@ export class AnswerController {
     };
   }
 
-  @Get('rate/:examId')
+  @Get('rate/exam/:examId/question/:questionId')
   async GetTableOfCorrectAndIncorrectRate(
-    @Param('examId', ParseIntPipe) examId: number
+    @Param('examId', ParseIntPipe) examId: number,
+    @Param('questionId', ParseIntPipe) questionId: number
   ) {
     return {
       message: 'Get table of correct and incorrect rate successfully',
-      metadata: await this.answerService.tableOfCorrectAndIncorrectRate(examId),
+      metadata: await this.answerService.tableOfCorrectAndIncorrectRate(examId, questionId),
     };
   }
 }

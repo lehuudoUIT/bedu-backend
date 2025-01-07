@@ -152,6 +152,7 @@ export class UserClassService {
   async findAllByClassNotPaginate(
     idClass: number
   ): Promise<User[]> {
+
     const userClasses = await this.userClassRepository
                                     .createQueryBuilder('user_class')
                                     .leftJoinAndSelect('user_class.user', 'user')
