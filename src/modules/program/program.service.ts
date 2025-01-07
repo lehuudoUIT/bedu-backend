@@ -294,4 +294,14 @@ export class ProgramService {
       } 
     }
   }
+  
+  async getProgramByCourseId(
+    courseId: number
+  ): Promise<Program[]> {
+    const course = await this.courseService.findOne(courseId);
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+    return course.program;
+  }
 }

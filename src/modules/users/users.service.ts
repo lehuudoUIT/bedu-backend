@@ -5,6 +5,7 @@ import { IsNull, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create.user.dto';
 import { RoleService } from '../role/role.service';
 import * as bcrypt from 'bcryptjs';
+import { UpdateUserDto } from './dtos/update.user.dto';
 var salt = bcrypt.genSaltSync(10);
 @Injectable()
 export class UsersService {
@@ -26,13 +27,13 @@ export class UsersService {
 
     switch (group) {
       case 'student':
-        groupNumber = 1;
+        groupNumber = 3;
         break;
       case 'teacher':
         groupNumber = 2;
         break;
       case 'admin':
-        groupNumber = 3;
+        groupNumber = 1;
         break;
       default:
         throw new Error('Invalid group');
@@ -205,5 +206,37 @@ export class UsersService {
     });
 
     return user ? user : false;
+  }
+
+  async update(
+    id: number, 
+    updateUserDto: UpdateUserDto
+  ): Promise<User> {
+    const user = await this.findUserById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const updatedUser = this.userRepository.create({
+      ...user,
+      ...updateUserDto,
+    });
+    const result = await this.userRepository.save(updatedUser);
+    return result;
+  }
+
+  async remove(
+    id: number
+  ): Promise<User> {
+    try {
+      const user = await this.findUserById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      user.isActive = false;
+      user.deletedAt = new Date();
+      return await this.userRepository.save(user);
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }

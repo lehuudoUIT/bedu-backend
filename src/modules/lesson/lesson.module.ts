@@ -8,6 +8,9 @@ import { CourseModule } from '../course/course.module';
 import { ExamModule } from '../exam/exam.module';
 import { UsersModule } from '../users/users.module';
 import { GoogleModule } from '../google/google.module';
+import { UserClassModule } from '../user_class/user_class.module';
+import { UserProgramModule } from '../user_program/user_program.module';
+import { AnswerModule } from '../answer/answer.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { GoogleModule } from '../google/google.module';
     ExamModule,
     UsersModule,
     GoogleModule,
+    UserClassModule,
+    UserProgramModule,
+    AnswerModule
   ],
   controllers: [LessonController],
   providers: [LessonService],

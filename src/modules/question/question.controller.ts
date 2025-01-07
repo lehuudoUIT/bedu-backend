@@ -110,6 +110,7 @@ export class QuestionController {
     resource: 'question',
     possession: 'own',
   })
+
   @Delete('item/:id')
   async remove(@Param('id') id: string) {
     return {

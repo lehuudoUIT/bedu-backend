@@ -145,4 +145,74 @@ export class AnswerController {
       metadata: await this.answerService.remove(+id),
     };
   }
+
+  @Post('newArray')
+  async submitAnswer(@Body() createAnswerDto: CreateAnswerDto[]) {
+    return {
+      message: 'Submit answer successfully',
+      metadata: await this.answerService.createByAnswerArray(createAnswerDto),
+    };
+  }
+
+    // Bảng điểm của kỳ thi/bài kiểm tra/bài tập
+  @Get('result/:examId')
+  async getExamResult(@Param('examId', ParseIntPipe) examId: number) {
+    return {
+      message: 'Get exam result successfully',
+      metadata: await this.answerService.getExamResultByExamId(examId),
+    };
+  }
+
+  // Lấy các thông tin cơ bản của thống kê như số lần làm bài ,
+  // số lượng học viên dưới 1đ,.....
+  @Get('basicsStatistical/:examId')
+  async getBasicsStatistical(
+    @Param('examId', ParseIntPipe) examId: number
+  ) {
+    return {
+      message: 'Get basics statistical successfully',
+      metadata: await this.answerService.getStatisticalResultByExamId(examId),
+    };
+  }
+
+  // Score contributor
+  @Get('scoreDistributor/:examId')
+  async getScoreDistributor(
+    @Param('examId', ParseIntPipe) examId: number
+  ) {
+    return {
+      message: 'Get score distributor successfully',
+      metadata: await this.answerService.getScoreDistribution(examId),
+    };
+  }
+
+
+  // Câu hỏi 
+  // question: question,
+  // Tổng số học sinh tham gia
+  // totalStudent: totalStudent.length,
+  // Tổng số học sinh đã làm bài
+  // totalAttempt: totalAttempt.length,
+  // Tổng số học sinh chưa làm bài
+  // totalNotAttempt: totalStudent.length - totalAttempt.length,
+  // Tổng số học sinh trả lời đúng
+  // rightStudent: totalStudent.length - totalAttemptToGetWrongStudent.length,
+  // Tổng số học sinh trả lời sai
+  // wrongStudent: totalAttemptToGetWrongStudent.length,
+  // Danh sách học sinh chưa làm bài
+  // listOfStudentsHaveNotDone,
+  // Danh sách học sinh trả lời sai
+  // wrongStudentList
+
+  // Lấy bảng tỷ lệ đúng/sai... theo từng  câu hỏi
+  @Get('rate/exam/:examId/question/:questionId')
+  async GetTableOfCorrectAndIncorrectRate(
+    @Param('examId', ParseIntPipe) examId: number,
+    @Param('questionId', ParseIntPipe) questionId: number
+  ) {
+    return {
+      message: 'Get table of correct and incorrect rate successfully',
+      metadata: await this.answerService.tableOfCorrectAndIncorrectRate(examId, questionId),
+    };
+  }
 }

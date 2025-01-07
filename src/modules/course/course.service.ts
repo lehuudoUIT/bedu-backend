@@ -199,5 +199,16 @@ export class CourseService {
     return result;
   }
 
+  async getProgramByCourse(
+    courseId: number,
+  ): Promise<Program[]> {
+    try {
+      const courseList = await this.findOne(courseId);
+      const program = courseList.program;
+      return program;
+    } catch(error) {
+      throw new NotFoundException(error.message);
+    }
+  }
   
 }

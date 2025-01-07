@@ -109,11 +109,20 @@ export class ClassController {
     resource: 'class',
     possession: 'own',
   })
+
   @Delete('item/:id')
   async remove(@Param('id') id: string) {
     return {
       message: 'Delete class successfully',
       metadata: await this.classService.remove(+id),
+    };
+  }
+
+  @Get('code/:code')
+  async findOneByCode(@Param('code') code: string) {
+    return {
+      message: 'Get class detail successfully',
+      metadata: await this.classService.findOneByCode(code),
     };
   }
 }

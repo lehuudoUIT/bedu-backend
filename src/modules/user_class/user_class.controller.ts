@@ -135,4 +135,14 @@ export class UserClassController {
       metadata: await this.userClassService.findAllByUserId(page, limit, id),
     };
   }
+
+  @Get('all/class/:id')
+  async findAllByStudentNotPaginate(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return {
+      message: 'Find the list of student in class by student successfully',
+      metadata: await this.userClassService.findAllByClassNotPaginate(id),
+    };
+  }
 }

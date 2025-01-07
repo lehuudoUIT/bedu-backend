@@ -150,4 +150,20 @@ export class ProgramController {
       metadata: await this.programService.findOneV2(id),
     };
   }
+
+  @Get('code/:code')
+  async findOneByCode(@Param('code') code: string) {
+    return {
+      message: 'Get program detail successfully',
+      metadata: await this.programService.findOneByCode(code),
+    };
+  }
+
+  @Get('course/:id')
+  async getCourseByProgram(@Param('id') id: number) {
+    return {
+      message: 'Get course by program successfully',
+      metadata: await this.programService.getProgramByCourseId(id),
+    };
+  }
 }

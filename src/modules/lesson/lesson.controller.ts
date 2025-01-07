@@ -115,12 +115,12 @@ export class LessonController {
     };
   }
 
-  @UseGuards(RolesGuard)
-  @UseRoles({
-    action: 'update',
-    resource: 'lesson',
-    possession: 'own',
-  })
+  // @UseGuards(RolesGuard)
+  // @UseRoles({
+  //   action: 'update',
+  //   resource: 'lesson',
+  //   possession: 'own',
+  // })
   @Patch('item/:id')
   async update(
     @Param('id') id: string,

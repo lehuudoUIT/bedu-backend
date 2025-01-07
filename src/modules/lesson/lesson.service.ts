@@ -1,3 +1,4 @@
+import { UserProgram } from 'src/entities/user_program.entity';
 import { UsersService } from './../users/users.service';
 import {
   BadRequestException,
@@ -17,6 +18,13 @@ import { ClassService } from '../class/class.service';
 import { CourseService } from '../course/course.service';
 import { ExamService } from '../exam/exam.service';
 import { GoogleService } from '../google/google.service';
+import { UserClassService } from '../user_class/user_class.service';
+import { UserClass } from 'src/entities/user_class.entity';
+import { User } from 'src/entities/user.entity';
+import { UserProgramService } from '../user_program/user_program.service';
+import { AnswerService } from '../answer/answer.service';
+import { Exam } from 'src/entities/exam.entity';
+import { ReScheduleLessonDto } from './dtos/re-schedule-lesson.dto';
 
 @Injectable()
 export class LessonService {
@@ -28,6 +36,9 @@ export class LessonService {
     private readonly courseService: CourseService,
     private readonly examService: ExamService,
     private readonly googleService: GoogleService,
+    private readonly userClassService: UserClassService,
+    private readonly UserProgramService: UserProgramService,
+    private readonly answerService: AnswerService,
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
@@ -240,12 +251,20 @@ export class LessonService {
       throw new NotFoundException('Course information is not found');
     }
 
-    // Xác thực exam nếu `examId` được cung cấp
-    const exam = updateLessonDto.examId
-      ? await this.examService.findOne(updateLessonDto.examId)
-      : lesson.exam; // Giữ nguyên exam hiện tại nếu không cung cấp
-    if (updateLessonDto.examId && !exam) {
-      throw new NotFoundException('Exam information is not found');
+    let exam: Exam = lesson.exam;
+    console.log(updateLessonDto.examId);
+    if (updateLessonDto.examId === null) {
+      console.log('Yeah');
+      exam = null;
+    } else if (
+      typeof updateLessonDto.examId !== 'undefined' &&
+      typeof updateLessonDto.examId === 'number'
+    ) {
+      exam = await this.examService.findOne(updateLessonDto.examId);
+      console.log(exam);
+      if (!exam) {
+        throw new NotFoundException('Exam information is not found');
+      }
     }
 
     // Tạo đối tượng lesson mới với dữ liệu cập nhật
@@ -284,5 +303,109 @@ export class LessonService {
       throw new NotFoundException('Failed to delete lesson information');
     }
     return result;
+  }
+
+  async getScoreTableOfClassOrCourseInExam(classId: number, courseId: number) {
+    if (typeof classId !== 'undefined' && typeof courseId !== 'undefined') {
+      throw new BadRequestException(
+        "Can't get score table of class and course at the same time",
+      );
+    }
+    let listStudent: User[] = [];
+    if (typeof classId !== 'undefined') {
+      listStudent =
+        await this.userClassService.findAllByClassNotPaginate(classId);
+    }
+    if (typeof courseId !== 'undefined') {
+      listStudent =
+        await this.UserProgramService.findAllByProgramIdNotPaginate(courseId);
+    }
+  }
+
+  async findCourseClassByExamId(examId: number) {
+    const lesson = await this.lessonRepository
+      .createQueryBuilder('lesson')
+      .leftJoinAndSelect('lesson.exam', 'exam')
+      .leftJoinAndSelect('lesson.class', 'class')
+      .leftJoinAndSelect('lesson.course', 'course')
+      .where('lesson.deletedAt IS NULL')
+      .andWhere('exam.id = :examId', { examId })
+      .getOne();
+
+    let listStudent: User[] = [];
+    if (lesson.class !== null) {
+      listStudent = await this.userClassService.findAllByClassNotPaginate(
+        lesson.class.id,
+      );
+      // console.log("listStudent", listStudent)
+    }
+
+    if (lesson.course !== null) {
+      listStudent = await this.UserProgramService.findAllByProgramIdNotPaginate(
+        lesson.course.id,
+      );
+    }
+
+    return listStudent;
+  }
+
+  async deleteLessonOfClass(classId: number, lessonId: number) {
+    try {
+      const classData = await this.classService.findOne(classId);
+      const lesson = await this.lessonRepository.findOneBy({ id: lessonId });
+
+      await this.googleService.deleteEvent(
+        classData.calendarId,
+        lesson.calendarEventId,
+      );
+
+      const result = await this.lessonRepository.update(
+        { id: lessonId },
+        { isActive: false },
+      );
+
+      return result;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async rescheduleLessonOfClass(reScheduleLessonDto: ReScheduleLessonDto) {
+    try {
+      const { classId, lessonId, startDate, endDate } = reScheduleLessonDto;
+      const classData = await this.classService.findOne(classId);
+      const lesson = await this.lessonRepository.findOneBy({ id: lessonId });
+      //* Delete google event
+      await this.googleService.deleteEvent(
+        classData.calendarId,
+        lesson.calendarEventId,
+      );
+      //* Modify old lesson's status to be inactive
+      await this.lessonRepository.update({ id: lessonId }, { isActive: false });
+      //* Add new google event
+      const eventId = await this.googleService.addEventToCalendar({
+        calendarId: classData.calendarId,
+        summary: classData.code,
+        startDate,
+        endDate,
+      });
+
+      //* Insert new lesson
+      const result = await this.lessonRepository.insert({
+        startDate,
+        endDate,
+        title: `Makeup Lesson ${lesson.title}`,
+        type: 'live',
+        calendarEventId: eventId,
+        teacher: lesson.teacher,
+        document: lesson.document,
+        class: lesson.class,
+        exam: lesson.exam,
+      });
+
+      return result;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

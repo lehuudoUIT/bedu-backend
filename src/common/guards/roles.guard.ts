@@ -29,10 +29,11 @@ export class RolesGuard implements CanActivate {
     const user = context.switchToHttp().getRequest().user;
 
     const { action, resource, possession } = permissionRequirements[0];
+    const userRole = user.userRole;
 
     try {
       const hasPermission = this.roleBuilder
-        .can(user.userRole)
+        .can(userRole)
         [identifyAction(action, possession)](resource).granted;
 
       return hasPermission;

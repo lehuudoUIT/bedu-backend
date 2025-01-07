@@ -8,8 +8,20 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const allowedOrigins =
+    process.env.NODE_ENV === 'dev' ? '*' : process.env.ALLOW_ORIGIN;
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: (origin, callback) => {
+      if (
+        allowedOrigins === '*' ||
+        !origin ||
+        allowedOrigins.split(',').includes(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -19,6 +31,10 @@ async function bootstrap() {
   //body parsing
   app.use(express.json());
   app.use(logger);
-  await app.listen(process.env.PORT ?? 3001);
+
+  const port = process.env.PORT;
+
+  await app.listen(port ?? 3004);
+  console.log(`App listen on port ${port}`);
 }
 bootstrap();

@@ -11,7 +11,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  birthday: string;
+  birthday: Date;
 
   @IsString()
   @IsNotEmpty()
@@ -38,5 +38,5 @@ export class CreateUserDto {
   password: string;
 
   @IsNumber()
-  roleId: number;
+  roleId?: number;
 }
