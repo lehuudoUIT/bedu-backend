@@ -463,13 +463,12 @@ export class AnswerService {
       const totalAttempt = await this.answerRepository
                                   .createQueryBuilder('answer')
                                   .select('answer.userId', 'userId')
-                                  
                                   //.addSelect('answer.testAttempts', 'totalAttempt')
                                   .where('answer.examId = :examId', { examId })
                                   .andWhere('answer.questionId = :questionId', { questionId })
                                   .groupBy('answer.userId')
                                   .getRawMany();
-     // console.log("totalAttempt", totalAttempt);
+
       const removeElements = (A: { userId: number }[], B: { userId: number }[]) => {
         const BIds = new Set(B.map((item) => item.userId)); // Tạo tập hợp userId từ B
         return A.filter((item) => !BIds.has(item.userId)); // Lọc các phần tử không tồn tại trong B
@@ -488,6 +487,18 @@ export class AnswerService {
       }
       console.log("totalStudentV2", listOfStudentsHaveNotDone);
      // console.log("totalStudentV2", removeUser);
+     const rightStudent: number =  0;
+     const wrongStudent: number = 0;
+     console.log("totalAttempt", totalAttempt);
+     const totalAttemptToGetRightStudent = await this.answerRepository
+                                  .createQueryBuilder('answer')
+                                  .select('answer.userId', 'userId')
+                                  //.addSelect('answer.testAttempts', 'totalAttempt')
+                                  .where('answer.examId = :examId', { examId })
+                                  .andWhere('answer.questionId = :questionId', { questionId })
+                                  .groupBy('answer.questionId, answer.userId')
+                                  .getRawMany();
+      console.log("totalAttemptToGet", totalAttemptToGetRightStudent);
       return {
         question: question,
         totalStudent: totalStudent.length,
