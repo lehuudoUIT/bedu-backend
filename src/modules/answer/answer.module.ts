@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AnswerService } from './answer.service';
 import { AnswerController } from './answer.controller';
 import { Answer } from 'src/entities/answer.entity';
@@ -18,7 +18,7 @@ import { LessonModule } from '../lesson/lesson.module';
     ExamModule,
     ClassModule,
     CourseModule,
-   // LessonModule
+   forwardRef(() => LessonModule),
 ],
   controllers: [AnswerController],
   providers: [AnswerService],

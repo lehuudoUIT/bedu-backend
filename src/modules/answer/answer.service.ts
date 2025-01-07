@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, Inject, forwardRef } from '@nestjs/common';
 import { CreateAnswerDto } from './dtos/create-answer.dto';
 import { UpdateAnswerDto } from './dtos/update-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -25,6 +25,8 @@ export class AnswerService {
     private readonly examService: ExamService,
     private readonly classService: ClassService,
     private readonly courseService: CourseService,
+    @Inject(forwardRef(() => LessonService))
+    private readonly lessonService: LessonService
   ) {}
 
   async create(
@@ -452,13 +454,31 @@ export class AnswerService {
   
   async tableOfCorrectAndIncorrectRate(
     examId: number,
+    questionId: number,
   ) {
     try {
+      const totalStudent = await this.lessonService.findCourseClassByExamId(examId);
+       console.log("numberOfStudent", totalStudent);
+      const question = await this.questionService.findOne(questionId);
+      const totalAttempt = await this.answerRepository
+                                  .createQueryBuilder('answer')
+                                  .select('answer.userId', 'userId')
+                                  //.addSelect('answer.testAttempts', 'totalAttempt')
+                                  .where('answer.examId = :examId', { examId })
+                                  .andWhere('answer.questionId = :questionId', { questionId })
+                                  .groupBy('answer.userId')
+                                  .getRawMany();
       
 
       return {
-        totalStudent: 1,
-        totalAttempt: 1,
+        question: {
+          id: question.id,
+          content: question.content,
+          question: question.question
+        },
+        totalStudent: totalStudent,
+        totalAttempt: totalAttempt.length,
+        totalNotAttempt: totalStudent - totalAttempt.length,
       } ;
     } catch(error) {
       throw new InternalServerErrorException(error.message);
