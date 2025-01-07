@@ -250,10 +250,17 @@ export class LessonService {
       throw new NotFoundException('Course information is not found');
     }
 
-    let exam: Exam = lesson.exam;
-    if (typeof updateLessonDto.examId !== 'undefined') {
+    let exam: Exam = lesson.exam; 
+    console.log(updateLessonDto.examId)
+    if (updateLessonDto.examId === null ) {
+      console.log("Yeah")
+      exam = null; 
+    }
+     else if (typeof updateLessonDto.examId !== 'undefined' 
+      && typeof updateLessonDto.examId === 'string'
+    ) {
       exam = await this.examService.findOne(updateLessonDto.examId);
-      // console.log(exam);
+      console.log(exam);
       if (!exam) {
         throw new NotFoundException('Exam information is not found');
       }

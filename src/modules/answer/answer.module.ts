@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { ExamModule } from '../exam/exam.module';
 import { ClassModule } from '../class/class.module';
 import { CourseModule } from '../course/course.module';
+import { LessonModule } from '../lesson/lesson.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { CourseModule } from '../course/course.module';
     UsersModule,
     ExamModule,
     ClassModule,
-    CourseModule
+    CourseModule,
+   // LessonModule
 ],
   controllers: [AnswerController],
   providers: [AnswerService],
