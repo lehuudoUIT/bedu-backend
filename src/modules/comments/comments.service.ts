@@ -136,6 +136,7 @@ export class CommentsService {
           'comment.createdAt',
         ])
         .where('comment.lessonId = :lessonId', { lessonId })
+        .andWhere('comment.parentId IS NULL')
         .leftJoinAndSelect('comment.user', 'user')
         .leftJoinAndSelect('comment.children', 'children')
         .orderBy('comment.left', 'ASC')
