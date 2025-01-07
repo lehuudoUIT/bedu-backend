@@ -13,6 +13,7 @@ import { Class } from 'src/entities/class.entity';
 import { Course } from 'src/entities/course.entity';
 import { ClassService } from '../class/class.service';
 import { CourseService } from '../course/course.service';
+import { LessonService } from '../lesson/lesson.service';
 // npx jest src/modules/answer/answer.service.spec.ts
 @Injectable()
 export class AnswerService {
@@ -22,7 +23,8 @@ export class AnswerService {
     private  readonly questionService: QuestionService,
     private readonly userService: UsersService,
     private readonly examService: ExamService,
-
+    private readonly classService: ClassService,
+    private readonly courseService: CourseService,
   ) {}
 
   async create(
@@ -452,34 +454,11 @@ export class AnswerService {
     examId: number,
   ) {
     try {
-      const totalStudent = await this.answerRepository
-                                    .createQueryBuilder('answer')
-                                    .leftJoinAndSelect('answer.exam', 'exam') 
-                                    .leftJoinAndSelect('answer.question', 'question') 
-                                    .select([
-                                      'question.id AS questionId', 
-                                      'COUNT(DISTINCT answer.userId) AS participantCount',
-                                    ])
-                                    .where('answer.examId = :examId', { examId }) 
-                                    .andWhere('answer.deletedAt IS NULL') 
-                                    .groupBy('question.id') 
-                                    .getRawMany();
-      const totalAttempt = await this.answerRepository
-                                    .createQueryBuilder('answer')
-                                    .leftJoinAndSelect('answer.exam', 'exam') 
-                                    .leftJoinAndSelect('answer.question', 'question') 
-                                    .select([
-                                      'question.id AS questionId', 
-                                      'COUNT(answer.userId) AS participantCount',
-                                    ])
-                                    .where('answer.examId = :examId', { examId }) 
-                                    .andWhere('answer.deletedAt IS NULL') 
-                                    .groupBy('question.id') 
-                                    .getRawMany();
+      
 
       return {
-        totalStudent: totalStudent,
-        totalAttempt: totalAttempt,
+        totalStudent: 1,
+        totalAttempt: 1,
       } ;
     } catch(error) {
       throw new InternalServerErrorException(error.message);

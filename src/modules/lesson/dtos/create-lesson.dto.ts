@@ -1,3 +1,5 @@
+import { IsNumber } from "class-validator";
+
 export class CreateLessonDto {
   title: string;
   startDate: Date;
@@ -6,6 +8,7 @@ export class CreateLessonDto {
   videoUrl: string;
   classId?: number;
   courseId?: number;
+  @IsNumber()
   examId?: number;
   teacherId: number;
 }
