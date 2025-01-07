@@ -78,7 +78,6 @@ export class PaymentController {
       const [userId, keyword, id] =
         response.purchase_units[0]?.items[0]?.name?.split('-');
 
-      const amount = response.purchase_units[0]?.amount?.value || 0;
       console.log({ userId, keyword, id });
       const amount = response.purchase_units[0]?.amount?.value || 0;
 
