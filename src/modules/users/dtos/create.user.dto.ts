@@ -11,7 +11,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  birthday: string;
+  birthday: Date;
 
   @IsString()
   @IsNotEmpty()

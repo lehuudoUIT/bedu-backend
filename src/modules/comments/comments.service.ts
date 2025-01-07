@@ -88,7 +88,7 @@ export class CommentsService {
     limit: number = 50,
     offset: number = 0, //skip
   ) {
-    if (parentCommentId) {
+    if (Number(parentCommentId)) {
       const parent = await this.commentRepository.findOneBy({
         id: parentCommentId,
       });
@@ -97,29 +97,60 @@ export class CommentsService {
         .createQueryBuilder('comment')
         .select([
           'comment.left',
+          'comment.id',
           'comment.right',
           'comment.content',
           'comment.lessonId',
+          'comment.createdAt',
         ])
         .where('comment.lessonId = :lessonId', { lessonId })
         .andWhere('comment.parentId = :parentCommentId', { parentCommentId })
+        .leftJoinAndSelect('comment.user', 'user')
+        .leftJoinAndSelect('comment.children', 'children')
         .orderBy('comment.left', 'ASC')
         .getMany();
-      return comments;
+
+      const response = comments.map((comment) => {
+        return {
+          commentId: comment.id,
+          username: comment.user.name,
+          content: comment.content,
+          commentTime: comment.createdAt,
+          hasChildren: comment.children?.length > 0 ? true : false,
+        };
+      });
+
+      return response;
     } else {
+      parentCommentId = null;
+
       //! root comment
       const comments = await this.commentRepository
         .createQueryBuilder('comment')
         .select([
           'comment.left',
+          'comment.id',
           'comment.right',
           'comment.content',
-          'comment.parentId',
+          'comment.lessonId',
+          'comment.createdAt',
         ])
+        .where('comment.lessonId = :lessonId', { lessonId })
+        .leftJoinAndSelect('comment.user', 'user')
+        .leftJoinAndSelect('comment.children', 'children')
         .orderBy('comment.left', 'ASC')
         .getMany();
 
-      return comments;
+      const response = comments.map((comment) => {
+        return {
+          commentId: comment.id,
+          username: comment.user?.name || 'Anonymous',
+          content: comment.content,
+          commentTime: comment.createdAt,
+          hasChildren: comment.children?.length > 0 ? true : false,
+        };
+      });
+      return response;
     }
   }
 
