@@ -196,7 +196,19 @@ export class PaymentController {
   ) {
     return {
       message: 'Search payment successfully',
-      metadata: await this.paymentService.totalRevenue(startTime, endTime, type),
+      metadata: await this.paymentService.searchPayment(startTime, endTime, type),
     };
+  }
+
+  @Get('export/:startTime/:endTime/:type')
+  async exportRevenueReportToExcelFile(
+    @Param('startTime') startTime: Date,
+    @Param('endTime') endTime: Date,
+    @Param('type') type: string,
+  ) {
+    return {
+      message: 'Export revenue report to excel file successfully',
+      metadata: await this.paymentService.exportRevenueReportToExcelFile(startTime, endTime, type),
+    }
   }
 }

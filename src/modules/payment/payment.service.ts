@@ -7,6 +7,7 @@ import { Not, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { ProgramService } from '../program/program.service';
 import { ClassService } from '../class/class.service';
+import { formData } from 'src/utils';
 import { PaymentFactory } from './payment.factory';
 import { ZaloPaymentStrategy } from './strategies/zalo-payment.strategy';
 import { PaymentMethodService } from '../payment-method/payment-method.service';
@@ -186,11 +187,48 @@ export class PaymentService {
     return result;
   }
 
+  async exportRevenueReportToExcelFile(
+    startTime: Date,
+    endTime: Date,
+    type: string
+  ) {
+    const payments = await this.searchPayment(startTime, endTime, type);
+    if (payments.length === 0) {
+      throw new NotFoundException('No payment found!');
+    }
+
+    let paymentToExcel: formData[] = [];
+    for (let i: number = 0; i < payments.length; i++) {
+      if (payments[i].program == null) {
+        let data: formData = {} as formData;
+        data['No'] = i + 1;
+        data['ProgramName'] = payments[i].class.name;
+        data['Payer'] = payments[i].user.name;
+        data['Amount'] = payments[i].amount;
+        data['Method'] = payments[i].method;
+        data['TransactionId'] = payments[i].transactionId;
+        data['Status'] = "Paid";
+        paymentToExcel.push(data);
+      } else {
+        let data: formData = {} as formData;
+        data['No'] = i + 1;
+        data['ProgramName'] = payments[i].program.title;
+        data['Payer'] = payments[i].user.name;
+        data['Amount'] = payments[i].amount;
+        data['Method'] = payments[i].method;
+        data['TransactionId'] = payments[i].transactionId;
+        data['Status'] = "Paid";
+        paymentToExcel.push(data);
+      }
+    }
+    return paymentToExcel;
+  }
+
   async searchPayment(
     startTime: Date,
     endTime: Date,
     type: string // type of program,
-  ) {
+  ): Promise<Payment[]> {
     console.log("Start time: ", startTime);
     console.log("End time: ", endTime);
     console.log("Type: ", type);
@@ -245,14 +283,12 @@ export class PaymentService {
     const payments = await this.searchPayment(startTime, endTime, type);
 
     payments.forEach((payment) => {
-      // Extract year and month from createdAt
       const createdAt = new Date(payment.createdAt);
       const year = createdAt.getFullYear();
-      const month = createdAt.getMonth() + 1; // Months are 0-indexed
+      const month = createdAt.getMonth() + 1; 
   
-      const key = `${year}-${month}`; // Format: YYYY-MM
-  
-      // Accumulate revenue in VND
+      const key = `${year}-${month}`;
+
       if (!monthlyRevenue[key]) {
         monthlyRevenue[key] = 0;
       }
