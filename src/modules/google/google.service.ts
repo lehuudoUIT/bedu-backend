@@ -263,6 +263,7 @@ export class GoogleService {
     summary: string;
     startDate: Date;
     endDate: Date;
+    attendees: { email: string }[];
   }): Promise<string> {
     try {
       const event = {
@@ -270,28 +271,31 @@ export class GoogleService {
         location: 'Google Calendar',
         description: 'This is lesson of class ' + body.summary,
         start: {
-          dateTime: body.startDate.toISOString(),
+          dateTime: new Date(body.startDate).toISOString(),
           timeZone: 'Asia/Ho_Chi_Minh', // Thay đổi theo múi giờ của bạn
         },
         end: {
-          dateTime: body.endDate.toISOString(),
+          dateTime: new Date(body.endDate).toISOString(),
           timeZone: 'Asia/Ho_Chi_Minh', // Thay đổi theo múi giờ của bạn
         },
-        attendees: [
-          {
-            email: process.env.GOOGLE_IMPERSONATED_EMAIL,
-          },
-        ],
+        attendees: body.attendees,
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'email', minutes: 10 }, // Gửi email nhắc nhở 10 phút trước sự kiện
+          ],
+        },
       };
 
       const response = await this.calendar.events.insert({
         calendarId: body.calendarId,
+        sendUpdates: 'all',
         requestBody: event,
       });
 
       return response.data.id;
     } catch (error) {
-      throw new Error(`Lỗi khi xóa sự kiện: ${error.message}`);
+      throw new Error(`Lỗi khi thêm sự kiện: ${error.message}`);
     }
   }
 }
