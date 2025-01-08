@@ -205,7 +205,7 @@ export class PaymentService {
         data['ProgramName'] = payments[i].class.name;
         data['Payer'] = payments[i].user.name;
         data['Amount'] = payments[i].amount;
-        data['Method'] = payments[i].method;
+        data['Method'] = payments[i].paymentMethod.name;
         data['TransactionId'] = payments[i].transactionId;
         data['Status'] = "Paid";
         paymentToExcel.push(data);
@@ -215,7 +215,7 @@ export class PaymentService {
         data['ProgramName'] = payments[i].program.title;
         data['Payer'] = payments[i].user.name;
         data['Amount'] = payments[i].amount;
-        data['Method'] = payments[i].method;
+        data['Method'] = payments[i].paymentMethod.name;
         data['TransactionId'] = payments[i].transactionId;
         data['Status'] = "Paid";
         paymentToExcel.push(data);
