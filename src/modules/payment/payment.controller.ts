@@ -181,7 +181,7 @@ export class PaymentController {
     };
   }
 
-  @Get('search/:startTime/:endTime/:type')
+ @Get('search/:startTime/:endTime/:type')
   async SearchPayment(
     @Param('startTime') startTime: Date,
     @Param('endTime') endTime: Date,
@@ -189,11 +189,7 @@ export class PaymentController {
   ) {
     return {
       message: 'Search payment successfully',
-      metadata: await this.paymentService.searchPayment(
-        startTime,
-        endTime,
-        type,
-      ),
+      metadata: await this.paymentService.totalRevenue(startTime, endTime, type),
     };
   }
 
@@ -205,11 +201,7 @@ export class PaymentController {
   ) {
     return {
       message: 'Export revenue report to excel file successfully',
-      metadata: await this.paymentService.exportRevenueReportToExcelFile(
-        startTime,
-        endTime,
-        type,
-      ),
-    };
+      metadata: await this.paymentService.searchPayment(startTime, endTime, type),
+    }
   }
 }

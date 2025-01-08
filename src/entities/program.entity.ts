@@ -22,9 +22,6 @@ export class Program extends AbstractEntity<Program> {
   @Column()
   type: string;
 
-  @Column({ type: 'boolean', default: true}) 
-  isActive: boolean;
-
   @OneToMany(() => UserProgram, (userProgram) => userProgram.program)
   userProgram: UserProgram[];
 

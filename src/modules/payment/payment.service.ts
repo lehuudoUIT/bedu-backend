@@ -99,6 +99,7 @@ export class PaymentService {
       .leftJoinAndSelect('payment.user', 'user')
       .leftJoinAndSelect('payment.program', 'program')
       .leftJoinAndSelect('payment.class', 'class')
+      .leftJoinAndSelect('payment.paymentMethod', 'paymentMethod')
       .where('payment.deletedAt IS NULL')
       // .where('payment.isActive := isActive', { isActive: status })
       .orderBy('payment.createdAt', 'DESC')
@@ -120,10 +121,15 @@ export class PaymentService {
   }
 
   async findOne(id: number) {
-    const payment = await this.paymentRepository.findOneBy({
-      id,
-      deletedAt: null,
-    });
+    const payment = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.user', 'user')
+      .leftJoinAndSelect('payment.program', 'program')
+      .leftJoinAndSelect('payment.class', 'class')
+      .leftJoinAndSelect('payment.paymentMethod', 'paymentMethod')
+      .where('payment.id = :id', { id })
+      .andWhere('payment.deletedAt IS NULL')
+      .getOne();
     if (!payment) {
       throw new NotFoundException('Payment information not found');
     }
@@ -238,6 +244,7 @@ export class PaymentService {
                         .createQueryBuilder('payment')
                         .leftJoinAndSelect('payment.user', 'user')
                         .leftJoinAndSelect('payment.program', 'program')
+                        .leftJoinAndSelect('payment.paymentMethod', 'paymentMethod')
                         .leftJoinAndSelect('payment.class', 'class')
                         .where('payment.createdAt >= :startTime', { startTime })
                         .andWhere('payment.createdAt <= :endTime', { endTime })
@@ -248,6 +255,7 @@ export class PaymentService {
                         .createQueryBuilder('payment')
                         .leftJoinAndSelect('payment.user', 'user')
                         .leftJoinAndSelect('payment.program', 'program')
+                        .leftJoinAndSelect('payment.paymentMethod', 'paymentMethod')
                         .leftJoinAndSelect('payment.class', 'class')
                         .where('payment.createdAt >= :startTime', { startTime })
                         .andWhere('payment.createdAt <= :endTime', { endTime })
@@ -259,6 +267,7 @@ export class PaymentService {
                         .createQueryBuilder('payment')
                         .leftJoinAndSelect('payment.user', 'user')
                         .leftJoinAndSelect('payment.program', 'program')
+                        .leftJoinAndSelect('payment.paymentMethod', 'paymentMethod')
                         .leftJoinAndSelect('payment.class', 'class')
                         .where('payment.createdAt >= :startTime', { startTime })
                         .andWhere('payment.createdAt <= :endTime', { endTime })
@@ -281,20 +290,27 @@ export class PaymentService {
   ) {
     const monthlyRevenue = {};
     const payments = await this.searchPayment(startTime, endTime, type);
-
+  
     payments.forEach((payment) => {
       const createdAt = new Date(payment.createdAt);
       const year = createdAt.getFullYear();
-      const month = createdAt.getMonth() + 1; 
+      const month = createdAt.getMonth() + 1;
   
       const key = `${year}-${month}`;
-
+  
       if (!monthlyRevenue[key]) {
         monthlyRevenue[key] = 0;
       }
   
-      monthlyRevenue[key] += payment.amount;
+      monthlyRevenue[key] += Number(payment.amount);
     });
-    return monthlyRevenue;
+  
+    // Chuyển đổi monthlyRevenue thành mảng các đối tượng
+    const result = Object.entries(monthlyRevenue).map(([month, value]) => ({
+      month,
+      value,
+    }));
+  
+    return result;
   }
 }
