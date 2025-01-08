@@ -11,14 +11,22 @@ import {
   UseFilters,
   UseInterceptors,
   UseGuards,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  UploadedFiles,
 } from '@nestjs/common';
 import { DocumentService } from './document.service';
-import { CreateDocumentDto } from './dtos/create-document.dto';
+import {
+  CreateDocumentDto,
+  UploadDocumentDto,
+} from './dtos/create-document.dto';
 import { UpdateDocumentDto } from './dtos/update-document.dto';
 import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.filter';
 import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UseRoles } from 'nest-access-control';
+import { uploadDisk } from 'src/configs/multer.config';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('documents')
 @UseFilters(HttpExceptionFilter)
@@ -117,6 +125,34 @@ export class DocumentController {
     return {
       message: 'This action removes a #${id} document',
       metadata: await this.documentService.remove(+id),
+    };
+  }
+
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'create',
+    resource: 'document',
+    possession: 'any',
+  })
+  @Post('upload')
+  @UseInterceptors(FilesInterceptor('files', 5, uploadDisk))
+  async uploadDocument(
+    @Body() uploadDocumentDto: UploadDocumentDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 5000000 })],
+      }),
+    )
+    files: Express.Multer.File[],
+  ) {
+    console.log({ uploadDocumentDto, files });
+
+    return {
+      message: 'This action adds a new document',
+      metadata: await this.documentService.uploadDocument(
+        uploadDocumentDto,
+        files,
+      ),
     };
   }
 }

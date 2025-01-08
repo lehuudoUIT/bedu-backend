@@ -12,7 +12,7 @@ export class ResponseFormatInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => {
-        if (!data.skipFormatResponse)
+        if (!data?.skipFormatResponse)
           return {
             statusCode: context.switchToHttp().getResponse().statusCode,
             message: data?.message || 'Request was successful',
