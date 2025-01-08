@@ -24,9 +24,10 @@ export class AuthController {
   ) {
     const result = await this.authservice.authentication(input);
     response.cookie('jwt', result.accessToken, {
-      // httpOnly: true,
+      // httpOnly: true, 
       maxAge: Number(process.env.JWT_EXPIRATION),
     });
+   // console.log("EXPIRATION", process.env.JWT_EXPIRATION);
     return {
       metadata: result,
       message: 'Login successfully',

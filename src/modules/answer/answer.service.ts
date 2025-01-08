@@ -344,12 +344,20 @@ export class AnswerService {
   async getStatisticalResultByExamId(
     examId: number
   ): Promise<{
+    studentJoinIn: number;
     averageScore: number;
     lessThanOne: number;
     greaterThanOrEqualFive: number;
     mostCommonScore: number | null;
     totalTries: number
   }> {
+
+    const studentJoinIn = await this.answerRepository
+                              .createQueryBuilder('answer')
+                              .select('DISTINCT answer.userId', 'userId')
+                              .where('answer.examId = :examId', { examId })
+                              .andWhere('answer.deletedAt is NULL')
+                              .getRawMany();
 
     const subquery = await  this.answerRepository
                               .createQueryBuilder('answer')
@@ -363,6 +371,7 @@ export class AnswerService {
                               .where('answer.examId = :examId', { examId })
                               .andWhere('answer.deletedAt is NULL')
                               .groupBy('answer.userId, answer.testAttempts')
+    
 
     const avgQuery = await this.answerRepository
                   .createQueryBuilder()
@@ -429,6 +438,7 @@ export class AnswerService {
                                   .getRawMany();
                           
     return {
+      studentJoinIn: studentJoinIn.length,
       averageScore: avgQuery.average || 0,
       lessThanOne: lessThanOneCount.length,
       greaterThanOrEqualFive: greaterThanOrEqualFiveCount.length,

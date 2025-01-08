@@ -20,7 +20,10 @@ export class User extends AbstractEntity<User> {
   @Column()
   gender: string;
 
-  @Column()
+  @Column({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP', 
+  })
   birthday: Date;
 
   @Column()
