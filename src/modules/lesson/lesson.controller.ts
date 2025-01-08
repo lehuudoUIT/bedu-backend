@@ -192,7 +192,7 @@ export class LessonController {
   @Get('list-document/:id')
   async getListDocumentOfLesson(@Param('id') id: number) {
     return {
-      message: 'This action returns a #${id} document',
+      message: 'Get list document successfully!',
       metadata: await this.lessonService.getListDocumentOfLesson(+id),
     };
   }
