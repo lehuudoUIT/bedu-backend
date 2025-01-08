@@ -165,7 +165,7 @@ export class AnswerController {
 
   // Lấy các thông tin cơ bản của thống kê như số lần làm bài ,
   // số lượng học viên dưới 1đ,.....
-  @Get('basicsStatistical/:examId')
+  @Get('')
   async getBasicsStatistical(
     @Param('examId', ParseIntPipe) examId: number
   ) {
