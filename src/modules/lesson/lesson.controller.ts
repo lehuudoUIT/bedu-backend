@@ -22,6 +22,7 @@ import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception.
 import { ResponseFormatInterceptor } from 'src/common/intercepters/response.interceptor';
 import { UseRoles } from 'nest-access-control';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { ReScheduleLessonDto } from './dtos/re-schedule-lesson.dto';
 
 @Controller('lessons')
 @UseFilters(HttpExceptionFilter)
@@ -129,6 +130,42 @@ export class LessonController {
     return {
       message: 'Update lesson information successfully',
       metadata: await this.lessonService.update(+id, updateLessonDto),
+    };
+  }
+
+  // @UseGuards(RolesGuard)
+  // @UseRoles({
+  //   action: 'update',
+  //   resource: 'lesson',
+  //   possession: 'own',
+  // })
+  @Post('reschedule')
+  async rescheduleLessonOfClass(
+    @Body() reScheduleLessonDto: ReScheduleLessonDto,
+  ) {
+    return {
+      message: 'Reschedule lesson successfully',
+      metadata:
+        await this.lessonService.rescheduleLessonOfClass(reScheduleLessonDto),
+    };
+  }
+
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'delete',
+    resource: 'lesson',
+    possession: 'own',
+  })
+  @Delete('event')
+  async deleteLessonOfClass(
+    @Body() body: { classId: number; lessonId: number },
+  ) {
+    return {
+      message: 'Delete lesson of class successfully',
+      metadata: await this.lessonService.deleteLessonOfClass(
+        body.classId,
+        body.lessonId,
+      ),
     };
   }
 

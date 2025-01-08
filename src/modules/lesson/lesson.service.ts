@@ -375,19 +375,16 @@ export class LessonService {
       const { classId, lessonId, startDate, endDate } = reScheduleLessonDto;
       const classData = await this.classService.findOne(classId);
       const lesson = await this.lessonRepository.findOneBy({ id: lessonId });
-      //* Delete google event
-      await this.googleService.deleteEvent(
-        classData.calendarId,
-        lesson.calendarEventId,
-      );
+
       //* Modify old lesson's status to be inactive
       await this.lessonRepository.update({ id: lessonId }, { isActive: false });
-      //* Add new google event
-      const eventId = await this.googleService.addEventToCalendar({
+
+      await this.googleService.updateEventTime({
         calendarId: classData.calendarId,
-        summary: classData.code,
+        eventId: lesson.calendarEventId,
         startDate,
         endDate,
+        title: `Makeup ${lesson.title}`,
       });
 
       //* Insert new lesson
@@ -396,7 +393,7 @@ export class LessonService {
         endDate,
         title: `Makeup Lesson ${lesson.title}`,
         type: 'live',
-        calendarEventId: eventId,
+        calendarEventId: lesson.calendarEventId,
         teacher: lesson.teacher,
         document: lesson.document,
         class: lesson.class,
