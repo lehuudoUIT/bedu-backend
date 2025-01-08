@@ -380,6 +380,9 @@ export class LessonService {
         classData.calendarId,
         lesson.calendarEventId,
       );
+      const attendees =
+        await this.userClassService.getListEmailOfClass(classId);
+
       //* Modify old lesson's status to be inactive
       await this.lessonRepository.update({ id: lessonId }, { isActive: false });
       //* Add new google event
@@ -388,6 +391,7 @@ export class LessonService {
         summary: classData.code,
         startDate,
         endDate,
+        attendees,
       });
 
       //* Insert new lesson

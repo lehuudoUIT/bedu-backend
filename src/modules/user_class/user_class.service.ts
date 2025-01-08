@@ -276,5 +276,6 @@ export class UserClassService {
       totalRecord: total,
       userClasses: userClasses
     }
+  async getListEmailOfClass(classId: number) {
   }
 }
