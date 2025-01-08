@@ -486,7 +486,7 @@ export class AnswerService {
       const question = await this.questionService.findOne(questionId);
       const totalAttempt = await this.answerRepository
                                   .createQueryBuilder('answer')
-                                  .select('answer.userId', 'userId')
+                                  .select('DISTINCT answer.userId', 'userId')
                                   //.addSelect('answer.testAttempts', 'totalAttempt')
                                   .where('answer.examId = :examId', { examId })
                                   .andWhere('answer.questionId = :questionId', { questionId })

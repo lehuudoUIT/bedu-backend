@@ -10,4 +10,5 @@ export class CreateProgramDto {
 
   // type is in  toeic, ielts, toefl
   type: string;
+  isActive: boolean;
 }
