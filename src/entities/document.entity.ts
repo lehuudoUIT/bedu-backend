@@ -1,5 +1,12 @@
 import { AbstractEntity } from '../database/abstract.entity';
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { LessonDocument } from './lesson_document.entity';
 import { Question } from './question.entity';
 import { Lesson } from './lesson.entity';
@@ -22,17 +29,17 @@ export class Document extends AbstractEntity<Document> {
   attachFile: string;
 
   // @OneToMany(
-  //   () => LessonDocument, 
+  //   () => LessonDocument,
   //   (lessonDocument) => lessonDocument.document)
   // lessonDocument: LessonDocument[];
 
   @ManyToOne(() => Lesson, (lesson) => lesson.document, { eager: true })
   lesson: Lesson;
 
-  @ManyToMany(
-    () => Question,  
-    (question) => question.document,
-    { eager: true })
-  @JoinTable({name: "documents_questions"})
+  @ManyToMany(() => Question, (question) => question.document, {
+    eager: true,
+    nullable: true,
+  })
+  @JoinTable({ name: 'documents_questions' })
   question: Question[];
 }

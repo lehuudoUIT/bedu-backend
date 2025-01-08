@@ -11,6 +11,7 @@ import { GoogleModule } from '../google/google.module';
 import { UserClassModule } from '../user_class/user_class.module';
 import { UserProgramModule } from '../user_program/user_program.module';
 import { AnswerModule } from '../answer/answer.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { AnswerModule } from '../answer/answer.module';
     GoogleModule,
     UserClassModule,
     UserProgramModule,
-    AnswerModule
+    AnswerModule,
+    UploadModule,
   ],
   controllers: [LessonController],
   providers: [LessonService],

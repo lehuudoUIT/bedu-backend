@@ -5,15 +5,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Document } from 'src/entities/document.entity';
 import { QuestionModule } from '../question/question.module';
 import { LessonModule } from '../lesson/lesson.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Document]),
     forwardRef(() => QuestionModule),
-    forwardRef(() => LessonModule)
+    forwardRef(() => LessonModule),
+    UploadModule,
   ],
   controllers: [DocumentController],
   providers: [DocumentService],
-  exports: [DocumentService]
+  exports: [DocumentService],
 })
 export class DocumentModule {}

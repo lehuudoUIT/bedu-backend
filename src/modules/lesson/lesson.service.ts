@@ -25,6 +25,7 @@ import { UserProgramService } from '../user_program/user_program.service';
 import { AnswerService } from '../answer/answer.service';
 import { Exam } from 'src/entities/exam.entity';
 import { ReScheduleLessonDto } from './dtos/re-schedule-lesson.dto';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class LessonService {
@@ -39,6 +40,7 @@ export class LessonService {
     private readonly userClassService: UserClassService,
     private readonly UserProgramService: UserProgramService,
     private readonly answerService: AnswerService,
+    private readonly uploadService: UploadService,
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
@@ -375,19 +377,16 @@ export class LessonService {
       const { classId, lessonId, startDate, endDate } = reScheduleLessonDto;
       const classData = await this.classService.findOne(classId);
       const lesson = await this.lessonRepository.findOneBy({ id: lessonId });
-      //* Delete google event
-      await this.googleService.deleteEvent(
-        classData.calendarId,
-        lesson.calendarEventId,
-      );
+
       //* Modify old lesson's status to be inactive
       await this.lessonRepository.update({ id: lessonId }, { isActive: false });
-      //* Add new google event
-      const eventId = await this.googleService.addEventToCalendar({
+
+      await this.googleService.updateEventTime({
         calendarId: classData.calendarId,
-        summary: classData.code,
+        eventId: lesson.calendarEventId,
         startDate,
         endDate,
+        title: `Makeup ${lesson.title}`,
       });
 
       //* Insert new lesson
@@ -396,7 +395,7 @@ export class LessonService {
         endDate,
         title: `Makeup Lesson ${lesson.title}`,
         type: 'live',
-        calendarEventId: eventId,
+        calendarEventId: lesson.calendarEventId,
         teacher: lesson.teacher,
         document: lesson.document,
         class: lesson.class,
@@ -407,5 +406,24 @@ export class LessonService {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async getListDocumentOfLesson(lessonId: number) {
+    const lesson = await this.lessonRepository.findOne({
+      where: {
+        id: lessonId,
+      },
+      relations: ['document'],
+    });
+    const documents = await Promise.all(
+      lesson.document.map(async (doc) => {
+        return {
+          title: doc.title,
+          url: await this.uploadService.signImageCloudfront(doc.attachFile),
+        };
+      }),
+    );
+
+    return documents;
   }
 }

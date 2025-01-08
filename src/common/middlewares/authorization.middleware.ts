@@ -14,6 +14,7 @@ export class AuthorizationMiddleware implements NestMiddleware {
     '/payments/confirm-zalo',
     '/payments/process',
     '/payments/confirm-paypal',
+    '/upload',
   ]; // Các route cần bỏ qua
   use(req: Request, res: Response, next: NextFunction) {
     console.log(req.path);

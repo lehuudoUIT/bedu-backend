@@ -107,7 +107,9 @@ export class UploadService {
         Date.now() +
           1000 * this.configService.getOrThrow('AWS_CLOUD_FRONT_EXPIRE_TIME'),
       ).toString(),
-      privateKey: this.configService.getOrThrow('AWS_CLOUD_FRONT_PRIVATE_KEY'),
+      privateKey: this.configService
+        .getOrThrow('AWS_CLOUD_FRONT_PRIVATE_KEY')
+        .replace(/\\n/g, '\n'),
     });
   }
 }

@@ -2,7 +2,7 @@ export class CreateAnswerDto {
   userId: number;
   examId: number;
   questionId: number;
-  points?: number;
+  points: number;
   content: string;
-  testAttempts?: number;
+  testAttempt: number;
 }
