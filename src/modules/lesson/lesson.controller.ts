@@ -182,4 +182,18 @@ export class LessonController {
       metadata: await this.lessonService.remove(+id),
     };
   }
+
+  @UseGuards(RolesGuard)
+  @UseRoles({
+    action: 'read',
+    resource: 'lesson',
+    possession: 'own',
+  })
+  @Get('list-document/:id')
+  async getListDocumentOfLesson(@Param('id') id: number) {
+    return {
+      message: 'This action returns a #${id} document',
+      metadata: await this.lessonService.getListDocumentOfLesson(+id),
+    };
+  }
 }

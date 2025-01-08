@@ -25,6 +25,7 @@ import { UserProgramService } from '../user_program/user_program.service';
 import { AnswerService } from '../answer/answer.service';
 import { Exam } from 'src/entities/exam.entity';
 import { ReScheduleLessonDto } from './dtos/re-schedule-lesson.dto';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class LessonService {
@@ -39,6 +40,7 @@ export class LessonService {
     private readonly userClassService: UserClassService,
     private readonly UserProgramService: UserProgramService,
     private readonly answerService: AnswerService,
+    private readonly uploadService: UploadService,
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
@@ -404,5 +406,24 @@ export class LessonService {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async getListDocumentOfLesson(lessonId: number) {
+    const lesson = await this.lessonRepository.findOne({
+      where: {
+        id: lessonId,
+      },
+      relations: ['document'],
+    });
+    const documents = await Promise.all(
+      lesson.document.map(async (doc) => {
+        return {
+          title: doc.title,
+          url: await this.uploadService.signImageCloudfront(doc.attachFile),
+        };
+      }),
+    );
+
+    return documents;
   }
 }
