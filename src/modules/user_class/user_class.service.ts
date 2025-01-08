@@ -78,27 +78,26 @@ export class UserClassService {
   }
   async findAll(
     page: number = 1,
-    limit: number = 10
-
+    limit: number = 10,
   ): Promise<{
     totalRecord: number;
     userClasses: UserClass[];
   }> {
     const userClasses = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .leftJoinAndSelect('user_class.user', 'user')
-                          .leftJoinAndSelect('user_class.class', 'class')
-                          .where('user_class.deletedAt is null')
-                         // .andWhere('user.isActive = :isActive', { isActive: status })
-                          .orderBy('user_class.createdAt', 'DESC')
-                          .skip((page - 1) * limit)
-                          .take(limit)
-                          .getMany();
+      .createQueryBuilder('user_class')
+      .leftJoinAndSelect('user_class.user', 'user')
+      .leftJoinAndSelect('user_class.class', 'class')
+      .where('user_class.deletedAt is null')
+      // .andWhere('user.isActive = :isActive', { isActive: status })
+      .orderBy('user_class.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
     const total = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .where('user_class.deletedAt is null')
-                          //.andWhere('user.isActive = :isActive', { isActive: status }) 
-                          .getCount();
+      .createQueryBuilder('user_class')
+      .where('user_class.deletedAt is null')
+      //.andWhere('user.isActive = :isActive', { isActive: status })
+      .getCount();
 
     if (!userClasses) {
       throw new NotFoundException(
@@ -114,29 +113,29 @@ export class UserClassService {
   async findAllByClass(
     page: number = 1,
     limit: number = 10,
-    idClass: number
+    idClass: number,
   ): Promise<{
     totalRecord: number;
     userClasses: UserClass[];
   }> {
     const userClasses = await this.userClassRepository
-                                    .createQueryBuilder('user_class')
-                                    .leftJoinAndSelect('user_class.user', 'user')
-                                    .leftJoinAndSelect('user_class.class', 'class')
-                                    .where('user_class.deletedAt is null')
-                                    //.andWhere('user.isActive = :isActive', { isActive: status })
-                                    .andWhere('user_class.classId = :idClass', { idClass }) // Sửa lại thành '='
-                                    .orderBy('user_class.createdAt', 'DESC')
-                                    .skip((page - 1) * limit)
-                                    .take(limit)
-                                    .getMany();
+      .createQueryBuilder('user_class')
+      .leftJoinAndSelect('user_class.user', 'user')
+      .leftJoinAndSelect('user_class.class', 'class')
+      .where('user_class.deletedAt is null')
+      //.andWhere('user.isActive = :isActive', { isActive: status })
+      .andWhere('user_class.classId = :idClass', { idClass }) // Sửa lại thành '='
+      .orderBy('user_class.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
 
     const total = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .where('user_class.deletedAt is null')
-                          //.andWhere('user.isActive = :isActive', { isActive: status })
-                          .andWhere('user_class.classId = :idClass', { idClass })
-                          .getCount();
+      .createQueryBuilder('user_class')
+      .where('user_class.deletedAt is null')
+      //.andWhere('user.isActive = :isActive', { isActive: status })
+      .andWhere('user_class.classId = :idClass', { idClass })
+      .getCount();
 
     if (userClasses.length === 0) {
       throw new NotFoundException(
@@ -149,32 +148,29 @@ export class UserClassService {
     };
   }
 
-  async findAllByClassNotPaginate(
-    idClass: number
-  ): Promise<User[]> {
-
+  async findAllByClassNotPaginate(idClass: number): Promise<User[]> {
     const userClasses = await this.userClassRepository
-                                    .createQueryBuilder('user_class')
-                                    .leftJoinAndSelect('user_class.user', 'user')
-                                    .leftJoinAndSelect('user_class.class', 'class')
-                                    .where('user_class.deletedAt is null')
-                                    //.andWhere('user.isActive = :isActive', { isActive: status })
-                                    .andWhere('user_class.classId = :idClass', { idClass }) // Sửa lại thành '='
-                                    .orderBy('user_class.createdAt', 'DESC')
-                                    .getMany();
+      .createQueryBuilder('user_class')
+      .leftJoinAndSelect('user_class.user', 'user')
+      .leftJoinAndSelect('user_class.class', 'class')
+      .where('user_class.deletedAt is null')
+      //.andWhere('user.isActive = :isActive', { isActive: status })
+      .andWhere('user_class.classId = :idClass', { idClass }) // Sửa lại thành '='
+      .orderBy('user_class.createdAt', 'DESC')
+      .getMany();
 
     if (userClasses.length === 0) {
       throw new NotFoundException(
         'Class registration information is not found',
       );
     }
-    return userClasses.map(userClass => userClass.user);
+    return userClasses.map((userClass) => userClass.user);
   }
 
   async findOne(id: number): Promise<UserClass> {
     const userClass = await this.userClassRepository.findOneBy({
       id,
-      deletedAt: IsNull()
+      deletedAt: IsNull(),
     });
     if (!userClass) {
       throw new NotFoundException(
@@ -252,20 +248,20 @@ export class UserClassService {
     userClasses: UserClass[];
   }> {
     const userClasses = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .leftJoinAndSelect('user_class.class', 'class')
-                          .leftJoinAndSelect('user_class.user', 'user')
-                          .where('user_class.deletedAt is null')
-                          .andWhere('user_class.userId = :id', { id })
-                          .orderBy('user_class.createdAt', 'DESC')
-                          // .skip((page - 1) * limit)
-                          // .take(limit)
-                          .getMany();
+      .createQueryBuilder('user_class')
+      .leftJoinAndSelect('user_class.class', 'class')
+      .leftJoinAndSelect('user_class.user', 'user')
+      .where('user_class.deletedAt is null')
+      .andWhere('user_class.userId = :id', { id })
+      .orderBy('user_class.createdAt', 'DESC')
+      // .skip((page - 1) * limit)
+      // .take(limit)
+      .getMany();
     const total = await this.userClassRepository
-                          .createQueryBuilder('user_class')
-                          .where('user_class.deletedAt is null')
-                          .andWhere('user_class.userId = :id', { id })
-                          .getCount();
+      .createQueryBuilder('user_class')
+      .where('user_class.deletedAt is null')
+      .andWhere('user_class.userId = :id', { id })
+      .getCount();
 
     if (!userClasses) {
       throw new NotFoundException(
@@ -274,8 +270,22 @@ export class UserClassService {
     }
     return {
       totalRecord: total,
-      userClasses: userClasses
-    }
+      userClasses: userClasses,
+    };
+  }
+
   async getListEmailOfClass(classId: number) {
+    const students = await this.userClassRepository
+      .createQueryBuilder('userClass')
+      .select()
+      .where('userClass.classId = :classId', { classId })
+      .leftJoinAndSelect('userClass.user', 'user')
+      .getMany();
+
+    return students.map((student) => {
+      return {
+        email: student.user.email,
+      };
+    });
   }
 }

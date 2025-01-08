@@ -298,4 +298,40 @@ export class GoogleService {
       throw new Error(`Lỗi khi thêm sự kiện: ${error.message}`);
     }
   }
+
+  async updateEventTime(body: {
+    calendarId: string;
+    eventId: string;
+    startDate: Date;
+    endDate: Date;
+    title: string;
+  }): Promise<void> {
+    try {
+      // Cập nhật sự kiện
+      const response = await this.calendar.events.patch({
+        calendarId: body.calendarId,
+        eventId: body.eventId,
+        requestBody: {
+          summary: body.title,
+          start: {
+            dateTime: new Date(body.startDate).toISOString(),
+            timeZone: 'Asia/Ho_Chi_Minh', // Thay đổi theo múi giờ của bạn
+          },
+          end: {
+            dateTime: new Date(body.endDate).toISOString(),
+            timeZone: 'Asia/Ho_Chi_Minh', // Thay đổi theo múi giờ của bạn
+          },
+        },
+        sendUpdates: 'all', // Gửi thông báo đến tất cả người tham gia
+      });
+
+      // console.log('Event updated successfully:', response.data);
+    } catch (error) {
+      console.error(
+        'Error updating event:',
+        error.response?.data || error.message,
+      );
+      throw new Error('Failed to update event');
+    }
+  }
 }
