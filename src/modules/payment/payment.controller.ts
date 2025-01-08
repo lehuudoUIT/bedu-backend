@@ -196,7 +196,7 @@ export class PaymentController {
   ) {
     return {
       message: 'Search payment successfully',
-      metadata: await this.paymentService.searchPayment(startTime, endTime, type),
+      metadata: await this.paymentService.totalRevenue(startTime, endTime, type),
     };
   }
 

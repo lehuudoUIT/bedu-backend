@@ -14,9 +14,6 @@ export class Comment extends AbstractEntity<Comment> {
   @Column()
   right: number;
 
-  @Column({ default: false })
-  isDeleted: boolean;
-
   @ManyToOne(() => Comment, (comment) => comment.children, { nullable: true })
   parent: Comment;  
 
