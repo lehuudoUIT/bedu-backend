@@ -573,52 +573,65 @@ export class AnswerService {
     const classResponse = await this.classService.findOne(classId);
     const lessons = classResponse.lesson;
    // console.log(lessons)
-    let exams: Exam[] = [];
+    let exams: number[] = [];
     let totalScoreRecordList = [];
     lessons.forEach(async (lesson) => {
-      let examItem = await this.examService.findOne(lesson.exam.id);
-      //console.log(examItem);
-      if (examItem != null) {
-        exams.push(examItem);
-      }
+     // console.log("Exam id ", lesson.exam.id);
+      exams.push(lesson.exam.id);
     })
-   // console.log(exams);
+   //console.log(exams);
     let doneCount = 0;
     let totalScoreRecord = [];
     let scoreContributor = [];
-    exams.forEach(async(exam) => {
+    //  exams.forEach(async(exam) => {
+    //   //console.log("Number: ");
+    //   let checkDone = await this.answerRepository
+    //                             .createQueryBuilder('answer')
+    //                             .select('DISTINCT answer.userId', 'userId')
+    //                             .where('answer.userId = :studentId', { studentId })
+    //                             .andWhere('answer.examId = :examId', { examId: exam})
+    //                             .getOne();
+    //   //console.log(checkDone);
+    //   if (checkDone) {
+    //     doneCount++;
+    //   }
+
+    //   let scoreTable = await this.getExamResultByExamIdAndUserId(exam, studentId);
+    //   console.log(scoreTable);
+    //   totalScoreRecord.push(scoreTable);
+    // })
+    for (let i = 0; i < exams.length; i++) {
       let checkDone = await this.answerRepository
                                 .createQueryBuilder('answer')
                                 .select('DISTINCT answer.userId', 'userId')
                                 .where('answer.userId = :studentId', { studentId })
-                                .andWhere('answer.examId = :examId', { examId: exam.id })
+                                .andWhere('answer.examId = :examId', { examId: exams[i]})
                                 .getOne();
-      console.log(checkDone);
-      if (checkDone) {
-        doneCount++;
-      }
+      //console.log(checkDone);
+      doneCount++;
 
-      let scoreTable = await this.getExamResultByExamIdAndUserId(exam.id, studentId);
-      if (scoreTable) {
-        totalScoreRecord.push(scoreTable);
-      }
-
-    })
+      let scoreTable = await this.getExamResultByExamIdAndUserId(exams[i], studentId);
+      // console.log(scoreTable);
+      totalScoreRecord.push(scoreTable);
+    }
+    //console.log('total: ', await Promise.all(totalScoreRecord) );
 
     let averageScore = 0;
-    let highestScore = 0;
-    let lowestScore = 0;
+    let highestScore = totalScoreRecord[0][0].total;
+    let lowestScore = totalScoreRecord[0][0].total;
     let countRecord = 0;
-    totalScoreRecord.forEach((score) => {
+    console.log(totalScoreRecord)
+
+    for (let i = 0 ; i < totalScoreRecord.length; i++) {
       countRecord++;
-      averageScore += Number(score.total);
-      if (Number(score.total) > highestScore) {
-        highestScore = Number(score.total);
+      averageScore += Number(totalScoreRecord[i][0].total);
+      if (Number(totalScoreRecord[i][0].total) > highestScore) {
+        highestScore = Number(totalScoreRecord[i][0].total);
       }
-      if (Number(score.total) < lowestScore) {
-        lowestScore = Number(score.total);
+      if (Number(totalScoreRecord[i][0].total) < lowestScore) {
+        lowestScore = Number(totalScoreRecord[i][0].total);
       }
-    })
+    }
 
     return {
       totalExam: exams.length,
@@ -680,6 +693,23 @@ export class AnswerService {
     } catch(error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async findOneByExamIs(
+    id: number
+  ): Promise<Answer> {
+    const result = await this.answerRepository
+                          .createQueryBuilder('answer')
+                          .leftJoinAndSelect('answer.user', 'user')
+                          .leftJoinAndSelect('answer.exam', 'exam')
+                          .leftJoinAndSelect('answer.question', 'question')
+                          .where('answer.deletedAt is NULL')
+                          .andWhere('answer.examId = :id', { id })
+                          .getOne();
+      if (!result) {
+        throw new NotFoundException('Answer not found');
+      }
+      return result;
   }
 
 }
