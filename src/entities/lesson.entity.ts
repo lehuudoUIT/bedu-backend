@@ -56,7 +56,7 @@ export class Lesson extends AbstractEntity<Lesson> {
   course: Course;
 
   @OneToMany(() => Comment, (comment) => comment.lesson, { nullable: true })
-  comment: Comment;
+  comment: Comment[];
 
   @OneToMany(() => Attendance, (attendance) => attendance.lesson, {
     nullable: true,
