@@ -86,10 +86,18 @@ export class PaymentController {
         //* Add user to class
       } else if (keyword === 'PROGRAM') {
         //* Add user to program
-        await this.userProgramService.create({
+        // await this.userProgramService.create({
+        //   programId: id,
+        //   userId,
+        //   time: new Date(),
+        // });
+
+        await this.paymentService.create({
           programId: id,
-          userId,
-          time: new Date(),
+          userId: id,
+          transactionId: response.id,
+          amount,
+          method: 'paypal',
         });
 
         await this.paymentService.create({
@@ -99,14 +107,13 @@ export class PaymentController {
           amount,
           method: 'paypal',
         });
-        return res.redirect(process.env.PAYPAL_REDIRECT_SUCCESS);
       } else {
         throw new NotFoundException('Not found class/program');
       }
     } else {
       throw new InternalServerErrorException('Add course/class failed!');
     }
-    // return res.send({ message: 'Purchase payment successfully', response });
+    return res.send({ message: 'Purchase payment successfully', response });
   }
 
   @UseGuards(RolesGuard)
@@ -181,7 +188,7 @@ export class PaymentController {
     };
   }
 
- @Get('search/:startTime/:endTime/:type')
+  @Get('search/:startTime/:endTime/:type')
   async SearchPayment(
     @Param('startTime') startTime: Date,
     @Param('endTime') endTime: Date,

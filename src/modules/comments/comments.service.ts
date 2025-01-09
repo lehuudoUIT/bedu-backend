@@ -166,28 +166,30 @@ export class CommentsService {
     const parentComment = await this.commentRepository.findOneBy({
       id: commentId,
     });
-    if (!parentComment) throw new NotFoundException('Comment not found!');
+    // console.log(parentComment);
+    //if (!parentComment) throw new NotFoundException('Comment not found!');
 
     const leftValue = parentComment.left;
     const rightValue = parentComment.right;
     //2. Tinh width
     const width = rightValue - leftValue + 1;
-
     //3. Xoa comment cha va con
     await this.commentRepository
       .createQueryBuilder('comment')
-      .delete()
-      .where('comment.lessonId = :lessonId', { lessonId })
+      .leftJoinAndSelect('comment.lesson', 'lesson')
+      .where('lesson.id = :lessonId', { lessonId })
       .andWhere('comment.left >= :leftValue', { leftValue })
       .andWhere('comment.left < :rightValue', { rightValue })
+      .delete()
       .execute();
 
     //4. Update cac comment ben phai comment hien tai tru di so node bi xoa
     await this.commentRepository
       .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.lesson', 'lesson')
       .update()
       .set({ left: () => `left - ${width}`, right: () => `right - ${width}` })
-      .where('comment.lessonId = :lessonId', { lessonId })
+      .where('lesson.id = :lessonId', { lessonId })
       .andWhere('comment.left < :rightValue', { rightValue })
       .execute();
     return true;

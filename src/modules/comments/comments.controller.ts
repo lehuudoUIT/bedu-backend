@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dtos/create-comment.dto';
@@ -51,16 +52,16 @@ export class CommentsController {
     };
   }
 
-  @UseGuards(RolesGuard)
-  @UseRoles({
-    action: 'delete',
-    resource: 'comment',
-    possession: 'any',
-  })
+  // @UseGuards(RolesGuard)
+  // @UseRoles({
+  //   action: 'delete',
+  //   resource: 'comment',
+  //   possession: 'any',
+  // })
   @Delete(':commentId/:lessonId')
   async findOne(
-    @Param('commentId') commentId: number,
-    @Param('lessonId') lessonId: number,
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Param('lessonId', ParseIntPipe) lessonId: number,
   ) {
     return {
       message: 'Delete comment successfully',

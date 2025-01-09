@@ -543,4 +543,143 @@ export class AnswerService {
     }
   }
 
+  async examScoreTableOfExamOfUser(
+    examId: number,
+    userId: number,
+  ) {
+    try {
+      const examScoreTable = await this.answerRepository
+                                      .createQueryBuilder('answer')
+                                      .select('answer.examId', 'examId')
+                                      .addSelect('answer.userId', 'userId')
+                                      .addSelect('answer.testAttempts', 'testAttempts')
+                                      .addSelect('SUM(answer.points)', 'total')
+                                      .leftJoin('answer.exam', 'exam')
+                                      .where('answer.examId = :examId', { examId })
+                                      .andWhere('answer.deletedAt is NULL')
+                                      .andWhere('answer.userId = :userId', { userId })
+                                      .groupBy('answer.examId, answer.userId, answer.testAttempts')
+                                      .getRawMany();
+      return examScoreTable;
+    } catch(error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getTotalTriesByStudent(
+    studentId: number,
+    classId: number
+  ) {
+    const classResponse = await this.classService.findOne(classId);
+    const lessons = classResponse.lesson;
+   // console.log(lessons)
+    let exams: Exam[] = [];
+    let totalScoreRecordList = [];
+    lessons.forEach(async (lesson) => {
+      let examItem = await this.examService.findOne(lesson.exam.id);
+      //console.log(examItem);
+      if (examItem != null) {
+        exams.push(examItem);
+      }
+    })
+   // console.log(exams);
+    let doneCount = 0;
+    let totalScoreRecord = [];
+    let scoreContributor = [];
+    exams.forEach(async(exam) => {
+      let checkDone = await this.answerRepository
+                                .createQueryBuilder('answer')
+                                .select('DISTINCT answer.userId', 'userId')
+                                .where('answer.userId = :studentId', { studentId })
+                                .andWhere('answer.examId = :examId', { examId: exam.id })
+                                .getOne();
+      console.log(checkDone);
+      if (checkDone) {
+        doneCount++;
+      }
+
+      let scoreTable = await this.getExamResultByExamIdAndUserId(exam.id, studentId);
+      if (scoreTable) {
+        totalScoreRecord.push(scoreTable);
+      }
+
+    })
+
+    let averageScore = 0;
+    let highestScore = 0;
+    let lowestScore = 0;
+    let countRecord = 0;
+    totalScoreRecord.forEach((score) => {
+      countRecord++;
+      averageScore += Number(score.total);
+      if (Number(score.total) > highestScore) {
+        highestScore = Number(score.total);
+      }
+      if (Number(score.total) < lowestScore) {
+        lowestScore = Number(score.total);
+      }
+    })
+
+    return {
+      totalExam: exams.length,
+      doneExam: doneCount,
+      averageScore: averageScore / countRecord,
+      highestScore: highestScore,
+      lowestScore: lowestScore,
+      scoreTable: totalScoreRecord,
+    }
+  }
+
+
+  async getExamResultByExamIdAndUserId(
+    examId: number,
+    userId: number
+  ) {
+    const examResult = await this.answerRepository
+                              .createQueryBuilder('answer')
+                              .leftJoinAndSelect('answer.user', 'user')
+                              .select([
+                                'answer.userId AS userId',
+                                'user.name AS name',
+                                'answer.testAttempts as attempts',
+                                'SUM(answer.points) AS total',
+                              ])
+                              .where('answer.examId = :examId', { examId })
+                              .andWhere('answer.deletedAt is NULL')
+                              .andWhere('answer.userId = :userId', { userId })
+                              .groupBy('answer.userId, answer.testAttempts')
+                              .getRawMany();
+    return examResult;
+  }
+
+  async getScoreDistributionByUser(
+    examId: number,
+    userId: number
+  ): Promise<number[]> {
+    try {
+      let ranges: number[] = [];
+      for(let i = 1; i <= 10; i++) {
+        const contribute = await this.answerRepository
+                                  .createQueryBuilder('answer')
+                                  .leftJoinAndSelect('answer.user', 'user')
+                                  .select([
+                                    'answer.userId AS userId',
+                                    'user.name AS name',
+                                    'answer.testAttempts as attempts',
+                                    'SUM(answer.points) AS total',
+                                  ])
+                                  .where('answer.examId = :examId', { examId })
+                                  .andWhere('answer.deletedAt is NULL')
+                                  .andWhere('answer.userId = :userId', { userId })
+                                  .groupBy('answer.userId, answer.testAttempts')
+                                  .having(`SUM(answer.points) < ${i} `)
+                                  .getRawMany() 
+        ranges.push(contribute.length);
+      }
+      return ranges;
+    } catch(error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
 }

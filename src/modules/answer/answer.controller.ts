@@ -215,4 +215,15 @@ export class AnswerController {
       metadata: await this.answerService.tableOfCorrectAndIncorrectRate(examId, questionId),
     };
   }
+
+  @Get('student/:studentId/class/:examId')
+  async getStudentResult(
+    @Param('studentId', ParseIntPipe) studentId: number,
+    @Param('examId', ParseIntPipe) examId: number
+  ) {
+    return {
+      message: 'Get student result successfully',
+      metadata: await this.answerService.getTotalTriesByStudent(studentId, examId),
+    };
+  }
 }

@@ -135,6 +135,7 @@ export class ClassService {
     const classItem = await this.classRepository
                           .createQueryBuilder('class')
                           .leftJoinAndSelect('class.lesson', 'lesson')
+                          .leftJoinAndSelect('lesson.exam', 'exam')                          
                           .where('class.id = :id', { id })
                           .andWhere('class.deletedAt is null')
                           .getOne();
@@ -192,4 +193,6 @@ export class ClassService {
     }
     return result;
   }
+
+
 }

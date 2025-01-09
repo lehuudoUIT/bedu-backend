@@ -174,7 +174,7 @@ export class UsersService {
         throw new Error('Role not found');
       }
 
-      // user.role = newRole;
+      user.role = newRole;
       return await this.userRepository.save(user);
     } catch (error) {
       throw new Error(error);
