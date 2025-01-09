@@ -14,6 +14,7 @@ import { Course } from 'src/entities/course.entity';
 import { ClassService } from '../class/class.service';
 import { CourseService } from '../course/course.service';
 import { LessonService } from '../lesson/lesson.service';
+import { async } from 'rxjs';
 // npx jest src/modules/answer/answer.service.spec.ts
 @Injectable()
 export class AnswerService {
@@ -633,34 +634,51 @@ export class AnswerService {
       }
     }
 
+    // for(let i = 0 ; i < totalScoreRecord.length; i++) {
+    //   //scoreContributor.push(totalScoreRecord[i][0]);
+    //   for (let j = 0; j < totalScoreRecord[i].length; j++) {
+    //     scoreContributor.push(totalScoreRecord[i][j]);
+    //   }
+    // }
+
+    const flattenedArray = totalScoreRecord.flat()
+    console.log('score: ', flattenedArray);
+    // console.log(flattenedArray);
+    
     return {
       totalExam: exams.length,
       doneExam: doneCount,
       averageScore: averageScore / countRecord,
       highestScore: highestScore,
       lowestScore: lowestScore,
-      scoreTable: totalScoreRecord,
+      scoreTable: scoreContributor,
     }
   }
 
+  flattenArray(nestedArray: any[][]): any[] {
+    return nestedArray.flat();
+  }
 
-  async getExamResultByExamIdAndUserId(
+
+ async getExamResultByExamIdAndUserId(
     examId: number,
     userId: number
   ) {
     const examResult = await this.answerRepository
                               .createQueryBuilder('answer')
                               .leftJoinAndSelect('answer.user', 'user')
+                              .leftJoinAndSelect('answer.exam', 'exam')
                               .select([
                                 'answer.userId AS userId',
                                 'user.name AS name',
                                 'answer.testAttempts as attempts',
                                 'SUM(answer.points) AS total',
+                                'exam.title as examName'
                               ])
                               .where('answer.examId = :examId', { examId })
                               .andWhere('answer.deletedAt is NULL')
                               .andWhere('answer.userId = :userId', { userId })
-                              .groupBy('answer.userId, answer.testAttempts')
+                              .groupBy('answer.userId, answer.examId, answer.testAttempts')
                               .getRawMany();
     return examResult;
   }

@@ -14,7 +14,7 @@ export class Question extends AbstractEntity<Question> {
   // @Column() 
   // score: number;
 
-  @Column('float')
+  @Column({default: 0})
   totalPoints: number;
 
   @Column()
